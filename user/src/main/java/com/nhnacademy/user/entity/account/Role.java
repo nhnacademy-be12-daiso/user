@@ -10,10 +10,10 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.user;
+package com.nhnacademy.user.entity.account;
 
 public enum Role {
 
-    ADMIN, MEMBER
-    
+    ADMIN, USER
+
 }

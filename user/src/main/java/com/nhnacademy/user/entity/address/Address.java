@@ -49,10 +49,14 @@ public class Address {      // 회원 배송지 주소
     @Column(name = "address_detail", nullable = false)
     private String addressDetail;   // 전체 주소
 
-    public Address(User user, String addressName, String addressDetail) {
+    @Column(name = "is_default", nullable = false)
+    private boolean isDefault;      // 기본 배송지 여부
+
+    public Address(User user, String addressName, String addressDetail, boolean isDefault) {
         this.user = user;
         this.addressName = addressName;
         this.addressDetail = addressDetail;
+        this.isDefault = isDefault;
     }
 
 }

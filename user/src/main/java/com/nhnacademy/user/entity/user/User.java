@@ -17,6 +17,8 @@ import com.nhnacademy.user.entity.address.Address;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -58,9 +60,11 @@ public class User {     // 회원 기본 정보
 
     private LocalDate birth;                // 생년월일, YYYY-MM-DD 패턴
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Grade grade = Grade.GENERAL;    // 회원 등급, default = 'GENERAL'
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.ACTIVE;  // 계정 상태, default = 'ACTIVE'
 
@@ -88,6 +92,18 @@ public class User {     // 회원 기본 정보
         this.grade = Grade.GENERAL;
         this.status = Status.ACTIVE;
         this.point = 0L;
+    }
+
+    public void modifyLastLoginAt() {           // 최근 로그인을 현재로 변경하는 메소드
+        this.lastLoginAt = LocalDateTime.now();
+    }
+
+    public void modifyGrade(Grade newGrade) {   // 등급 변경하는 메소드
+        this.grade = newGrade;
+    }
+
+    public void withdraw() {                    // 탈퇴 회원으로 변경하는 메소드
+        this.status = Status.WITHDRAWN;
     }
 
 }

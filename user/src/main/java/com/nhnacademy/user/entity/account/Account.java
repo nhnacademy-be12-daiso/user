@@ -15,6 +15,8 @@ package com.nhnacademy.user.entity.account;
 import com.nhnacademy.user.entity.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -38,13 +40,18 @@ public class Account {      // 회원 인증 (로그인) 정보
     @Length(max = 255)
     private String password;    // 로그인 비밀번호: 사용자 입력
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
     @OneToOne
     @JoinColumn(name = "user_created_id", unique = true)
     private User user;          // Users 테이블 외래키 (FK)
 
-    public Account(String loginId, String password, User user) {
+    public Account(String loginId, String password, Role role, User user) {
         this.loginId = loginId;
         this.password = password;
+        this.role = role;
         this.user = user;
     }
 
