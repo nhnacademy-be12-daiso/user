@@ -35,7 +35,7 @@ public class Address {      // 회원 배송지 주소
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
-    private long addressId;         // 주소 고유 ID (PK, AI)
+    private Long addressId;         // 주소 고유 ID (PK, AI)
 
     @ManyToOne
     @JoinColumn(name = "user_created_id", nullable = false)
