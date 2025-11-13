@@ -35,14 +35,14 @@ public class Account {      // 회원 인증 (로그인) 정보
     @Id
     @Length(max = 50)
     @Column(name = "login_id")
-    private String loginId;     // 로그인 아이디: 사용자 입력 (PK)
+    private String loginId;         // 로그인 아이디: 사용자 입력 (PK)
 
     @Length(max = 255)
-    private String password;    // 로그인 비밀번호: 사용자 입력
+    private String password;        // 로그인 비밀번호: 사용자 입력
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role = Role.USER;
+    private Role role = Role.USER;  // 계정 권한, default = 'USER'
 
     @OneToOne
     @JoinColumn(name = "user_created_id", unique = true)
