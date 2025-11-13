@@ -19,6 +19,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -78,7 +79,7 @@ public class User {     // 회원 기본 정보
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;      // 최근 로그인 일시
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Account account;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -104,6 +105,10 @@ public class User {     // 회원 기본 정보
 
     public void withdraw() {                    // 탈퇴 회원으로 변경하는 메소드
         this.status = Status.WITHDRAWN;
+    }
+
+    public void addAddress(Address newAddress) {
+        this.addresses.add(newAddress);
     }
 
 }

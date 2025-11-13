@@ -17,6 +17,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -44,7 +45,7 @@ public class Account {      // 회원 인증 (로그인) 정보
     @Column(nullable = false)
     private Role role = Role.USER;  // 계정 권한, default = 'USER'
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", unique = true)
     private User user;          // Users 테이블 외래키 (FK)
 

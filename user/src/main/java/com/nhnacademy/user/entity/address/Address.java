@@ -15,6 +15,7 @@ package com.nhnacademy.user.entity.address;
 import com.nhnacademy.user.entity.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,7 +38,7 @@ public class Address {      // 회원 배송지 주소
     @Column(name = "address_id")
     private Long addressId;         // 주소 고유 ID (PK, AI)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", nullable = false)
     private User user;              // Users 테이블 외래키 (FK)
 

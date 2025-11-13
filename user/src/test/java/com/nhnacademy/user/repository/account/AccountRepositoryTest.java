@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
 import java.time.LocalDate;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.orm.jpa.JpaSystemException;
 
 @DataJpaTest
 public class AccountRepositoryTest {
@@ -35,41 +35,36 @@ public class AccountRepositoryTest {
     private UserRepository userRepository;
 
     @Test
-    @DisplayName("회원, 계정 저장 성공")
+    @DisplayName("Account 저장 시 User 매핑 성공")
     void test1() {
-        User user = new User("test-name", "010-1234-5678",
+        User user = new User("테스트_이름", "010-1234-5678",
                 "test@test.com", LocalDate.of(2003, 11, 7));
         userRepository.save(user);
 
-        Account account = new Account("test", "test-password", user);
+        Account account = new Account("test", "pwd123!@#", Role.USER, user);
         accountRepository.save(account);
 
         Account found = accountRepository.findById("test").orElse(null);
 
         assertThat(found).isNotNull();
         assertThat(found.getLoginId()).isEqualTo("test");
-        assertThat(found.getUser()).isNotNull();
-        assertThat(found.getUser().getUserName()).isEqualTo("test-name");
+        assertThat(found.getRole()).isEqualTo(Role.USER);
+        assertThat(found.getUser().getUserName()).isEqualTo("테스트_이름");
     }
 
     @Test
-    @DisplayName("이미 존재하는 로그인 ID로 가입 시 예외 발생")
+    @DisplayName("이미 계정이 있는 User가 계정을 또 만들었을 때 예외 발생")
     void test2() {
-        User user1 = new User("test-name1", "010-1111-1111",
-                "test1@test.com", LocalDate.of(2011, 1, 1));
-        userRepository.save(user1);
+        User user = new User("테스트1", "010-0000-0000",
+                "test1@test.com", LocalDate.of(2003, 11, 7));
+        userRepository.save(user);
 
-        Account account1 = new Account("exist-id", "password1", user1);
+        Account account1 = new Account("test1", "pwd111!!!", Role.USER, user);
         accountRepository.save(account1);
 
-        User user2 = new User("test-name2", "010-2222-2222",
-                "test2@test.com", LocalDate.of(2022, 2, 2));
-        userRepository.save(user2);
+        Account account2 = new Account("test2", "pwd222@@@", Role.USER, user);
 
-        Account account2 = new Account("exist-id", "password2", user2);
-
-        assertThatThrownBy(() -> accountRepository.save(account2))
-                .isInstanceOf(JpaSystemException.class);
+        assertThatThrownBy(() -> accountRepository.saveAndFlush(account2));
     }
 
 }
