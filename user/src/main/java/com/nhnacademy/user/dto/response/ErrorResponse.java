@@ -10,10 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.dto.response;
 
-public class AccountAlreadyExistsException extends RuntimeException {
-    public AccountAlreadyExistsException(String message) {
-        super(message);
-    }
+public record ErrorResponse(String title, int status, String message) {
 }

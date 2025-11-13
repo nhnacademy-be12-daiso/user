@@ -10,10 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.service.user;
 
-public class AccountNotFoundException extends RuntimeException {
-    public AccountNotFoundException(String message) {
-        super(message);
-    }
+import com.nhnacademy.user.dto.request.SignupRequest;
+
+public interface UserService {
+
+    void signUp(SignupRequest request);
+
 }

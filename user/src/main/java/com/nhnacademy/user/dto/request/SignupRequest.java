@@ -10,13 +10,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.entity.user.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    boolean existsByPhoneNumber(String phoneNumber);
-
-    boolean existsByEmail(String email);
+public record SignupRequest(@NotBlank String loginId,
+                            @NotBlank String password,
+                            @NotBlank String userName,
+                            @NotBlank String phoneNumber,
+                            @NotBlank @Email String email,
+                            @NotNull LocalDate birth) {
 }
