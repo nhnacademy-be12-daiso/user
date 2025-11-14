@@ -12,5 +12,39 @@
 
 package com.nhnacademy.user.util;
 
+import com.nhnacademy.user.properties.JwtProperties;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
+import org.springframework.stereotype.Component;
+
+@Component
 public class JwtUtil {
+
+    private final Key key;
+
+    private final long expirationTime;
+
+    private final String tokenPrefix;
+
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        this.expirationTime = jwtProperties.getExpirationTime() * 1000L;
+        this.tokenPrefix = jwtProperties.getTokenPrefix();
+    }
+
+    public String createAccessToken(String loginId, String role) {
+        String token = Jwts.builder()
+                .setSubject(loginId)
+                .claim("role", role)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        return tokenPrefix + " " + token;
+    }
+
 }

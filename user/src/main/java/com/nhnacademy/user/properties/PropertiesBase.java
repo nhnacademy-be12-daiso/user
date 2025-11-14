@@ -10,19 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user;
+package com.nhnacademy.user.properties;
 
-import com.nhnacademy.user.properties.PropertiesBase;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-
-@SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {PropertiesBase.class})
-public class UserApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
-    }
-
+public interface PropertiesBase {
 }

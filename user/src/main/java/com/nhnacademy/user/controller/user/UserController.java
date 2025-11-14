@@ -14,6 +14,7 @@ package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
+import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ public class UserController {
 
     private final UserService userService;
 
+    private final JwtProperties jwtProperties;
+
     // POST /users/signup
     @PostMapping("/signup")
     public ResponseEntity<Void> signUp(@Valid @RequestBody SignupRequest request) {
@@ -42,9 +45,9 @@ public class UserController {
     // POST /users/login
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
-        userService.login(request);
+        String token = userService.login(request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.OK).header(jwtProperties.getHeader(), token).build();
     }
 
 }

@@ -22,7 +22,10 @@ import com.nhnacademy.user.exception.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.UserService;
+import com.nhnacademy.user.util.JwtUtil;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +39,10 @@ public class UserServiceImpl implements UserService {
     private final AccountRepository accountRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional
@@ -62,17 +69,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public void login(LoginRequest request) {
+    @Transactional
+    public String login(LoginRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.loginId(), request.password()));
+
         Account account = accountRepository.findById(request.loginId())
-                .orElseThrow(() -> new UserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다."));
+                .orElseThrow(() -> new UserNotFoundException("인증은 성공했지만 찾을 수 없는 계정입니다.")); // 나오면 안 되는 에러
 
-        if (!passwordEncoder.matches(request.password(), account.getPassword())) {
-            throw new UserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다.");
-        }
-
-        // 로그인 성공 시 마지막 로그인 일시 업데이트
         account.getUser().modifyLastLoginAt();
+
+        return jwtUtil.createAccessToken(account.getLoginId(), account.getRole().name());
     }
 
 }

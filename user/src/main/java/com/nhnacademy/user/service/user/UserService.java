@@ -21,6 +21,6 @@ public interface UserService {
     void signUp(SignupRequest request);
 
     // 로그인
-    void login(LoginRequest request);
+    String login(LoginRequest request);
 
 }
