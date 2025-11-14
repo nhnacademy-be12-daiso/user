@@ -10,9 +10,13 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.response;
+package com.nhnacademy.user.dto.request;
 
-public record ErrorResponse(String title,
-                            int status,
-                            String message) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
+// 아이디: 영문 소문자 + 숫자, 3~16자
+// 비밀번호: 영문, 숫자, 특수문자 최소 1개 + 8~20자
+public record LoginRequest(@NotBlank @Pattern(regexp = "^[a-z0-9]{3,16}$") String loginId,
+                           @NotBlank @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$") String password) {
 }

@@ -12,10 +12,15 @@
 
 package com.nhnacademy.user.service.user;
 
+import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 
 public interface UserService {
 
+    // 회원가입
     void signUp(SignupRequest request);
+
+    // 로그인
+    void login(LoginRequest request);
 
 }

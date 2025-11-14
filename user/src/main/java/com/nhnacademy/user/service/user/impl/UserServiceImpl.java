@@ -12,11 +12,13 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.UserService;
@@ -57,6 +59,17 @@ public class UserServiceImpl implements UserService {
 
         Account account = new Account(request.loginId(), encodedPassword, Role.USER, user);
         accountRepository.save(account);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void login(LoginRequest request) {
+        Account account = accountRepository.findById(request.loginId())
+                .orElseThrow(() -> new UserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+        if (!passwordEncoder.matches(request.password(), account.getPassword())) {
+            throw new UserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
     }
 
 }

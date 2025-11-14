@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.controller.user;
 
+import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.service.user.UserService;
 import jakarta.validation.Valid;
@@ -36,6 +37,14 @@ public class UserController {
         userService.signUp(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // POST /users/login
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
+        userService.login(request);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.user.config.SecurityConfig;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.service.user.UserService;
 import java.time.LocalDate;
@@ -25,11 +26,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
 public class UserControllerTest {
 
     @Autowired
@@ -59,6 +62,18 @@ public class UserControllerTest {
     @DisplayName("필수 값 누락 - 400 Bad Request")
     void test2() throws Exception {
         SignupRequest request = new SignupRequest("test", "", "테스트",
+                "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
+
+        mockMvc.perform(post("/users/signup")
+                        .content(objectMapper.writeValueAsString(request))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("비밀번호 특수문자 누락 - 400 Bad Request")
+    void test5() throws Exception {
+        SignupRequest request = new SignupRequest("test", "pwd123", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
         mockMvc.perform(post("/users/signup")

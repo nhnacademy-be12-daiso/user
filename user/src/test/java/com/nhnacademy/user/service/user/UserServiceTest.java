@@ -19,14 +19,18 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,6 +66,7 @@ public class UserServiceTest {
 
         User user = new User("테스트", "010-1234-5678",
                 "test@test.com", LocalDate.of(2003, 11, 7));
+
         given(userRepository.save(any(User.class))).willReturn(user);
 
         userService.signUp(request);
@@ -114,6 +119,39 @@ public class UserServiceTest {
                 .hasMessage("이미 존재하는 아이디입니다.");
 
         verify(accountRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("로그인 성공")
+    void test5() {
+        LoginRequest request = new LoginRequest("test", "pwd123!@#");
+
+        User user = new User("테스트", "010-1234-5678",
+                "test@test.com", LocalDate.of(2003, 11, 7));
+        Account account = new Account("test", "encoded", Role.USER, user);
+
+        given(accountRepository.findById("test")).willReturn(Optional.of(account));
+        given(passwordEncoder.matches("pwd123!@#", "encoded")).willReturn(true);
+
+        userService.login(request);
+
+        verify(accountRepository).findById("test");
+        verify(passwordEncoder).matches("pwd123!@#", "encoded");
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호 불일치")
+    void test6() {
+        LoginRequest request = new LoginRequest("test", "wrong");
+
+        Account account = new Account("test", "encoded", Role.USER, null);
+
+        given(accountRepository.findById("test")).willReturn(Optional.of(account));
+        given(passwordEncoder.matches("wrong", "encoded")).willReturn(false);
+
+        assertThatThrownBy(() -> userService.login(request))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
     }
 
 }
