@@ -70,6 +70,9 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(request.password(), account.getPassword())) {
             throw new UserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
+
+        // 로그인 성공 시 마지막 로그인 일시 업데이트
+        account.getUser().modifyLastLoginAt();
     }
 
 }

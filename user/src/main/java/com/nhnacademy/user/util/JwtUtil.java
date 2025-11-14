@@ -10,13 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.account;
+package com.nhnacademy.user.util;
 
-import com.nhnacademy.user.entity.account.Account;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface AccountRepository extends JpaRepository<Account, String> {
-
-    boolean existsByLoginId(String loginId);
-
+public class JwtUtil {
 }
