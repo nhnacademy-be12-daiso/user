@@ -19,11 +19,14 @@ import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.UserNotFoundException;
+import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.UserService;
 import com.nhnacademy.user.util.JwtUtil;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +46,10 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
 
     private final JwtUtil jwtUtil;
+
+    private final JwtProperties jwtProperties;
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -80,6 +87,18 @@ public class UserServiceImpl implements UserService {
         account.getUser().modifyLastLoginAt();
 
         return jwtUtil.createAccessToken(account.getLoginId(), account.getRole().name());
+    }
+
+    @Override
+    public void logout(String authHeader) {
+        String token = authHeader.substring(jwtProperties.getTokenPrefix().length() + 1);
+
+        long remainingExp = jwtUtil.getRemainingExpiration(token);
+
+        if (remainingExp > 0) {
+            stringRedisTemplate.opsForValue()
+                    .set(token, "logout", remainingExp, TimeUnit.MILLISECONDS);
+        }
     }
 
 }

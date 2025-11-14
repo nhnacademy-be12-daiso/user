@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
+    private final StringRedisTemplate stringRedisTemplate;
+
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -48,12 +51,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = header.substring(jwtProperties.getTokenPrefix().length() + 1);
 
+        String isBlacklisted = stringRedisTemplate.opsForValue().get(token);
+
+        // 만약 redis에 토큰이 logout으로 등록되어 있다면
+        if (isBlacklisted != null && isBlacklisted.equals("logout")) {
+            // 유효한 토큰으로 인정하지 않고 그냥 필터 통과 (비로그인 상태로 처리)
+            filterChain.doFilter(request, response);
+
+            return;
+        }
+
         if (jwtUtil.isTokenValid(token)) {
-            String logindId = jwtUtil.getLoginId(token);
+            String loginId = jwtUtil.getLoginId(token);
             String role = jwtUtil.getRole(token);
 
             UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(logindId, null,
+                    new UsernamePasswordAuthenticationToken(loginId, null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role)));
 
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);

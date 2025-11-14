@@ -23,4 +23,7 @@ public interface UserService {
     // 로그인
     String login(LoginRequest request);
 
+    // 로그아웃
+    void logout(String authHeader);
+
 }

@@ -41,3 +41,13 @@ Content-Type: application/json
   "loginId": "test",
   "password": "WrongPassword!"
 }
+
+### 로그아웃 - 200 OK 응답 확인
+POST http://localhost:10444/users/logout
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMwOTc3NTYsImV4cCI6MTc2MzEwMTM1Nn0.YFiV_QC2b5cZheGXgWuwZOs877KgKFu6KgBzWXpLW7E
+
+{
+  "loginId": "test",
+  "password": "pwd123!@#"
+}
