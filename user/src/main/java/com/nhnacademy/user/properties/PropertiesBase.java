@@ -12,5 +12,5 @@
 
 package com.nhnacademy.user.properties;
 
-public interface PropertiesBase {
+public interface PropertiesBase {   // UserApplication.java에서 해당 패키지(properties)를 자동으로 스프링 빈으로 등록되게 도와줌
 }

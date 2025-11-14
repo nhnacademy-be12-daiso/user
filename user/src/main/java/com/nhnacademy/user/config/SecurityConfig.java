@@ -12,9 +12,7 @@
 
 package com.nhnacademy.user.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.user.config.filter.JwtAuthenticationFilter;
-import com.nhnacademy.user.properties.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,24 +29,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
-
-    private final JwtProperties jwtProperties;
-
-    private final ObjectMapper objectMapper;
+    // JWT 기반 인증 구조 적용, 로그인/회원가입 제외 나머지 API 인증 필요
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
+        // authenticationManager.authenticate(new UsernamePasswordAuthenticationToken())으로 인증을 수행하기 위함
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Order(Ordered.HIGHEST_PRECEDENCE)  // 해당 필터를 최우선순위로 설정
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
 
+        // 서버가 세션을 생성하지 않음, 클라이언트가 보내는 JWT만으로 인증 판단
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> auth
@@ -57,6 +54,7 @@ public class SecurityConfig {
                 .anyRequest()
                 .authenticated());
 
+        // UsernamePasswordAuthenticationFilter 앞에 커스텀 JWT 필터 등록
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -80,10 +80,10 @@ public class User {     // 회원 기본 정보
     private LocalDateTime lastLoginAt;      // 최근 로그인 일시
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Account account;
+    private Account account;                // 연관 계정, 일대일 관계, User 삭제 시 Account 함께 삭제
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Address> addresses = new ArrayList<>();
+    private List<Address> addresses = new ArrayList<>();    // 배송지 리스트, 일대다 관계, User 삭제 시 Addresses 함께 삭제
 
     public User(String userName, String phoneNumber, String email, LocalDate birth) {
         this.userName = userName;
@@ -95,19 +95,19 @@ public class User {     // 회원 기본 정보
         this.point = 0L;
     }
 
-    public void modifyLastLoginAt() {           // 최근 로그인을 현재로 변경하는 메소드
+    public void modifyLastLoginAt() {               // 최근 로그인 시각을 현재 시각으로 변경하는 메소드
         this.lastLoginAt = LocalDateTime.now();
     }
 
-    public void modifyGrade(Grade newGrade) {   // 등급 변경하는 메소드
+    public void modifyGrade(Grade newGrade) {      // 등급 변경하는 메소드
         this.grade = newGrade;
     }
 
-    public void withdraw() {                    // 탈퇴 회원으로 변경하는 메소드
+    public void withdraw() {                        // 탈퇴 회원으로 변경하는 메소드
         this.status = Status.WITHDRAWN;
     }
 
-    public void addAddress(Address newAddress) {
+    public void addAddress(Address newAddress) {    // 배송지 리스트에 주소 추가
         this.addresses.add(newAddress);
     }
 

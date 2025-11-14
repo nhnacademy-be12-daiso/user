@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
+    // AuthenticationManager에서 이 서비스를 호출해 인증 처리
 
     private final AccountRepository accountRepository;
 
@@ -34,7 +35,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Account account = accountRepository.findById(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with loginId: " + loginId));
 
+        // spring security User 객체 생성
+        // 로그인 ID와 암호화된 비밀번호 사용, 권한 정보(ROLE_ADMIN || ROLE_USER) 부여
         return new User(account.getLoginId(), account.getPassword(),
+                // 권한 리스트를 간단하게 생성(Collections.singleton)
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
     }
 

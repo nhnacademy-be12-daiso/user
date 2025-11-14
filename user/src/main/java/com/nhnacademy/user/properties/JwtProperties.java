@@ -23,14 +23,19 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 
+    // JWT 서명에 사용할 비밀 키
     private String secret;
 
+    // 토큰 만료 시간
     private Long expirationTime;
 
+    // Authorization 헤더에 붙는 접두사 (현재: Daiso)
     private String tokenPrefix;
 
+    // JWT 토큰이 담기는 HTTP 헤더 이름 (현재: Authorization)
     private String header;
 
+    // 로그인 요청 URL
     private String loginUrl;
 
 }
