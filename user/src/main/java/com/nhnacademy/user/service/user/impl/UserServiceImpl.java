@@ -23,14 +23,14 @@ import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.UserService;
 import com.nhnacademy.user.util.JwtUtil;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -62,9 +62,9 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(request.password());
 
         User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        Account account = new Account(request.loginId(), encodedPassword, Role.USER, user);
+        Account account = new Account(request.loginId(), encodedPassword, Role.USER, saved);
         accountRepository.save(account);
     }
 
@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.loginId(), request.password()));
 
-        Account account = accountRepository.findById(request.loginId())
+        Account account = accountRepository.findByIdWithUser(request.loginId())
                 .orElseThrow(() -> new UserNotFoundException("인증은 성공했지만 찾을 수 없는 계정입니다.")); // 나오면 안 되는 에러
 
         account.getUser().modifyLastLoginAt();

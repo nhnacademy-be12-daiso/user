@@ -13,6 +13,7 @@
 package com.nhnacademy.user.util;
 
 import com.nhnacademy.user.properties.JwtProperties;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -45,6 +46,33 @@ public class JwtUtil {
                 .compact();
 
         return tokenPrefix + " " + token;
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Claims claims = parseClaims(token);
+
+            return !claims.getExpiration().before(new Date());
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String getLoginId(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return parseClaims(token).get("role", String.class);
     }
 
 }

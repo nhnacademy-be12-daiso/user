@@ -25,7 +25,7 @@ public class JwtProperties {
 
     private String secret;
 
-    private Integer expirationTime;
+    private Long expirationTime;
 
     private String tokenPrefix;
 

@@ -147,7 +147,7 @@ public class UserServiceTest {
                 new UsernamePasswordAuthenticationToken(request.loginId(), request.password())))
                 .willReturn(mockAuthentication);
 
-        given(accountRepository.findById("test")).willReturn(Optional.of(account));
+        given(accountRepository.findByIdWithUser("test")).willReturn(Optional.of(account));
         given(jwtUtil.createAccessToken("test", "USER")).willReturn("Daiso token");
 
         String token = userService.login(request);
