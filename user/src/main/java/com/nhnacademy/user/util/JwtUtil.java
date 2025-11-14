@@ -75,4 +75,17 @@ public class JwtUtil {
         return parseClaims(token).get("role", String.class);
     }
 
+    public long getRemainingExpiration(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            long expirationTime = claims.getExpiration().getTime();
+            long now = new Date().getTime();
+
+            return expirationTime - now;
+
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
 }
