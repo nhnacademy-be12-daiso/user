@@ -12,5 +12,8 @@
 
 package com.nhnacademy.user.dto.response;
 
-public record ErrorResponse(String title, int status, String message) {
+public record ErrorResponse(String title,
+                            int status,
+                            String message) {
+    // 클라이언트에게 JSON 형태로 에러를 보여주기 위한 DTO
 }

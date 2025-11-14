@@ -10,19 +10,32 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user;
+package com.nhnacademy.user.properties;
 
-import com.nhnacademy.user.properties.PropertiesBase;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {PropertiesBase.class})   // 해당 클래스가 있는 패키지 기준으로 스캔
-public class UserApplication {
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "jwt")
+public class JwtProperties {
 
-    public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
-    }
+    // JWT 서명에 사용할 비밀 키
+    private String secret;
+
+    // 토큰 만료 시간
+    private Long expirationTime;
+
+    // Authorization 헤더에 붙는 접두사 (현재: Daiso)
+    private String tokenPrefix;
+
+    // JWT 토큰이 담기는 HTTP 헤더 이름 (현재: Authorization)
+    private String header;
+
+    // 로그인 요청 URL
+    private String loginUrl;
 
 }

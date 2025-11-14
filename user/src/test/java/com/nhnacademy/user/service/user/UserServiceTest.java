@@ -12,27 +12,36 @@
 
 package com.nhnacademy.user.service.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.UserAlreadyExistsException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
+import com.nhnacademy.user.util.JwtUtil;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +55,12 @@ public class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtUtil jwtUtil;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -62,6 +77,7 @@ public class UserServiceTest {
 
         User user = new User("테스트", "010-1234-5678",
                 "test@test.com", LocalDate.of(2003, 11, 7));
+
         given(userRepository.save(any(User.class))).willReturn(user);
 
         userService.signUp(request);
@@ -114,6 +130,40 @@ public class UserServiceTest {
                 .hasMessage("이미 존재하는 아이디입니다.");
 
         verify(accountRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("로그인 성공")
+    void test5() {
+        LoginRequest request = new LoginRequest("test", "pwd123!@#");
+
+        Authentication mockAuthentication = mock(Authentication.class);
+
+        User user = new User("테스트", "010-1234-5678",
+                "test@test.com", LocalDate.of(2003, 11, 7));
+        Account account = new Account("test", "encoded", Role.USER, user);
+
+        given(authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.loginId(), request.password())))
+                .willReturn(mockAuthentication);
+
+        given(accountRepository.findByIdWithUser("test")).willReturn(Optional.of(account));
+        given(jwtUtil.createAccessToken("test", "USER")).willReturn("Daiso token");
+
+        String token = userService.login(request);
+
+        assertThat(token).isEqualTo("Daiso token");
+        assertThat(account.getUser().getLastLoginAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 인증 실패")
+    void test6() {
+        LoginRequest request = new LoginRequest("test", "wrong");
+
+        given(authenticationManager.authenticate(any())).willThrow();
+
+        assertThatThrownBy(() -> userService.login(request));
     }
 
 }

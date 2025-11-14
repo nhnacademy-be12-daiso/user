@@ -10,19 +10,14 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.properties.PropertiesBase;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
-@SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {PropertiesBase.class})   // 해당 클래스가 있는 패키지 기준으로 스캔
-public class UserApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
-    }
-
+// 아이디: 영문 소문자 + 숫자, 3~16자
+// 비밀번호: 로그인용이기 때문에 빈 칸만 아니면 됨
+public record LoginRequest(@NotBlank @Pattern(regexp = "^[a-z0-9]{3,16}$") String loginId,
+                           @NotBlank String password) {
+    // 클라이언트로부터 로그인 요청 데이터를 받기 위한 요청 DTO
 }

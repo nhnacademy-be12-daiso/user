@@ -13,8 +13,16 @@
 package com.nhnacademy.user.repository.account;
 
 import com.nhnacademy.user.entity.account.Account;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface AccountRepository extends JpaRepository<Account, String> {
+
     boolean existsByLoginId(String loginId);
+
+    // 마지막 로그인 시간 수정할 때 일어나는 N+1 문제를 해결하기 위한 쿼리 메서드
+    @Query("SELECT a FROM Account a JOIN FETCH a.user WHERE a.loginId = :loginId")
+    Optional<Account> findByIdWithUser(String loginId);
+
 }

@@ -1,0 +1,53 @@
+### 회원가입 - 201 Created 응답 확인
+POST http://localhost:10444/users/signup
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "password": "pwd123!@#",
+  "userName": "테스트유저",
+  "phoneNumber": "010-1234-5678",
+  "email": "test@test.com",
+  "birth": "2003-11-07"
+}
+
+### 회원가입 - 409 Conflict 응답 확인
+POST http://localhost:10444/users/signup
+Content-Type: application/json
+
+{
+  "loginId": "another",
+  "password": "pwd111!!!",
+  "userName": "중복유저",
+  "phoneNumber": "010-0000-0000",
+  "email": "test@test.com",
+  "birth": "2001-01-01"
+}
+
+### 로그인 - 200 OK 응답 확인
+POST http://localhost:10444/users/login
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "password": "pwd123!@#"
+}
+
+### 로그인 - 401 Unauthorized 또는 404 Not Found 응답 확인
+POST http://localhost:10444/users/login
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "password": "WrongPassword!"
+}
+
+### 로그아웃 - 200 OK 응답 확인
+POST http://localhost:10444/users/logout
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMwOTc3NTYsImV4cCI6MTc2MzEwMTM1Nn0.YFiV_QC2b5cZheGXgWuwZOs877KgKFu6KgBzWXpLW7E
+
+{
+  "loginId": "test",
+  "password": "pwd123!@#"
+}

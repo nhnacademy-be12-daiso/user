@@ -40,7 +40,7 @@ public class Address {      // 회원 배송지 주소
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", nullable = false)
-    private User user;              // Users 테이블 외래키 (FK)
+    private User user;              // Users 테이블 외래키 (FK), 다대일 관계
 
     @Length(max = 50)
     @Column(name = "address_name", nullable = false)

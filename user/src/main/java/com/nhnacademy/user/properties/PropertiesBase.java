@@ -10,19 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user;
+package com.nhnacademy.user.properties;
 
-import com.nhnacademy.user.properties.PropertiesBase;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-
-@SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {PropertiesBase.class})   // 해당 클래스가 있는 패키지 기준으로 스캔
-public class UserApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
-    }
-
+public interface PropertiesBase {   // UserApplication.java에서 해당 패키지(properties)를 자동으로 스프링 빈으로 등록되게 도와줌
 }
