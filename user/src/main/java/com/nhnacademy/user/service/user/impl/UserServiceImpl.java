@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
+import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,6 +110,17 @@ public class UserServiceImpl implements UserService {
             stringRedisTemplate.opsForValue()
                     .set(token, "logout", remainingExp, TimeUnit.MILLISECONDS);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getUserInfo(String loginId) {
+        Account account = accountRepository.findByIdWithUser(loginId)
+                .orElseThrow(() -> new UsernameNotFoundException("찾을 수 없는 계정입니다."));
+
+        User user = account.getUser();
+
+        return UserResponse.fromEntity(user);
     }
 
 }

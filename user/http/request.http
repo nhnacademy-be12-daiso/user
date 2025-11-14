@@ -51,3 +51,9 @@ Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLC
   "loginId": "test",
   "password": "pwd123!@#"
 }
+
+### 마이페이지 조회 - 200 OK 응답 확인
+GET http://localhost:10444/users/me
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ3.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMxMTA1NTUsImV4cCI6MTc2MzExNDE1NX0.Q7iYIKYaJc_Ln7IYvNrR3FD9NLQRV5PH4nJG9scZpsI
+
