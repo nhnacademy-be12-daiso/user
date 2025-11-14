@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
+import com.nhnacademy.user.dto.response.UserResponse;
 
 public interface UserService {
 
@@ -25,5 +26,8 @@ public interface UserService {
 
     // 로그아웃
     void logout(String authHeader);
+
+    // 유저 정보 조회
+    UserResponse getUserInfo(String loginId);
 
 }
