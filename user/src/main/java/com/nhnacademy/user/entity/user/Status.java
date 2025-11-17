@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.entity.user;
 
-public enum Status {
+public enum Status {    // 회원 상태 (활동 중, 휴면, 탈퇴)
 
     ACTIVE, DORMANT, WITHDRAWN
 

@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.entity.account;
 
-public enum Role {
+public enum Role {  // 관리자, 회원 권한 Enum
 
     ADMIN, USER
 

@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserInfo(String loginId) {
+    public UserResponse getUserInfo(String loginId) {   // 회원 정보 조회
         Account account = accountRepository.findByIdWithUser(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("찾을 수 없는 계정입니다."));
 

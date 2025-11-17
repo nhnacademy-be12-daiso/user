@@ -10,24 +10,30 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.user;
+package com.nhnacademy.user.config;
 
-import com.nhnacademy.user.dto.request.LoginRequest;
-import com.nhnacademy.user.dto.request.SignupRequest;
-import com.nhnacademy.user.dto.response.UserResponse;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface UserService {
+@Configuration
+public class SwaggerConfig {
+    // swagger 관련 설정 파일
 
-    // 회원가입
-    void signUp(SignupRequest request);
+    @Bean
+    public OpenAPI OpenAPI() {
+        return new OpenAPI()
+                .components(new Components())
+                .info(apiInfo());
+    }
 
-    // 로그인
-    String login(LoginRequest request);
-
-    // 로그아웃
-    void logout(String authHeader);
-
-    // 회원 정보 조회
-    UserResponse getUserInfo(String loginId);
+    private Info apiInfo() {
+        return new Info()
+                .title("유저 API")
+                .description("회원 서비스 API 문서입니다.")
+                .version("1.0.0");
+    }
 
 }

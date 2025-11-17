@@ -24,6 +24,9 @@ public record UserResponse(String userName,
                            Grade grade,
                            long point,
                            LocalDateTime joinedAt) {
+    // 클라이언트에게 반환할 회원 정보를 담는 응답 DTO
+
+    // User 엔티티 > DTO 변환 메소드
     public static UserResponse fromEntity(User user) {
         return new UserResponse(user.getUserName(), user.getPhoneNumber(), user.getEmail(),
                 user.getBirth(), user.getGrade(), user.getPoint(), user.getJoinedAt());
