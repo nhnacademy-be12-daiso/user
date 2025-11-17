@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "유저 API", description = "회원가입, 로그인, 로그아웃, 내 정보 조회  API")
+@Tag(name = "유저 API", description = "회원가입, 로그인, 로그아웃, 내 정보 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
