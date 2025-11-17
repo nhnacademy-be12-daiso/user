@@ -20,8 +20,8 @@ import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.exception.UserAlreadyExistsException;
-import com.nhnacademy.user.exception.UserNotFoundException;
+import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -33,7 +33,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,8 +117,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponse getUserInfo(String loginId) {   // 회원 정보 조회
-        Account account = accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UsernameNotFoundException("찾을 수 없는 계정입니다."));
+        Account account = getAccount(loginId);
 
         User user = account.getUser();
 
@@ -128,19 +126,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void modifyUserInfo(String loginId, UserModifyRequest request) {
-        User user = accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
-                .getUser();
+    public void modifyUserInfo(String loginId, UserModifyRequest request) { // 회원 정보 수정
+        User user = getAccount(loginId).getUser();
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
     }
 
     @Override
     @Transactional
-    public void modifyUserPassword(String loginId, PasswordModifyRequest request) {
-        Account account = accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다,"));
+    public void modifyUserPassword(String loginId, PasswordModifyRequest request) { // 비밀번호 수정
+        Account account = getAccount(loginId);
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
             throw new BadCredentialsException("현재 비밀번호가 일치하지 않습니다.");
@@ -149,6 +144,11 @@ public class UserServiceImpl implements UserService {
         String newPassword = passwordEncoder.encode(request.newPassword());
 
         account.modifyPassword(newPassword);
+    }
+
+    private Account getAccount(String loginId) {
+        return accountRepository.findByIdWithUser(loginId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));
     }
 
 }

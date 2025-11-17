@@ -31,8 +31,8 @@ import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.exception.UserAlreadyExistsException;
-import com.nhnacademy.user.exception.UserNotFoundException;
+import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -52,7 +52,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -237,7 +236,7 @@ public class UserServiceTest {
         given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserInfo("wrong"))
-                .isInstanceOf(UsernameNotFoundException.class);
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test

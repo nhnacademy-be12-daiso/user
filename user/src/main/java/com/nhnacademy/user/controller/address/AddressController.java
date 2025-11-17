@@ -86,13 +86,13 @@ public class AddressController {
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음)", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 주소 (또는 본인 주소 아님)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))})
     @PutMapping("/addresses/{addressId}")
-    public ResponseEntity<Void> updateAddress(Authentication authentication,
+    public ResponseEntity<Void> modifyAddress(Authentication authentication,
                                               @PathVariable Long addressId,
                                               @Valid @RequestBody AddressRequest request) {
         // Authentication 객체에서 로그인 아이디(principal) 가져옴
         String loginId = (String) authentication.getPrincipal();
 
-        addressService.updateAddress(loginId, addressId, request);
+        addressService.modifyAddress(loginId, addressId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

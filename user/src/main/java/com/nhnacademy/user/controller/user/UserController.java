@@ -86,7 +86,7 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
         // 클라이언트가 현재 보유 중인 JWT를 Authorization 헤더로 전송
-        // .logout 내부: redis에 해당 토큰을 블랙리스트로 저장, 이후 해당 토큰으로 요청이 오면 JWTAuthenticationFilter에서 차단됨
+        // .logout 내부: redis에 해당 토큰을 블랙리스트로 저장, 이후 해당 토큰으로 요청이 오면 JwtAuthenticationFilter에서 차단됨
         userService.logout(authHeader);
 
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -138,6 +138,7 @@ public class UserController {
         // Authentication 객체에서 로그인 아이디(principal) 가져옴
         String loginId = (String) authentication.getPrincipal();
 
+        // 사용자 비밀번호 수정
         userService.modifyUserPassword(loginId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();

@@ -16,9 +16,9 @@ import com.nhnacademy.user.dto.request.AddressRequest;
 import com.nhnacademy.user.dto.response.AddressResponse;
 import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.exception.AddressLimitExceededException;
-import com.nhnacademy.user.exception.AddressNotFoundException;
-import com.nhnacademy.user.exception.UserNotFoundException;
+import com.nhnacademy.user.exception.address.AddressLimitExceededException;
+import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.service.address.AddressService;
@@ -70,7 +70,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public void updateAddress(String loginId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
+    public void modifyAddress(String loginId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
         User user = getUser(loginId);
 
         Address address = addressRepository.findByAddressIdAndUser(addressId, user)
@@ -81,7 +81,7 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
-        address.updateDetails(request.addressName(), request.addressDetail(), request.isDefault());
+        address.modifyDetails(request.addressName(), request.addressDetail(), request.isDefault());
     }
 
     @Override

@@ -26,9 +26,9 @@ import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.exception.AddressLimitExceededException;
-import com.nhnacademy.user.exception.AddressNotFoundException;
-import com.nhnacademy.user.exception.UserNotFoundException;
+import com.nhnacademy.user.exception.address.AddressLimitExceededException;
+import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.service.address.impl.AddressServiceImpl;
@@ -131,12 +131,12 @@ public class AddressServiceTest {
         mockUserFind();
 
         Address originalAddress = new Address(testUser, "옛날 별칭", "옛날 주소", false);
-        AddressRequest updateRequest = new AddressRequest("새 별칭", "새로운 주소", true);
+        AddressRequest modifyRequest = new AddressRequest("새 별칭", "새로운 주소", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(originalAddress));
 
-        addressService.updateAddress(testLoginId, 1L, updateRequest);
+        addressService.modifyAddress(testLoginId, 1L, modifyRequest);
 
         verify(addressRepository).clearAllDefaultsByUser(testUser);
 
@@ -153,7 +153,7 @@ public class AddressServiceTest {
         given(addressRepository.findByAddressIdAndUser(anyLong(), any(User.class)))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.updateAddress(testLoginId, 99L, testRequest))
+        assertThatThrownBy(() -> addressService.modifyAddress(testLoginId, 99L, testRequest))
                 .isInstanceOf(AddressNotFoundException.class)
                 .hasMessage("찾을 수 없는 주소입니다.");
     }

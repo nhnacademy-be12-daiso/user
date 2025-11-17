@@ -60,7 +60,7 @@ public class Address {      // 회원 배송지 주소
         this.isDefault = isDefault;
     }
 
-    public void updateDetails(String addressName, String addressDetail, boolean isDefault) {
+    public void modifyDetails(String addressName, String addressDetail, boolean isDefault) {
         this.addressName = addressName;
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;

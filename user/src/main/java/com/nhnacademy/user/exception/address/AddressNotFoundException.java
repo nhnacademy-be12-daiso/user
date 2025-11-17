@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.exception.address;
 
-public class UserNotFoundException extends RuntimeException {
-    public UserNotFoundException(String message) {
+// 해당하는 주소를 찾을 수 없을 때
+public class AddressNotFoundException extends RuntimeException {
+    public AddressNotFoundException(String message) {
         super(message);
     }
 }

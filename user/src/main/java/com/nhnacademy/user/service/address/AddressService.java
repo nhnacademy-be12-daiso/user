@@ -25,7 +25,7 @@ public interface AddressService {
     List<AddressResponse> getMyAddresses(String loginId);
 
     // 특정 주소 정보 수정
-    void updateAddress(String loginId, Long addressId, AddressRequest request);
+    void modifyAddress(String loginId, Long addressId, AddressRequest request);
 
     // 특정 주소 삭제
     void deleteAddress(String loginId, Long addressId);

@@ -13,6 +13,10 @@
 package com.nhnacademy.user.exception;
 
 import com.nhnacademy.user.dto.response.ErrorResponse;
+import com.nhnacademy.user.exception.address.AddressLimitExceededException;
+import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

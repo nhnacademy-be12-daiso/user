@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.exception.user;
 
-public class AddressLimitExceededException extends RuntimeException {
-    public AddressLimitExceededException(String message) {
+// 등록하려는 회원이 이미 존재할 때
+public class UserAlreadyExistsException extends RuntimeException {
+    public UserAlreadyExistsException(String message) {
         super(message);
     }
 }
