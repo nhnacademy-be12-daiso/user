@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.account;
+package com.nhnacademy.user.exception.user;
 
-public enum Role {  // 관리자, 회원 권한 Enum
-
-    ADMIN, USER
-
+// 해당하는 회원을 찾을 수 없을 때
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(String message) {
+        super(message);
+    }
 }

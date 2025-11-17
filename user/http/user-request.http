@@ -1,0 +1,80 @@
+### 회원가입 - 201 Created 응답 확인
+POST http://localhost:10445/users/signup
+Content-Type: application/json
+
+{
+  "loginId": "testuser1",
+  "password": "pwd123!@#",
+  "userName": "테스트유저1",
+  "phoneNumber": "010-1111-1111",
+  "email": "test1@test.com",
+  "birth": "2003-11-07"
+}
+
+### 회원가입 - 409 Conflict 응답 확인
+POST http://localhost:10445/users/signup
+Content-Type: application/json
+
+{
+  "loginId": "another",
+  "password": "pwd111!!!",
+  "userName": "중복유저",
+  "phoneNumber": "010-0000-0000",
+  "email": "test@test.com",
+  "birth": "2001-01-01"
+}
+
+### 로그인 - 200 OK 응답 확인
+POST http://localhost:10445/users/login
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "password": "new123!@#"
+}
+
+### 로그인 - 401 Unauthorized 또는 404 Not Found 응답 확인
+POST http://localhost:10445/users/login
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "password": "WrongPassword!"
+}
+
+### 로그아웃 - 200 OK 응답 확인
+POST http://localhost:10445/users/logout
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNzYxMzEsImV4cCI6MTc2MzM3OTczMX0.U_5Q_IYTMbCHHavI_qLPE8yY_K0BM8fOJx-lPZZZcI0
+
+{
+  "loginId": "test",
+  "password": "pwd123!@#"
+}
+
+### 마이페이지 조회 - 200 OK 응답 확인
+GET http://localhost:10445/users/me
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNzYxNTAsImV4cCI6MTc2MzM3OTc1MH0.CgPSIIrl8zS0Kd12FYzYfK-PF5M9lBVFbQEUn_QzLOU
+
+### 내 정보 수정 - 200 OK 응답 확인
+PATCH http://localhost:10445/users/me
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNzYxNTAsImV4cCI6MTc2MzM3OTc1MH0.CgPSIIrl8zS0Kd12FYzYfK-PF5M9lBVFbQEUn_QzLOU
+
+{
+  "userName": "테스트",
+  "phoneNumber": "010-0000-0000",
+  "email": "test@test.com",
+  "birth": "2001-01-01"
+}
+
+### 비밀번호 수정 - 200 OK 응답 확인
+PUT http://localhost:10445/users/me/password
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNzYxNTAsImV4cCI6MTc2MzM3OTc1MH0.CgPSIIrl8zS0Kd12FYzYfK-PF5M9lBVFbQEUn_QzLOU
+
+{
+  "currentPassword": "new123!@#",
+  "newPassword": "pwd123!@#"
+}

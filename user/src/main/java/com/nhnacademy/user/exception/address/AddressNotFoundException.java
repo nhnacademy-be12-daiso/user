@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.account;
+package com.nhnacademy.user.exception.address;
 
-public enum Role {  // 관리자, 회원 권한 Enum
-
-    ADMIN, USER
-
+// 해당하는 주소를 찾을 수 없을 때
+public class AddressNotFoundException extends RuntimeException {
+    public AddressNotFoundException(String message) {
+        super(message);
+    }
 }

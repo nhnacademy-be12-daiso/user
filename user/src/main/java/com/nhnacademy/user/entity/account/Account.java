@@ -47,13 +47,18 @@ public class Account {      // 회원 인증 (로그인) 정보
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", unique = true)
-    private User user;          // Users 테이블 외래키 (FK), 일대일 관계
+    private User user;              // Users 테이블 외래키 (FK), 일대일 관계
 
     public Account(String loginId, String password, Role role, User user) {
         this.loginId = loginId;
         this.password = password;
         this.role = role;
         this.user = user;
+    }
+
+    // 비밀번호를 변경하는 메소드
+    public void modifyPassword(String password) {
+        this.password = password;
     }
 
 }

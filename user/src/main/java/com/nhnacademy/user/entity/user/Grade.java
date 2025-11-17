@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.entity.user;
 
-public enum Grade {
+public enum Grade {     // 순수 주문 금액 기준에 따른 회원 등급
 
     GENERAL, ROYAL, GOLD, PLATINUM
 

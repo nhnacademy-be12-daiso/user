@@ -10,10 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.account;
+package com.nhnacademy.user.dto.request;
 
-public enum Role {  // 관리자, 회원 권한 Enum
+import jakarta.validation.constraints.NotBlank;
 
-    ADMIN, USER
-
+public record AddressRequest(@NotBlank String addressName,
+                             @NotBlank String addressDetail,
+                             boolean isDefault) {
+    // 클라이언트로부터 새 배송지 추가 데이터를 받기 위한 요청 DTO
 }

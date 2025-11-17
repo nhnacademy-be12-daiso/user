@@ -10,10 +10,30 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.account;
+package com.nhnacademy.user.config;
 
-public enum Role {  // 관리자, 회원 권한 Enum
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-    ADMIN, USER
+@Configuration
+public class SwaggerConfig {
+    // swagger 관련 설정 파일
+
+    @Bean
+    public OpenAPI OpenAPI() {
+        return new OpenAPI()
+                .components(new Components())
+                .info(apiInfo());
+    }
+
+    private Info apiInfo() {
+        return new Info()
+                .title("유저 API")
+                .description("회원 서비스 API 문서입니다.")
+                .version("1.0.0");
+    }
 
 }

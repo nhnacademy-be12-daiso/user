@@ -68,6 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // 한 요�
             return;
         }
 
+        // 토큰이 유효한지 검사
         if (jwtUtil.isTokenValid(token)) {
             String loginId = jwtUtil.getLoginId(token);
             String role = jwtUtil.getRole(token);

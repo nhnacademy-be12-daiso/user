@@ -10,10 +10,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.dto.request;
 
-public class UserAlreadyExistsException extends RuntimeException {
-    public UserAlreadyExistsException(String message) {
-        super(message);
-    }
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import java.time.LocalDate;
+
+public record UserModifyRequest(@NotBlank String userName,
+                                @NotBlank @Pattern(regexp = "^010-\\d{3,4}-\\d{4}$") String phoneNumber,
+                                @NotBlank @Email String email,
+                                @NotNull LocalDate birth) {
+    // 클라이언트로부터 수정할 회원 정보 데이터를 받기 위한 요청 DTO
 }

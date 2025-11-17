@@ -49,7 +49,8 @@ public class SecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/users/signup", "/users/login")
+                .requestMatchers("/users/signup", "/users/login",       // 회원가입, 로그인에는 인증/인가 필요 없음
+                        "/", "/v3/api-docs/**", "/swagger-ui/**")     // swagger 관련 URL 인증/인가 필요 없음
                 .permitAll()
                 .anyRequest()
                 .authenticated());

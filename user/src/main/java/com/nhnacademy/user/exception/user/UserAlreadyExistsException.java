@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.account;
+package com.nhnacademy.user.exception.user;
 
-public enum Role {  // 관리자, 회원 권한 Enum
-
-    ADMIN, USER
-
+// 등록하려는 회원이 이미 존재할 때
+public class UserAlreadyExistsException extends RuntimeException {
+    public UserAlreadyExistsException(String message) {
+        super(message);
+    }
 }

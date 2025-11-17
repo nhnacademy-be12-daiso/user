@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception;
+package com.nhnacademy.user.exception.address;
 
-public class UserNotFoundException extends RuntimeException {
-    public UserNotFoundException(String message) {
+// 등록된 주소기 10개 초과일 때
+public class AddressLimitExceededException extends RuntimeException {
+    public AddressLimitExceededException(String message) {
         super(message);
     }
 }
