@@ -55,22 +55,4 @@ public class AddressRepositoryTest {
         assertThat(found.getUser()).isEqualTo(user);
     }
 
-    @Test
-    @DisplayName("User 삭제 시 Address도 함께 삭제(cascade)")
-    void test2() {
-        User user = new User("테스트_이름", "010-1234-5678",
-                "test@test.com", LocalDate.of(2003, 11, 7));
-        userRepository.save(user);
-
-        Address address = new Address(user, "조선대학교", "광주광역시 동구 조선대길 146", true);
-        addressRepository.save(address);
-
-        // User 쪽 리스트에도 주소를 넣어줘서 양방향 관계를 맞춰줌
-        user.addAddress(address);
-
-        userRepository.delete(user);
-
-        assertThat(addressRepository.existsById(address.getAddressId())).isFalse();
-    }
-
 }

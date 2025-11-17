@@ -107,8 +107,4 @@ public class User {     // 회원 기본 정보
         this.status = Status.WITHDRAWN;
     }
 
-    public void addAddress(Address newAddress) {    // 배송지 리스트에 주소 추가
-        this.addresses.add(newAddress);
-    }
-
 }
