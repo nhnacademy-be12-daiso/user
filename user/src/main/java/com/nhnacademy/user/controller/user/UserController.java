@@ -13,6 +13,7 @@
 package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
+import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
@@ -32,6 +33,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -120,6 +122,23 @@ public class UserController {
 
         // 사용자 정보 수정
         userService.modifyUserInfo(loginId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // PATCH /users/me/password
+    @Operation(summary = "비밀번호 변경", description = "로그인한 사용자의 비밀번호를 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", description = "인증 실패 (현재 비밀번호 불일치)", content = @Content(schema = @Schema(hidden = true)))})
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> modifyMyPassword(Authentication authentication,
+                                                 @Valid @RequestBody PasswordModifyRequest request) {
+        // Authentication 객체에서 로그인 아이디(principal) 가져옴
+        String loginId = (String) authentication.getPrincipal();
+
+        userService.modifyUserPassword(loginId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

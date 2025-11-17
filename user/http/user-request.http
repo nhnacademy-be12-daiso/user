@@ -30,7 +30,7 @@ Content-Type: application/json
 
 {
   "loginId": "test",
-  "password": "pwd123!@#"
+  "password": "new123!@#"
 }
 
 ### 로그인 - 401 Unauthorized 또는 404 Not Found 응답 확인
@@ -67,4 +67,14 @@ Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLC
   "phoneNumber": "010-0000-0000",
   "email": "test@test.com",
   "birth": "2001-01-01"
+}
+
+### 비밀번호 수정 - 200 OK 응답 확인
+PUT http://localhost:10445/users/me/password
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNjgzMTUsImV4cCI6MTc2MzM3MTkxNX0.poRip-DrWcg72juwKUZLY4LTMl62fUsChEsfm5d2_aE
+
+{
+  "currentPassword": "pwd123!@#",
+  "newPassword": "new123!@#"
 }

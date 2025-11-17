@@ -13,6 +13,7 @@
 package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
+import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -132,6 +134,21 @@ public class UserServiceImpl implements UserService {
                 .getUser();
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
+    }
+
+    @Override
+    @Transactional
+    public void modifyUserPassword(String loginId, PasswordModifyRequest request) {
+        Account account = accountRepository.findByIdWithUser(loginId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다,"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
+            throw new BadCredentialsException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        String newPassword = passwordEncoder.encode(request.newPassword());
+
+        account.modifyPassword(newPassword);
     }
 
 }

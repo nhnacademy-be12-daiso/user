@@ -24,6 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
+import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
@@ -260,9 +261,42 @@ public class UserServiceTest {
     @DisplayName("회원 정보 수정 실패 - 존재하지 않는 유저")
     void test12() {
         UserModifyRequest request = new UserModifyRequest("a", "b", "c", testBirthDate);
+
         given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.modifyUserInfo("wrong", request))
+                .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("비밀번호 수정 성공")
+    void test13() {
+        PasswordModifyRequest request = new PasswordModifyRequest("pwd111!!!", "new123!@#");
+
+        String encodedNewPassword = "ENCODED_NEW_PASSWORD";
+
+        Account mockAccount = mock(Account.class);
+
+        given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(mockAccount));
+        given(mockAccount.getPassword()).willReturn("ENCODED_CURRENT_PASSWORD");
+        given(passwordEncoder.matches("pwd111!!!", "ENCODED_CURRENT_PASSWORD")).willReturn(true);
+        given(passwordEncoder.encode("new123!@#")).willReturn(encodedNewPassword);
+
+        userService.modifyUserPassword(testLoginId, request);
+
+        verify(passwordEncoder).matches("pwd111!!!", "ENCODED_CURRENT_PASSWORD");
+        verify(passwordEncoder).encode("new123!@#");
+        verify(mockAccount).modifyPassword(encodedNewPassword);
+    }
+
+    @Test
+    @DisplayName("비밀번호 수정 실패 - 존재하지 않는 유저")
+    void test15() {
+        PasswordModifyRequest request = new PasswordModifyRequest("any", "any");
+
+        given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.modifyUserPassword("wrong", request))
                 .isInstanceOf(UserNotFoundException.class);
     }
 

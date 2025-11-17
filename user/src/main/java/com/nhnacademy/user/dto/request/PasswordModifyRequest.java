@@ -12,15 +12,11 @@
 
 package com.nhnacademy.user.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import java.time.LocalDate;
 
-public record UserModifyRequest(@NotBlank String userName,
-                                @NotBlank @Pattern(regexp = "^010-\\d{3,4}-\\d{4}$") String phoneNumber,
-                                @NotBlank @Email String email,
-                                @NotNull LocalDate birth) {
-    // 클라이언트로부터 수정할 회원 정보 데이터를 받기 위한 요청 DTO
+// 새로운 비밀번호: 최소 1개의 영문 + 최소 1개의 숫자 + 최소 1개의 특수문자, 8~20자
+public record PasswordModifyRequest(@NotBlank String currentPassword,
+                                    @NotBlank @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$") String newPassword) {
+    // 클라이언트로부터 변경할 비밀번호 데이터를 받기 위한 요청 DTO
 }

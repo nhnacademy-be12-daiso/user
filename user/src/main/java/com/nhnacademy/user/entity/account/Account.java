@@ -56,4 +56,9 @@ public class Account {      // 회원 인증 (로그인) 정보
         this.user = user;
     }
 
+    // 비밀번호를 변경하는 메소드
+    public void modifyPassword(String password) {
+        this.password = password;
+    }
+
 }
