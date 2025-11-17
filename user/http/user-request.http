@@ -45,7 +45,7 @@ Content-Type: application/json
 ### 로그아웃 - 200 OK 응답 확인
 POST http://localhost:10445/users/logout
 Content-Type: application/json
-Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNDY2MTUsImV4cCI6MTc2MzM1MDIxNX0.qTTXW4HdCrVym7W1TfhKG4cSriqwyuO-F8BS-AJMWC8
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNjU4OTYsImV4cCI6MTc2MzM2OTQ5Nn0.GeiZs5eHP9geqlMa5BpQDr-rTOr8vzCODOKdSrOdKPk
 
 {
   "loginId": "test",
@@ -56,3 +56,15 @@ Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLC
 GET http://localhost:10445/users/me
 Content-Type: application/json
 Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNDY2MTUsImV4cCI6MTc2MzM1MDIxNX0.qTTXW4HdCrVym7W1TfhKG4cSriqwyuO-F8BS-AJMWC8
+
+### 내 정보 수정 - 200 OK 응답 확인
+PATCH http://localhost:10445/users/me
+Content-Type: application/json
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjMzNjU4OTYsImV4cCI6MTc2MzM2OTQ5Nn0.GeiZs5eHP9geqlMa5BpQDr-rTOr8vzCODOKdSrOdKPk
+
+{
+  "userName": "테스트",
+  "phoneNumber": "010-0000-0000",
+  "email": "test@test.com",
+  "birth": "2001-01-01"
+}

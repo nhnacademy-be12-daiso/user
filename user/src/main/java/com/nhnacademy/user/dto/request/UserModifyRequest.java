@@ -10,28 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.user;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.dto.request.LoginRequest;
-import com.nhnacademy.user.dto.request.SignupRequest;
-import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.UserResponse;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import java.time.LocalDate;
 
-public interface UserService {
-
-    // 회원가입
-    void signUp(SignupRequest request);
-
-    // 로그인
-    String login(LoginRequest request);
-
-    // 로그아웃
-    void logout(String authHeader);
-
-    // 회원 정보 조회
-    UserResponse getUserInfo(String loginId);
-
-    // 회원 정보 수정
-    void modifyUserInfo(String loginId, UserModifyRequest request);
-
+public record UserModifyRequest(@NotBlank String userName,
+                                @NotBlank @Pattern(regexp = "^010-\\d{3,4}-\\d{4}$") String phoneNumber,
+                                @NotBlank @Email String email,
+                                @NotNull LocalDate birth) {
 }

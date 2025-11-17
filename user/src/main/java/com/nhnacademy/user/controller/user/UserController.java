@@ -14,6 +14,7 @@ package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
+import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.service.user.UserService;
@@ -29,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -102,6 +104,24 @@ public class UserController {
         UserResponse userInfo = userService.getUserInfo(loginId);
 
         return ResponseEntity.status(HttpStatus.OK).body(userInfo);
+    }
+
+    // PATCH /users/me
+    @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 이름, 연락처, 이메일, 생일을 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true)))})
+    @PatchMapping("/me")
+    public ResponseEntity<Void> modifyMyInfo(Authentication authentication,
+                                             @Valid @RequestBody UserModifyRequest request) {
+        // Authentication 객체에서 로그인 아이디(principal) 가져옴
+        String loginId = (String) authentication.getPrincipal();
+
+        // 사용자 정보 수정
+        userService.modifyUserInfo(loginId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

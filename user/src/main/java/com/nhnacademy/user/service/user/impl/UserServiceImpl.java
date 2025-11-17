@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
+import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
@@ -121,6 +122,16 @@ public class UserServiceImpl implements UserService {
         User user = account.getUser();
 
         return UserResponse.fromEntity(user);
+    }
+
+    @Override
+    @Transactional
+    public void modifyUserInfo(String loginId, UserModifyRequest request) {
+        User user = accountRepository.findByIdWithUser(loginId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
+                .getUser();
+
+        user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
     }
 
 }

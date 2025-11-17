@@ -99,6 +99,13 @@ public class User {     // 회원 기본 정보
         this.lastLoginAt = LocalDateTime.now();
     }
 
+    public void modifyInfo(String userName, String phoneNumber, String email, LocalDate birth) {    // 회원 정보를 수정하는 메소드
+        this.userName = userName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.birth = birth;
+    }
+
     public void modifyGrade(Grade newGrade) {      // 등급 변경하는 메소드
         this.grade = newGrade;
     }
