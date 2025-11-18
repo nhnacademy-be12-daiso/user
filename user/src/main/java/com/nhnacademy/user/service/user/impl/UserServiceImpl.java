@@ -145,6 +145,18 @@ public class UserServiceImpl implements UserService {
         account.modifyPassword(newPassword);
     }
 
+    @Override
+    @Transactional
+    public void withdrawUser(String loginId, String token) {
+        User user = getAccount(loginId).getUser();
+
+        // 계정 상태를 WITHDRAWN으로 변경
+        user.withdraw();
+
+        // 현재 사용 중인 토큰도 즉시 무효화
+        logout(token);
+    }
+
     private Account getAccount(String loginId) {
         return accountRepository.findByIdWithUser(loginId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));

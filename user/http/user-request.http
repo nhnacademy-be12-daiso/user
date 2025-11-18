@@ -3,12 +3,12 @@ POST http://localhost:10445/users/signup
 Content-Type: application/json
 
 {
-  "loginId": "hello",
+  "loginId": "testuser2",
   "password": "pwd123!@#",
-  "userName": "안녕",
-  "phoneNumber": "010-1010-1010",
-  "email": "hello@hello.com",
-  "birth": "2001-01-01"
+  "userName": "테스트유저2",
+  "phoneNumber": "010-2222-2222",
+  "email": "test2@test.com",
+  "birth": "2002-02-02"
 }
 
 ### 회원가입 - 409 Conflict 응답 확인
@@ -29,7 +29,7 @@ POST http://localhost:10445/users/login
 Content-Type: application/json
 
 {
-  "loginId": "test",
+  "loginId": "testuser2",
   "password": "pwd123!@#"
 }
 
@@ -45,12 +45,12 @@ Content-Type: application/json
 ### 로그아웃 - 200 OK 응답 확인
 POST http://localhost:10445/users/logout
 Content-Type: application/json
-Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MzcwOTUsImV4cCI6MTc2MzQ0MDY5NX0.Iv0twDCJSwqFlODlHuNPqnuekvtMQfUAFWf4vUI5sIc
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlcjIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2MzQ0ODE2NywiZXhwIjoxNzYzNDUxNzY3fQ.To_03cMYh3r2qNbEN920Q0nB-OMdcEaKY5RcjAU0PW8
 
 ### 마이페이지 조회 - 200 OK 응답 확인
 GET http://localhost:10445/users/me
 Content-Type: application/json
-Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MzcwOTUsImV4cCI6MTc2MzQ0MDY5NX0.Iv0twDCJSwqFlODlHuNPqnuekvtMQfUAFWf4vUI5sIc
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlcjIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2MzQ0ODE2NywiZXhwIjoxNzYzNDUxNzY3fQ.To_03cMYh3r2qNbEN920Q0nB-OMdcEaKY5RcjAU0PW8
 
 ### 내 정보 수정 - 200 OK 응답 확인
 PATCH http://localhost:10445/users/me
@@ -73,3 +73,8 @@ Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLC
   "currentPassword": "new123!@#",
   "newPassword": "pwd123!@#"
 }
+
+### 회원 탈퇴
+DELETE http://localhost:10445/users/me
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlcjIiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2MzQ0ODE2NywiZXhwIjoxNzYzNDUxNzY3fQ.To_03cMYh3r2qNbEN920Q0nB-OMdcEaKY5RcjAU0PW8
+

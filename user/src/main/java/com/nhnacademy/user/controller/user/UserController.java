@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -142,6 +143,23 @@ public class UserController {
         userService.modifyUserPassword(loginId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // DELETE /users/me
+    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 '탈퇴(WITHDRAWN)' 상태로 변경하고, 현재 토큰을 무효화합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "탈퇴 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdrawMyAccount(Authentication authentication,
+                                                  @RequestHeader("Authorization") String token) {
+        // Authentication 객체에서 로그인 아이디(principal) 가져옴
+        String loginId = (String) authentication.getPrincipal();
+
+        userService.withdrawUser(loginId, token);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

@@ -13,6 +13,7 @@
 package com.nhnacademy.user.service;
 
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String loginId) {
-        Account account = accountRepository.findById(loginId)
+        Account account = accountRepository.findByIdWithUser(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with loginId: " + loginId));
+
+        // 계정 상태 검증
+        if (account.getUser().getStatus() != Status.ACTIVE) {
+            throw new UsernameNotFoundException("User account is not active: " + account.getUser().getStatus());
+        }
 
         // spring security User 객체 생성
         // 로그인 ID와 암호화된 비밀번호 사용, 권한 정보(ROLE_ADMIN || ROLE_USER) 부여

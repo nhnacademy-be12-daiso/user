@@ -38,4 +38,7 @@ public interface UserService {
     // 비밀번호 수정
     void modifyUserPassword(String loginId, PasswordModifyRequest request);
 
+    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
+    void withdrawUser(String loginId, String token);
+
 }
