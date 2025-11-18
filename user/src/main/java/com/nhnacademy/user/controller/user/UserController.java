@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "유저 API", description = "회원가입, 로그인, 로그아웃, 내 정보 조회 API")
@@ -84,10 +86,10 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @ApiResponse(responseCode = "401", description = "토큰 없음 또는 인증 실패", content = @Content(schema = @Schema(hidden = true)))})
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         // 클라이언트가 현재 보유 중인 JWT를 Authorization 헤더로 전송
         // .logout 내부: redis에 해당 토큰을 블랙리스트로 저장, 이후 해당 토큰으로 요청이 오면 JwtAuthenticationFilter에서 차단됨
-        userService.logout(authHeader);
+        userService.logout(token);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -140,6 +142,36 @@ public class UserController {
 
         // 사용자 비밀번호 수정
         userService.modifyUserPassword(loginId, request);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // DELETE /users/me
+    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 '탈퇴(WITHDRAWN)' 상태로 변경하고, 현재 토큰을 무효화합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "탈퇴 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdrawMyAccount(Authentication authentication,
+                                                  @RequestHeader("Authorization") String token) {
+        // Authentication 객체에서 로그인 아이디(principal) 가져옴
+        String loginId = (String) authentication.getPrincipal();
+
+        userService.withdrawUser(loginId, token);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    // POST /users/activate?loginId={loginId}
+    @Operation(summary = "휴면 계정 활성화", description = "휴면 상태의 계정을 활성화합니다. (인증 절차 필요)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "계정 활성화 성공"),
+            @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activateAccount(@RequestParam("loginId") String loginId) {
+        // 임시!!!! 나중에 Dooray Message Sender로 인증해야함.!
+        userService.activeUser(loginId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

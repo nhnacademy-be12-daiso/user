@@ -27,7 +27,7 @@ public interface UserService {
     String login(LoginRequest request);
 
     // 로그아웃
-    void logout(String authHeader);
+    void logout(String token);
 
     // 회원 정보 조회
     UserResponse getUserInfo(String loginId);
@@ -37,5 +37,14 @@ public interface UserService {
 
     // 비밀번호 수정
     void modifyUserPassword(String loginId, PasswordModifyRequest request);
+
+    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
+    void withdrawUser(String loginId, String token);
+
+    // 휴면 계정 전환 배치 작업
+    void dormantAccounts();
+
+    // 휴면 계정 복구
+    void activeUser(String loginId);
 
 }

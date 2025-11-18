@@ -16,6 +16,7 @@ import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
+import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -74,6 +75,16 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));
+    }
+
+    // 423 Locked
+    @ExceptionHandler(UserDormantException.class)
+    public ResponseEntity<ErrorResponse> handlerUserDormantException(UserDormantException ex) {
+        // 휴면 상태인 유저
+        return ResponseEntity
+                .status(HttpStatus.LOCKED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));
     }
 
 }

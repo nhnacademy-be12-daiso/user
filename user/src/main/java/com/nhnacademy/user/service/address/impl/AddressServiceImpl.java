@@ -73,8 +73,7 @@ public class AddressServiceImpl implements AddressService {
     public void modifyAddress(String loginId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
         User user = getUser(loginId);
 
-        Address address = addressRepository.findByAddressIdAndUser(addressId, user)
-                .orElseThrow(() -> new AddressNotFoundException("찾을 수 없는 주소입니다."));
+        Address address = getAddress(addressId, user);
 
         // 요청이 기본 배송지로 왔을 때 기존 기본 배송지를 초기화
         if (request.isDefault()) {
@@ -89,8 +88,7 @@ public class AddressServiceImpl implements AddressService {
     public void deleteAddress(String loginId, Long addressId) { // 특정 주소 삭제
         User user = getUser(loginId);
 
-        Address address = addressRepository.findByAddressIdAndUser(addressId, user)
-                .orElseThrow(() -> new AddressNotFoundException("찾을 수 없는 주소입니다."));
+        Address address = getAddress(addressId, user);
 
         addressRepository.delete(address);
     }
@@ -99,6 +97,11 @@ public class AddressServiceImpl implements AddressService {
         return accountRepository.findByIdWithUser(loginId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
                 .getUser();
+    }
+
+    private Address getAddress(Long addressId, User user) {
+        return addressRepository.findByAddressIdAndUser(addressId, user)
+                .orElseThrow(() -> new AddressNotFoundException("찾을 수 없는 주소입니다."));
     }
 
 }
