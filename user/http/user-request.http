@@ -3,12 +3,12 @@ POST http://localhost:10445/users/signup
 Content-Type: application/json
 
 {
-  "loginId": "testuser1",
+  "loginId": "hello",
   "password": "pwd123!@#",
-  "userName": "테스트유저1",
-  "phoneNumber": "010-1111-1111",
-  "email": "test1@test.com",
-  "birth": "2003-11-07"
+  "userName": "안녕",
+  "phoneNumber": "010-1010-1010",
+  "email": "hello@hello.com",
+  "birth": "2001-01-01"
 }
 
 ### 회원가입 - 409 Conflict 응답 확인
@@ -45,17 +45,12 @@ Content-Type: application/json
 ### 로그아웃 - 200 OK 응답 확인
 POST http://localhost:10445/users/logout
 Content-Type: application/json
-Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MjU0NDYsImV4cCI6MTc2MzQyOTA0Nn0.T-qKjWw8-x2eoAxxDizHBzrxFY0m9U6Sw_I3FOvngVw
-
-{
-  "loginId": "test",
-  "password": "pwd123!@#"
-}
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MzcwOTUsImV4cCI6MTc2MzQ0MDY5NX0.Iv0twDCJSwqFlODlHuNPqnuekvtMQfUAFWf4vUI5sIc
 
 ### 마이페이지 조회 - 200 OK 응답 확인
 GET http://localhost:10445/users/me
 Content-Type: application/json
-Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MjUyODgsImV4cCI6MTc2MzQyODg4OH0.GRrwiwJ_FQR9tKGpJj6hXMfF6E4mSePsEiNQiN7Gf4Q
+Authorization: Daiso eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NjM0MzcwOTUsImV4cCI6MTc2MzQ0MDY5NX0.Iv0twDCJSwqFlODlHuNPqnuekvtMQfUAFWf4vUI5sIc
 
 ### 내 정보 수정 - 200 OK 응답 확인
 PATCH http://localhost:10445/users/me
