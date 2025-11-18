@@ -41,4 +41,10 @@ public interface UserService {
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
     void withdrawUser(String loginId, String token);
 
+    // 휴면 계정 전환 배치 작업
+    void dormantAccounts();
+
+    // 휴면 계정 복구
+    void activeUser(String loginId);
+
 }

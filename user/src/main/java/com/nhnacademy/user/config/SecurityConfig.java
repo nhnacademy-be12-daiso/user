@@ -50,6 +50,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/users/signup", "/users/login",       // 회원가입, 로그인에는 인증/인가 필요 없음
+                        "/users/activate",                                // 로그인 없이 휴면 계정 복구
                         "/", "/v3/api-docs/**", "/swagger-ui/**")     // swagger 관련 URL 인증/인가 필요 없음
                 .permitAll()
                 .anyRequest()

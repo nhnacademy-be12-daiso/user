@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "유저 API", description = "회원가입, 로그인, 로그아웃, 내 정보 조회 API")
@@ -160,6 +161,19 @@ public class UserController {
         userService.withdrawUser(loginId, token);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    // POST /users/activate?loginId={loginId}
+    @Operation(summary = "휴면 계정 활성화", description = "휴면 상태의 계정을 활성화합니다. (인증 절차 필요)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "계정 활성화 성공"),
+            @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activateAccount(@RequestParam("loginId") String loginId) {
+        // 임시!!!! 나중에 Dooray Message Sender로 인증해야함.!
+        userService.activeUser(loginId);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

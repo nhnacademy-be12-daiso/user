@@ -14,6 +14,7 @@ package com.nhnacademy.user.service;
 
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.user.Status;
+import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 계정 상태 검증
         if (account.getUser().getStatus() != Status.ACTIVE) {
             throw new UsernameNotFoundException("User account is not active: " + account.getUser().getStatus());
+        }
+
+        // 휴면 계정 검증
+        if (account.getUser().getStatus() == Status.DORMANT) {
+            throw new UserDormantException("User account is dormant: " + loginId);
         }
 
         // spring security User 객체 생성

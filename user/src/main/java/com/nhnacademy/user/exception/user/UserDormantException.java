@@ -10,21 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.exception.user;
 
-import com.nhnacademy.user.entity.user.Status;
-import com.nhnacademy.user.entity.user.User;
-import java.time.LocalDateTime;
-import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface UserRepository extends JpaRepository<User, Long> {
-
-    boolean existsByPhoneNumber(String phoneNumber);
-
-    boolean existsByEmail(String email);
-
-    // 휴면 전환 대상자(ACTIVE 상태이면서 last_login_at이 90일보다 오래된 회원)를 찾는 쿼리
-    List<User> findAllByStatusAndLastLoginAtBefore(Status status, LocalDateTime lastLoginAtBefore);
-
+// 해당 회원이 휴면 상태임을 알려주는 예외
+public class UserDormantException extends RuntimeException {
+    public UserDormantException(String message) {
+        super(message);
+    }
 }
