@@ -27,7 +27,7 @@ public interface UserService {
     String login(LoginRequest request);
 
     // 로그아웃
-    void logout(String authHeader);
+    void logout(String token);
 
     // 회원 정보 조회
     UserResponse getUserInfo(String loginId);

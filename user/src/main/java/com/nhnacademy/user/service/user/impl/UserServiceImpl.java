@@ -88,8 +88,7 @@ public class UserServiceImpl implements UserService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.loginId(), request.password()));
 
-        Account account = accountRepository.findByIdWithUser(request.loginId())
-                .orElseThrow(() -> new UserNotFoundException("인증은 성공했지만 찾을 수 없는 계정입니다.")); // 나오면 안 되는 에러
+        Account account = getAccount(request.loginId());
 
         // 최근 로그인 시간 업데이트
         account.getUser().modifyLastLoginAt();
@@ -99,18 +98,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override   // redis 저장만 수행하기 때문에 @Transactional 없음
-    public void logout(String authHeader) { // 로그아웃
+    public void logout(String token) { // 로그아웃
         // 토큰 추출
-        String token = authHeader.substring(jwtProperties.getTokenPrefix().length() + 1);
+        String jwt = token.substring(jwtProperties.getTokenPrefix().length() + 1);
 
         // 남은 유효 시간 확인
-        long remainingExp = jwtUtil.getRemainingExpiration(token);
+        long remainingExp = jwtUtil.getRemainingExpiration(jwt);
 
         // redis 블랙리스트에 등록
         // 로그아웃 토큰은 남은 유효 시간 동안 블랙리스트에 저장됨
         if (remainingExp > 0) {
             stringRedisTemplate.opsForValue()
-                    .set(token, "logout", remainingExp, TimeUnit.MILLISECONDS);
+                    .set(jwt, "logout", remainingExp, TimeUnit.MILLISECONDS);
         }
     }
 

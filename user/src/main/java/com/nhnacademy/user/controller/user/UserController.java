@@ -84,10 +84,10 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @ApiResponse(responseCode = "401", description = "토큰 없음 또는 인증 실패", content = @Content(schema = @Schema(hidden = true)))})
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         // 클라이언트가 현재 보유 중인 JWT를 Authorization 헤더로 전송
         // .logout 내부: redis에 해당 토큰을 블랙리스트로 저장, 이후 해당 토큰으로 요청이 오면 JwtAuthenticationFilter에서 차단됨
-        userService.logout(authHeader);
+        userService.logout(token);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
