@@ -5,10 +5,17 @@ on:
     branches: [ main, feature/cicd ]
   pull_request:
     branches: [ main, feature/cicd ]
+    paths:
+      - 'user/**'
+      - '.github/workflows/**'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./user
 
     steps:
       # 1. 코드 체크아웃
