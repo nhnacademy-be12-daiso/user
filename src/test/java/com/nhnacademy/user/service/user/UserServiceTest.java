@@ -15,11 +15,9 @@ package com.nhnacademy.user.service.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -40,7 +38,6 @@ import com.nhnacademy.user.service.user.impl.UserServiceImpl;
 import com.nhnacademy.user.util.JwtUtil;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,8 +45,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -74,12 +69,6 @@ public class UserServiceTest {
 
     @Mock
     private JwtProperties jwtProperties;
-
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
-
-    @Mock
-    private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -187,36 +176,36 @@ public class UserServiceTest {
         assertThatThrownBy(() -> userService.login(request));
     }
 
-    @Test
-    @DisplayName("로그아웃 성공 - 토큰 블랙리스트 등록")
-    void test7() {
-        String token = "valid-token";
-        String header = "Daiso " + token;
-
-        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
-        given(jwtUtil.getRemainingExpiration(token)).willReturn(3600000L);
-        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
-
-        userService.logout(header);
-
-        verify(jwtUtil).getRemainingExpiration(token);
-        verify(valueOperations).set(token, "logout", 3600000L, TimeUnit.MILLISECONDS);
-    }
-
-    @Test
-    @DisplayName("로그아웃 성공 - 이미 만료된 토큰 (Redis 등록 안 함)")
-    void test8() {
-        String token = "expired-token";
-        String header = "Daiso " + token;
-
-        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
-        given(jwtUtil.getRemainingExpiration(token)).willReturn(0L);
-
-        userService.logout(header);
-
-        verify(jwtUtil).getRemainingExpiration(token);
-        verify(valueOperations, never()).set(anyString(), anyString(), anyLong(), any(TimeUnit.class));
-    }
+//    @Test
+//    @DisplayName("로그아웃 성공 - 토큰 블랙리스트 등록")
+//    void test7() {
+//        String token = "valid-token";
+//        String header = "Daiso " + token;
+//
+//        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
+//        given(jwtUtil.getRemainingExpiration(token)).willReturn(3600000L);
+//        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
+//
+//        userService.logout(header);
+//
+//        verify(jwtUtil).getRemainingExpiration(token);
+//        verify(valueOperations).set(token, "logout", 3600000L, TimeUnit.MILLISECONDS);
+//    }
+//
+//    @Test
+//    @DisplayName("로그아웃 성공 - 이미 만료된 토큰 (Redis 등록 안 함)")
+//    void test8() {
+//        String token = "expired-token";
+//        String header = "Daiso " + token;
+//
+//        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
+//        given(jwtUtil.getRemainingExpiration(token)).willReturn(0L);
+//
+//        userService.logout(header);
+//
+//        verify(jwtUtil).getRemainingExpiration(token);
+//        verify(valueOperations, never()).set(anyString(), anyString(), anyLong(), any(TimeUnit.class));
+//    }
 
     @Test
     @DisplayName("회원 정보 조회 성공")

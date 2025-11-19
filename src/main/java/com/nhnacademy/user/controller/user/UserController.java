@@ -129,9 +129,8 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
     @DeleteMapping("/me")
-    public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") String loginId,
-                                                  @RequestHeader("Authorization") String token) {
-        userService.withdrawUser(loginId, token);
+    public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") String loginId) {
+        userService.withdrawUser(loginId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
