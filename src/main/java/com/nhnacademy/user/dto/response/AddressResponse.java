@@ -1,0 +1,29 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
+package com.nhnacademy.user.dto.response;
+
+import com.nhnacademy.user.entity.address.Address;
+
+public record AddressResponse(Long addressId,
+                              String addressName,
+                              String addressDetail,
+                              boolean isDefault) {
+    // 클라이언트에게 반환할 주소 정보를 담는 응답 DTO
+
+    // Address 엔티티 > DTO 변환 메소드
+    public static AddressResponse fromEntity(Address address) {
+        return new AddressResponse(address.getAddressId(), address.getAddressName(),
+                address.getAddressDetail(), address.isDefault());
+    }
+
+}
