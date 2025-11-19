@@ -23,17 +23,14 @@ import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.UserService;
 import com.nhnacademy.user.util.JwtUtil;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,12 +53,6 @@ public class UserServiceImpl implements UserService {
 
     // JWT 토큰 생성 및 검증
     private final JwtUtil jwtUtil;
-
-    // JWT 설정값
-    private final JwtProperties jwtProperties;
-
-    // 로그아웃 토큰 블랙리스트 저장
-    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
@@ -102,22 +93,6 @@ public class UserServiceImpl implements UserService {
         return jwtUtil.createAccessToken(account.getLoginId(), account.getRole().name());
     }
 
-    @Override   // redis 저장만 수행하기 때문에 @Transactional 없음
-    public void logout(String token) { // 로그아웃
-        // 토큰 추출
-        String jwt = token.substring(jwtProperties.getTokenPrefix().length() + 1);
-
-        // 남은 유효 시간 확인
-        long remainingExp = jwtUtil.getRemainingExpiration(jwt);
-
-        // redis 블랙리스트에 등록
-        // 로그아웃 토큰은 남은 유효 시간 동안 블랙리스트에 저장됨
-        if (remainingExp > 0) {
-            stringRedisTemplate.opsForValue()
-                    .set(jwt, "logout", remainingExp, TimeUnit.MILLISECONDS);
-        }
-    }
-
     @Override
     @Transactional(readOnly = true)
     public UserResponse getUserInfo(String loginId) {   // 회원 정보 조회
@@ -152,14 +127,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void withdrawUser(String loginId, String token) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
+    public void withdrawUser(String loginId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
         User user = getAccount(loginId).getUser();
 
         // 계정 상태를 WITHDRAWN으로 변경
         user.withdraw();
 
-        // 현재 사용 중인 토큰도 즉시 무효화
-        logout(token);
+        // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
 
     @Override

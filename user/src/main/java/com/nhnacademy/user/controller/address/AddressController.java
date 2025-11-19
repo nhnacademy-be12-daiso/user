@@ -28,13 +28,13 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,11 +53,8 @@ public class AddressController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음)", content = @Content(schema = @Schema(hidden = true)))})
     @PostMapping("/addresses")
-    public ResponseEntity<Void> addMyAddress(Authentication authentication,
+    public ResponseEntity<Void> addMyAddress(@RequestHeader(name = "X-USER-ID") String loginId,
                                              @Valid @RequestBody AddressRequest request) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         addressService.addAddress(loginId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -69,10 +66,7 @@ public class AddressController {
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(array = @ArraySchema(schema = @Schema(implementation = AddressResponse.class)))),
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음)", content = @Content(schema = @Schema(hidden = true)))})
     @GetMapping("/addresses")
-    public ResponseEntity<List<AddressResponse>> getMyAddresses(Authentication authentication) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
+    public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader(name = "X-USER-ID") String loginId) {
         List<AddressResponse> addresses = addressService.getMyAddresses(loginId);
 
         return ResponseEntity.status(HttpStatus.OK).body(addresses);
@@ -86,12 +80,9 @@ public class AddressController {
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음)", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 주소 (또는 본인 주소 아님)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))})
     @PutMapping("/addresses/{addressId}")
-    public ResponseEntity<Void> modifyAddress(Authentication authentication,
+    public ResponseEntity<Void> modifyAddress(@RequestHeader(name = "X-USER-ID") String loginId,
                                               @PathVariable Long addressId,
                                               @Valid @RequestBody AddressRequest request) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         addressService.modifyAddress(loginId, addressId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -104,11 +95,8 @@ public class AddressController {
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음)", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 주소 (또는 본인 주소 아님)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))})
     @DeleteMapping("/addresses/{addressId}")
-    public ResponseEntity<Void> deleteAddress(Authentication authentication,
+    public ResponseEntity<Void> deleteAddress(@RequestHeader(name = "X-USER-ID") String loginId,
                                               @PathVariable Long addressId) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         addressService.deleteAddress(loginId, addressId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
