@@ -31,7 +31,7 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("유저 API")
+                .title("회원 API")
                 .description("회원 서비스 API 문서입니다.")
                 .version("1.0.0");
     }

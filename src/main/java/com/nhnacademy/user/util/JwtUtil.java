@@ -13,7 +13,6 @@
 package com.nhnacademy.user.util;
 
 import com.nhnacademy.user.properties.JwtProperties;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -53,51 +52,6 @@ public class JwtUtil {
 
         // Daiso {token}
         return tokenPrefix + " " + token;
-    }
-
-    // 토큰에서 Claims(payload 부분의 데이터 == 토큰에 담긴 정보) 추출 (내부용)
-    private Claims parseClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)  // JWS 서명을 검증하면서 Claims 추출
-                .getBody();
-    }
-
-    // 토큰 유효성 검증: 서명 검증 + 만료 여부
-    public boolean isTokenValid(String token) {
-        try {
-            Claims claims = parseClaims(token);
-
-            return !claims.getExpiration().before(new Date());
-
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // 토큰에서 로그인 ID 추출
-    public String getLoginId(String token) {
-        return parseClaims(token).getSubject();
-    }
-
-    // 토큰에서 권한 추출
-    public String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
-    }
-
-    // 토큰 남은 만료 시간 계산: 로그아웃 시 redis 블랙리스트 저장용으로 사용
-    public long getRemainingExpiration(String token) {
-        try {
-            Claims claims = parseClaims(token);
-            long expirationTime = claims.getExpiration().getTime();
-            long now = new Date().getTime();
-
-            return expirationTime - now;
-
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
 }

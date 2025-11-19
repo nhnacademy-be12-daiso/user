@@ -29,7 +29,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -80,30 +79,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).header(jwtProperties.getHeader(), token).build();
     }
 
-    // POST /users/logout
-    @Operation(summary = "로그아웃", description = "클라이언트 JWT를 무효화(블랙리스트 등록)합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "401", description = "토큰 없음 또는 인증 실패", content = @Content(schema = @Schema(hidden = true)))})
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
-        // 클라이언트가 현재 보유 중인 JWT를 Authorization 헤더로 전송
-        // .logout 내부: redis에 해당 토큰을 블랙리스트로 저장, 이후 해당 토큰으로 요청이 오면 JwtAuthenticationFilter에서 차단됨
-        userService.logout(token);
-
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
     // GET /users/me
     @Operation(summary = "내 정보 조회", description = "JWT 기반으로 인증된 사용자의 정보를 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true)))})
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMyInfo(Authentication authentication) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
+    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-USER-ID") String loginId) {
         // 사용자 정보 조회
         UserResponse userInfo = userService.getUserInfo(loginId);
 
@@ -117,11 +99,8 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true)))})
     @PatchMapping("/me")
-    public ResponseEntity<Void> modifyMyInfo(Authentication authentication,
+    public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-USER-ID") String loginId,
                                              @Valid @RequestBody UserModifyRequest request) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         // 사용자 정보 수정
         userService.modifyUserInfo(loginId, request);
 
@@ -135,11 +114,8 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", description = "인증 실패 (현재 비밀번호 불일치)", content = @Content(schema = @Schema(hidden = true)))})
     @PutMapping("/me/password")
-    public ResponseEntity<Void> modifyMyPassword(Authentication authentication,
+    public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-USER-ID") String loginId,
                                                  @Valid @RequestBody PasswordModifyRequest request) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         // 사용자 비밀번호 수정
         userService.modifyUserPassword(loginId, request);
 
@@ -153,11 +129,8 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
     @DeleteMapping("/me")
-    public ResponseEntity<Void> withdrawMyAccount(Authentication authentication,
+    public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") String loginId,
                                                   @RequestHeader("Authorization") String token) {
-        // Authentication 객체에서 로그인 아이디(principal) 가져옴
-        String loginId = (String) authentication.getPrincipal();
-
         userService.withdrawUser(loginId, token);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
