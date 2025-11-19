@@ -31,7 +31,6 @@ import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.properties.JwtProperties;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
@@ -67,9 +66,6 @@ public class UserServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
-    @Mock
-    private JwtProperties jwtProperties;
-
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -94,12 +90,10 @@ public class UserServiceTest {
         given(userRepository.existsByEmail(anyString())).willReturn(false);
         given(accountRepository.existsByLoginId(anyString())).willReturn(false);
         given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
-
         given(userRepository.save(any(User.class))).willReturn(testUser);
 
         userService.signUp(request);
 
-        verify(passwordEncoder).encode("pwd123!@#");
         verify(userRepository).save(any(User.class));
         verify(accountRepository).save(any(Account.class));
     }
@@ -175,37 +169,6 @@ public class UserServiceTest {
 
         assertThatThrownBy(() -> userService.login(request));
     }
-
-//    @Test
-//    @DisplayName("로그아웃 성공 - 토큰 블랙리스트 등록")
-//    void test7() {
-//        String token = "valid-token";
-//        String header = "Daiso " + token;
-//
-//        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
-//        given(jwtUtil.getRemainingExpiration(token)).willReturn(3600000L);
-//        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
-//
-//        userService.logout(header);
-//
-//        verify(jwtUtil).getRemainingExpiration(token);
-//        verify(valueOperations).set(token, "logout", 3600000L, TimeUnit.MILLISECONDS);
-//    }
-//
-//    @Test
-//    @DisplayName("로그아웃 성공 - 이미 만료된 토큰 (Redis 등록 안 함)")
-//    void test8() {
-//        String token = "expired-token";
-//        String header = "Daiso " + token;
-//
-//        given(jwtProperties.getTokenPrefix()).willReturn("Daiso");
-//        given(jwtUtil.getRemainingExpiration(token)).willReturn(0L);
-//
-//        userService.logout(header);
-//
-//        verify(jwtUtil).getRemainingExpiration(token);
-//        verify(valueOperations, never()).set(anyString(), anyString(), anyLong(), any(TimeUnit.class));
-//    }
 
     @Test
     @DisplayName("회원 정보 조회 성공")

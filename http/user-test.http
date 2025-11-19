@@ -1,0 +1,113 @@
+# ---------------------
+# User Service 단독 테스트 (Gateway 시뮬레이션)
+# ---------------------
+# User Service 포트로 직접 요청을 보냅니다.
+@host = http://localhost:8080
+# 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
+@testId = test
+@testPw = pwd123!@#
+
+### 1. 회원가입 (인증 불필요) - 201 Created 확인
+POST {{host}}/users/signup
+Content-Type: application/json
+
+{
+  "loginId": "{{testId}}",
+  "password": "{{testPw}}",
+  "userName": "홍길동",
+  "phoneNumber": "010-1234-5678",
+  "email": "{{testId}}@test.com",
+  "birth": "2000-01-01"
+}
+
+
+### 2. 로그인 (인증 불필요) - 200 OK
+# Header에 Authorization 토큰이 잘 나오는지 확인
+# (User Service는 토큰을 '발급'만 해줍니다)
+POST {{host}}/users/login
+Content-Type: application/json
+
+{
+  "loginId": "{{testId}}",
+  "password": "{{testPw}}"
+}
+
+###
+# -------------------------------------------------------
+# 여기서부터는 Gateway가 인증을 마쳤다고 가정하고
+# X-USER-ID 헤더를 직접 넣어서 테스트합니다.
+# -------------------------------------------------------
+
+### 3. 내 정보 조회 - 200 OK 확인
+GET {{host}}/users/me
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+### 4. 내 정보 수정 - 200 OK 확인
+PATCH {{host}}/users/me
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+{
+  "userName": "개명한길동",
+  "phoneNumber": "010-9999-8888",
+  "email": "new@test.com",
+  "birth": "1999-12-31"
+}
+
+### 5. 주소 추가 - 201 Created 확인
+POST {{host}}/users/me/addresses
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+{
+  "addressName": "우리집",
+  "addressDetail": "서울시 강남구 테헤란로",
+  "isDefault": true
+}
+
+### 6. 주소 목록 조회 - 200 OK
+# 방금 추가한 주소 확인
+# (addressId 변수에 첫번째 주소 ID 저장)
+# @name getAddresses
+GET {{host}}/users/me/addresses
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+> {%
+    client.global.set("addressId", response.body[0].addressId);
+%}
+
+### 7. 주소 수정 - 200 OK 확인
+PUT {{host}}/users/me/addresses/{{addressId}}
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+{
+  "addressName": "회사",
+  "addressDetail": "판교 유스페이스",
+  "isDefault": false
+}
+
+### 8. 주소 삭제 - 204 No Content 확인
+DELETE {{host}}/users/me/addresses/{{addressId}}
+X-USER-ID: {{testId}}
+
+### 9. 비밀번호 변경 - 200 OK 확인
+PUT {{host}}/users/me/password
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+{
+  "currentPassword": "{{testPw}}",
+  "newPassword": "NewStrongPwd123!"
+}
+
+### 10. 회원 탈퇴 - 204 No Content 확인
+DELETE {{host}}/users/me
+X-USER-ID: {{testId}}
+
+### 11. 탈퇴 후 조회 시도 - 404 Not Found (또는 Status 검증 로직에 따라 401/403) 뜨면 성공
+GET {{host}}/users/me
+Content-Type: application/json
+X-USER-ID: {{testId}}
