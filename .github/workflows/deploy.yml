@@ -64,13 +64,8 @@ jobs:
             # 네트워크 확인 및 생성 (없으면 생성)
             docker network inspect team3-network >/dev/null 2>&1 || docker network create team3-network
             
-            # 기존 컨테이너 정리
-            if [ "$(docker ps -aq -f name=user)" ]; then
-                echo "🧹 기존 User 컨테이너 삭제..."
-                docker rm -f user
-            fi
-            
-            # 이미지 Pull & Run
+            docker rm -f user || true
+# 이미지 Pull & Run
             docker pull ${{ secrets.DOCKER_USERNAME }}/user:latest
             
             docker run -d \
