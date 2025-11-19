@@ -62,7 +62,7 @@ jobs:
             # 네트워크 보장
             docker network create team3-network || true
 
-            docker rm -f user
+            docker rm -f user || true
       
             # 이미지 Pull
             docker pull ${{ secrets.DOCKER_USERNAME }}/user:latest
