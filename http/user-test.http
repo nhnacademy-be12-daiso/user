@@ -9,7 +9,7 @@
 @testPw = pwd123!@#
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
-POST {{host}}/users/signup
+POST {{host}}/signup
 Content-Type: application/json
 
 {
@@ -21,11 +21,10 @@ Content-Type: application/json
   "birth": "2000-01-01"
 }
 
-
 ### 2. 로그인 (인증 불필요) - 200 OK
 # Header에 Authorization 토큰이 잘 나오는지 확인
 # (User Service는 토큰을 '발급'만 해줍니다)
-POST {{host}}/users/login
+POST {{host}}/login
 Content-Type: application/json
 
 {
