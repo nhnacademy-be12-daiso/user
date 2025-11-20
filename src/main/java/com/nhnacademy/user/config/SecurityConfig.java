@@ -44,7 +44,7 @@ public class SecurityConfig {
         // Gateway에서 이미 검증 완료했기 때문에 내부적으로는 다 열어둠
         http.authorizeHttpRequests(auth -> auth
                 .anyRequest()
-                .authenticated());
+                .permitAll());
 
         return http.build();
     }

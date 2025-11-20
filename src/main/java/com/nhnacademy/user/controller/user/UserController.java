@@ -36,14 +36,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "유저 API", description = "회원가입, 로그인, 로그아웃, 내 정보 조회 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
 public class UserController {
     // JWT 발급과 무효화 흐름을 담당하는 인증 전용 컨트롤러, 요청을 UserService로 전달하는 역할만 담당
     // 실제 인증은 Security와 JWT 필터가 처리
@@ -52,7 +50,7 @@ public class UserController {
 
     private final JwtProperties jwtProperties;
 
-    // POST /users/signup
+    // POST /signup
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "회원가입 성공"),
@@ -65,7 +63,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // POST /users/login
+    // POST /login
     @Operation(summary = "로그인", description = "사용자 인증 후 JWT 토큰을 헤더에 담아 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "로그인 성공 — Authorization 헤더로 JWT 반환"),
@@ -84,7 +82,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true)))})
-    @GetMapping("/me")
+    @GetMapping("/users/me")
     public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-USER-ID") String loginId) {
         // 사용자 정보 조회
         UserResponse userInfo = userService.getUserInfo(loginId);
@@ -98,7 +96,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "수정 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true)))})
-    @PatchMapping("/me")
+    @PatchMapping("/users/me")
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-USER-ID") String loginId,
                                              @Valid @RequestBody UserModifyRequest request) {
         // 사용자 정보 수정
@@ -113,7 +111,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "401", description = "인증 실패 (현재 비밀번호 불일치)", content = @Content(schema = @Schema(hidden = true)))})
-    @PutMapping("/me/password")
+    @PutMapping("/users/me/password")
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-USER-ID") String loginId,
                                                  @Valid @RequestBody PasswordModifyRequest request) {
         // 사용자 비밀번호 수정
@@ -128,7 +126,7 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "탈퇴 성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(schema = @Schema(hidden = true))),
             @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
-    @DeleteMapping("/me")
+    @DeleteMapping("/users/me")
     public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") String loginId) {
         userService.withdrawUser(loginId);
 
@@ -140,7 +138,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "계정 활성화 성공"),
             @ApiResponse(responseCode = "404", description = "계정을 찾을 수 없음", content = @Content(schema = @Schema(hidden = true)))})
-    @PostMapping("/activate")
+    @PostMapping("/users/activate")
     public ResponseEntity<Void> activateAccount(@RequestParam("loginId") String loginId) {
         // 임시!!!! 나중에 Dooray Message Sender로 인증해야함.!
         userService.activeUser(loginId);
