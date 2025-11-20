@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.validator.constraints.Length;
 
-@Table(name = "Users")
 @Entity
+@Table(name = "Users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {     // 회원 기본 정보
@@ -73,7 +73,7 @@ public class User {     // 회원 기본 정보
     private long point = 0L;                 // 보유 포인트, default = 0
 
     @CreationTimestamp
-    @Column(name = "joined_at", nullable = false)
+    @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;         // 가입일시
 
     @Column(name = "last_login_at")
@@ -116,6 +116,10 @@ public class User {     // 회원 기본 정보
 
     public void active() {                          // 활성 회원으로 변경하는 메소드
         this.status = Status.ACTIVE;
+    }
+
+    public void modifyPoint(long amount) {   // 포인트 잔액을 변경하는 메소드
+        this.point += amount;
     }
 
     public void modifyGrade(Grade newGrade) {      // 등급 변경하는 메소드

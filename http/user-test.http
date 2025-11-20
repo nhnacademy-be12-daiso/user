@@ -1,8 +1,9 @@
 # ---------------------
 # User Service 단독 테스트 (Gateway 시뮬레이션)
 # ---------------------
-# 임시 포트...
-@host = http://localhost:8082
+# 통신 확인 > 8082, api 단독 > 8083
+#@host = http://localhost:8082
+@host = http://localhost:8083
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
 @testId = test
 @testPw = pwd123!@#
@@ -110,4 +111,19 @@ X-USER-ID: {{testId}}
 ### 11. 탈퇴 후 조회 시도 - 404 Not Found (또는 Status 검증 로직에 따라 401/403) 뜨면 성공
 GET {{host}}/users/me
 Content-Type: application/json
+X-USER-ID: {{testId}}
+
+### 12. 포인트 적립 - 200 OK 확인
+POST {{host}}/internal/points
+Content-Type: application/json
+
+{
+  "loginId": "test",
+  "amount": 2000,
+  "type": "USE",
+  "description": "테스트 사용"
+}
+
+### 13. 포인트 조회 - 200 OK 확인
+GET {{host}}/users/me/points
 X-USER-ID: {{testId}}

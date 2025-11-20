@@ -15,6 +15,7 @@ package com.nhnacademy.user.exception;
 import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
@@ -31,6 +32,15 @@ public class GlobalExceptionHandler {
     // 400 Bad Request
     @ExceptionHandler(AddressLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handlerAddressLimitExceededException(AddressLimitExceededException ex) {
+        // 등록된 주소 10개 초과
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(PointNotEnoughException.class)
+    public ResponseEntity<ErrorResponse> handlerPointNotEnoughException(PointNotEnoughException ex) {
         // 등록된 주소 10개 초과
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
