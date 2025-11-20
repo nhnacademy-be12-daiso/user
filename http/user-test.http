@@ -1,8 +1,8 @@
 # ---------------------
 # User Service 단독 테스트 (Gateway 시뮬레이션)
 # ---------------------
-# User Service 포트로 직접 요청을 보냅니다.
-@host = http://localhost:8080
+# 임시 포트...
+@host = http://localhost:8082
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
 @testId = test
 @testPw = pwd123!@#
