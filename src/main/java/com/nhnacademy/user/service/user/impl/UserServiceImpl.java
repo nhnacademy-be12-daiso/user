@@ -14,17 +14,22 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
+import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.point.PointPolicy;
+import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
+import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
 import com.nhnacademy.user.util.JwtUtil;
 import java.time.LocalDateTime;
@@ -46,6 +51,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     private final AccountRepository accountRepository;
+
+    private final PointPolicyRepository pointPolicyRepository;
+
+    private final PointService pointService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -76,6 +85,17 @@ public class UserServiceImpl implements UserService {
 
         Account account = new Account(request.loginId(), encodedPassword, Role.USER, saved);
         accountRepository.save(account);
+
+        // 회원가입시 5,000 적립
+        PointPolicy pointPolicy = pointPolicyRepository.findByPolicyName("회원가입")
+                .orElse(null);  // 정책이 없으면 적립 안 함 (추후에 예외 처리 해도 됨)
+
+        if (pointPolicy != null) {
+            long amount = pointPolicy.getEarnPoint().longValue();
+
+            pointService.processPoint(new PointRequest(request.loginId(), amount,
+                    Type.EARN, "회원가입 축하 포인트")); // 추후에 주문 ID도 레코드에 추가되면 같이 처리해줘야됨!!!!
+        }
     }
 
     @Override
