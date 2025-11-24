@@ -34,7 +34,7 @@ import org.hibernate.validator.constraints.Length;
 public class Account {      // 회원 인증 (로그인) 정보
 
     @Id
-    @Length(max = 50)
+    @Length(max = 16)
     @Column(name = "login_id")
     private String loginId;         // 로그인 아이디: 사용자 입력 (PK)
 
@@ -56,8 +56,7 @@ public class Account {      // 회원 인증 (로그인) 정보
         this.user = user;
     }
 
-    // 비밀번호를 변경하는 메소드
-    public void modifyPassword(String password) {
+    public void modifyPassword(String password) {   // 비밀번호를 변경하는 메소드
         this.password = password;
     }
 

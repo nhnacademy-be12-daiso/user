@@ -12,8 +12,6 @@
 
 package com.nhnacademy.user.dto.response;
 
-import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -21,15 +19,9 @@ public record UserResponse(String userName,
                            String phoneNumber,
                            String email,
                            LocalDate birth,
-                           Grade grade,
+                           String gradeName,
                            long point,
+                           String statusName,
                            LocalDateTime joinedAt) {
     // 클라이언트에게 반환할 회원 정보를 담는 응답 DTO
-
-    // User 엔티티 > DTO 변환 메소드
-    public static UserResponse fromEntity(User user) {
-        return new UserResponse(user.getUserName(), user.getPhoneNumber(), user.getEmail(),
-                user.getBirth(), user.getGrade(), user.getPoint(), user.getJoinedAt());
-    }
-
 }

@@ -10,18 +10,15 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.point;
+package com.nhnacademy.user.repository.user;
 
-import com.nhnacademy.user.entity.point.PointPolicy;
+import com.nhnacademy.user.entity.user.Grade;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PointPolicyRepository extends JpaRepository<PointPolicy, Long> {
+public interface GradeRepository extends JpaRepository<Grade, Long> {
 
-    // 정책 이름으로 조회 (ex: "회원가입 이벤트")
-    Optional<PointPolicy> findByPolicyName(String policyName);
-
-    // 정책 타입으로 조회 (ex: "REGISTER")
-    Optional<PointPolicy> findByPolicyType(String policyType);
+    // GradeName으로 조회 (GENERAL, ROYAL, GOLD, PLATINUM)
+    Optional<Grade> findByGradeName(String gradeName);
 
 }

@@ -15,20 +15,29 @@ package com.nhnacademy.user.repository.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.entity.user.UserStatusHistory;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 public class UserRepositoryTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    StatusRepository statusRepository;
+
+    @Autowired
+    UserStatusHistoryRepository historyRepository;
 
     @Test
     @DisplayName("User 저장 및 조회 성공")
@@ -44,9 +53,6 @@ public class UserRepositoryTest {
         assertThat(found.getPhoneNumber()).isEqualTo("010-1234-5678");
         assertThat(found.getEmail()).isEqualTo("test@test.com");
         assertThat(found.getBirth()).isEqualTo(LocalDate.of(2003, 11, 7));
-        assertThat(found.getGrade()).isEqualTo(Grade.GENERAL);
-        assertThat(found.getStatus()).isEqualTo(Status.ACTIVE);
-        assertThat(found.getPoint()).isEqualTo(0L);
     }
 
     @Test
@@ -73,6 +79,44 @@ public class UserRepositoryTest {
                 "test@test.com", LocalDate.now());
 
         assertThatThrownBy(() -> userRepository.save(user2));
+    }
+
+    @Test
+    @DisplayName("휴면 전환 대상자(1년 이상 미접속 + 현재 ACTIVE) 조회")
+    void test4() {
+        Status active = new Status("ACTIVE");
+        Status dormant = new Status("DORMANT");
+        statusRepository.save(active);
+        statusRepository.save(dormant);
+
+        User targetUser = createUser("target", "010-1111-1111", "t@t.com");
+        setLastLogin(targetUser, LocalDateTime.now().minusYears(2));
+        historyRepository.save(new UserStatusHistory(targetUser, active));
+
+        User recentUser = createUser("recent", "010-2222-2222", "r@r.com");
+        setLastLogin(recentUser, LocalDateTime.now().minusDays(1));
+        historyRepository.save(new UserStatusHistory(recentUser, active));
+
+        User dormantUser = createUser("dormant", "010-3333-3333", "d@d.com");
+        setLastLogin(dormantUser, LocalDateTime.now().minusYears(2));
+        historyRepository.save(new UserStatusHistory(dormantUser, dormant));
+
+        LocalDateTime cutoffDate = LocalDateTime.now().minusYears(1);
+        List<User> result = userRepository.findDormantUser(cutoffDate);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUserName()).isEqualTo("target");
+    }
+
+    private User createUser(String name, String phone, String email) {
+        User user = new User(name, phone, email, LocalDate.now());
+        return userRepository.save(user);
+    }
+
+    private void setLastLogin(User user, LocalDateTime time) {
+        ReflectionTestUtils.setField(user, "lastLoginAt", time);
+        userRepository.save(user);
     }
 
 }

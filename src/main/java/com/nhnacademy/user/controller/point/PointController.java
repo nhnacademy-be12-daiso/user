@@ -27,16 +27,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "포인트 API", description = "사용자용 포인트 조회 API")
+@Tag(name = "포인트 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users/me/points")
+@RequestMapping("/api/users/me/points")
 public class PointController {
 
     private final PointService pointService;
 
-    // GET /users/me/points
-    @Operation(summary = "내 포인트 내역 조회", description = "로그인한 사용자의 포인트 변동 내역을 최신순으로 조회합니다.")
+    // GET /api/users/me/points
+    @Operation(summary = "내 포인트 내역 조회")
     @GetMapping
     public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader(name = "X-USER-ID") String loginId,
                                                                   @PageableDefault Pageable pageable) {

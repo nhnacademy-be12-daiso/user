@@ -17,8 +17,18 @@ import com.nhnacademy.user.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
+
+    // DB가 유저의 포인트 잔액을 계산(+ EARN, - USE, + CANCEL)
+    @Query("SELECT COALESCE(SUM(CASE WHEN ph.type = 'EARN' THEN ph.amount " +
+            "WHEN ph.type = 'USE' THEN -ph.amount " +
+            "WHEN ph.type = 'CANCEL' THEN ph.amount " + // 사용 취소면 다시 더해줘야 함
+            "ELSE 0 END), 0) " +
+            "FROM PointHistory ph WHERE ph.user = :user")
+    Long getPointByUser(@Param("user") User user);
 
     // 특정 회원의 포인트 내역 페이징 조회
     Page<PointHistory> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);

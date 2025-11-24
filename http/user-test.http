@@ -1,76 +1,71 @@
 # ---------------------
-# User Service 단독 테스트 (Gateway 시뮬레이션)
+# User Service 단독 테스트
 # ---------------------
 # 통신 확인 > 8082, api 단독 > 8083
 #@host = http://localhost:8082
 @host = http://localhost:8083
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testId = test
+@testId = testuser1
 @testPw = pwd123!@#
+@testName = 테스트유저1
+@testEmail = testuser1@test.com
+@testPhone = 010-1111-1111
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
-POST {{host}}/signup
+POST {{host}}/api/users/signup
 Content-Type: application/json
 
 {
   "loginId": "{{testId}}",
   "password": "{{testPw}}",
-  "userName": "홍길동",
-  "phoneNumber": "010-1234-5678",
-  "email": "{{testId}}@test.com",
-  "birth": "2000-01-01"
+  "userName": "{{testName}}",
+  "phoneNumber": "{{testPhone}}",
+  "email": "{{testEmail}}",
+  "birth": "2001-01-01"
 }
 
-### 2. 로그인 (인증 불필요) - 200 OK
-# Header에 Authorization 토큰이 잘 나오는지 확인
-# (User Service는 토큰을 '발급'만 해줍니다)
-POST {{host}}/login
-Content-Type: application/json
-
-{
-  "loginId": "{{testId}}",
-  "password": "{{testPw}}"
-}
-
-###
-# -------------------------------------------------------
-# 여기서부터는 Gateway가 인증을 마쳤다고 가정하고
-# X-USER-ID 헤더를 직접 넣어서 테스트합니다.
-# -------------------------------------------------------
-
-### 3. 내 정보 조회 - 200 OK 확인
-GET {{host}}/users/me
+### 2. 내 정보 조회 - 200 OK 확인
+GET {{host}}/api/users/me
 Content-Type: application/json
 X-USER-ID: {{testId}}
 
-### 4. 내 정보 수정 - 200 OK 확인
-PATCH {{host}}/users/me
+### 3. 내 정보 수정 - 200 OK 확인
+# 이름과 이메일 변경
+PATCH {{host}}/api/users/me
 Content-Type: application/json
 X-USER-ID: {{testId}}
 
 {
-  "userName": "개명한길동",
-  "phoneNumber": "010-9999-8888",
+  "userName": "개명한유저",
+  "phoneNumber": "010-0000-1111",
   "email": "new@test.com",
   "birth": "1999-12-31"
 }
 
-### 5. 주소 추가 - 201 Created 확인
-POST {{host}}/users/me/addresses
+### 4. 비밀번호 변경 - 200 OK 확인
+PUT {{host}}/api/users/me/password
 Content-Type: application/json
 X-USER-ID: {{testId}}
 
 {
-  "addressName": "우리집",
-  "addressDetail": "서울시 강남구 테헤란로",
+  "currentPassword": "{{testPw}}",
+  "newPassword": "new123!@#"
+}
+
+### 5. 주소 추가 - 201 Created 확인
+POST {{host}}/api/users/me/addresses
+Content-Type: application/json
+X-USER-ID: {{testId}}
+
+{
+  "addressName": "조선대 IT융합대학",
+  "roadAddress": "광주광역시 동구 필문대로 309",
+  "addressDetail": "1층 NHN 실습실",
   "isDefault": true
 }
 
 ### 6. 주소 목록 조회 - 200 OK
-# 방금 추가한 주소 확인
-# (addressId 변수에 첫번째 주소 ID 저장)
-# @name getAddresses
-GET {{host}}/users/me/addresses
+GET {{host}}/api/users/me/addresses
 Content-Type: application/json
 X-USER-ID: {{testId}}
 
@@ -79,50 +74,55 @@ X-USER-ID: {{testId}}
 %}
 
 ### 7. 주소 수정 - 200 OK 확인
-PUT {{host}}/users/me/addresses/{{addressId}}
+PUT {{host}}/api/users/me/addresses/{{addressId}}
 Content-Type: application/json
 X-USER-ID: {{testId}}
 
 {
-  "addressName": "회사",
-  "addressDetail": "판교 유스페이스",
+  "addressName": "학교",
+  "roadAddress": "광주광역시 동구 필문대로 309",
+  "addressDetail": "중앙도서관 1층",
   "isDefault": false
 }
 
 ### 8. 주소 삭제 - 204 No Content 확인
-DELETE {{host}}/users/me/addresses/{{addressId}}
+DELETE {{host}}/api/users/me/addresses/{{addressId}}
 X-USER-ID: {{testId}}
 
-### 9. 비밀번호 변경 - 200 OK 확인
-PUT {{host}}/users/me/password
+### 9. 포인트 적립
+POST {{host}}/api/internal/points
 Content-Type: application/json
-X-USER-ID: {{testId}}
 
 {
-  "currentPassword": "{{testPw}}",
-  "newPassword": "NewStrongPwd123!"
+  "loginId": "{{testId}}",
+  "amount": 5000,
+  "type": "EARN",
+  "description": "관리자 지급 이벤트"
 }
 
-### 10. 회원 탈퇴 - 204 No Content 확인
-DELETE {{host}}/users/me
-X-USER-ID: {{testId}}
-
-### 11. 탈퇴 후 조회 시도 - 404 Not Found (또는 Status 검증 로직에 따라 401/403) 뜨면 성공
-GET {{host}}/users/me
-Content-Type: application/json
-X-USER-ID: {{testId}}
-
-### 12. 포인트 적립 - 200 OK 확인
-POST {{host}}/internal/points
+### 10. 포인트 사용 (잔액 부족 테스트)
+POST {{host}}/api/internal/points
 Content-Type: application/json
 
 {
-  "loginId": "test",
-  "amount": 2000,
+  "loginId": "{{testId}}",
+  "amount": 6000,
   "type": "USE",
-  "description": "테스트 사용"
+  "description": "비싼 물건 구매"
 }
 
-### 13. 포인트 조회 - 200 OK 확인
-GET {{host}}/users/me/points
+### 11. 내 포인트 내역 및 잔액 조회
+GET {{host}}/api/users/me/points?page=0&size=10
 X-USER-ID: {{testId}}
+
+### 12. 회원 탈퇴
+DELETE {{host}}/api/users/me
+X-USER-ID: {{testId}}
+
+### 13. 탈퇴 후 조회 확인
+GET {{host}}/api/users/me
+X-USER-ID: {{testId}}
+
+### 14. 휴면/탈퇴 계정 활성화 (임시)
+POST {{host}}/api/users/activate?loginId={{testId}}
+Content-Type: application/json

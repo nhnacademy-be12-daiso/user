@@ -51,7 +51,8 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
-        Address address = new Address(user, request.addressName(), request.addressDetail(), request.isDefault());
+        Address address = new Address(
+                user, request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
 
         addressRepository.save(address);
     }
@@ -80,7 +81,8 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
-        address.modifyDetails(request.addressName(), request.addressDetail(), request.isDefault());
+        address.modifyDetails(request.addressName(), request.roadAddress(), request.addressDetail(),
+                request.isDefault());
     }
 
     @Override

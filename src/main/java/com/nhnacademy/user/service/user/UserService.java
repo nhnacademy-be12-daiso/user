@@ -12,7 +12,6 @@
 
 package com.nhnacademy.user.service.user;
 
-import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -23,9 +22,6 @@ public interface UserService {
     // 회원가입
     void signUp(SignupRequest request);
 
-    // 로그인
-    String login(LoginRequest request);
-
     // 회원 정보 조회
     UserResponse getUserInfo(String loginId);
 
@@ -34,6 +30,9 @@ public interface UserService {
 
     // 비밀번호 수정
     void modifyUserPassword(String loginId, PasswordModifyRequest request);
+
+    // 마지막 로그인 시간 갱신
+    void modifyLastLoginAt(String loginId);
 
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
     void withdrawUser(String loginId);

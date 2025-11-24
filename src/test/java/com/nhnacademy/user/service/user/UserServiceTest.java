@@ -21,20 +21,29 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
+import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.user.Grade;
+import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.user.GradeRepository;
+import com.nhnacademy.user.repository.user.StatusRepository;
+import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
+import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
+import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
-import com.nhnacademy.user.util.JwtUtil;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +53,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,13 +65,22 @@ public class UserServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
+    private GradeRepository gradeRepository;
+
+    @Mock
+    private StatusRepository statusRepository;
+
+    @Mock
+    private UserGradeHistoryRepository userGradeHistoryRepository;
+
+    @Mock
+    private UserStatusHistoryRepository userStatusHistoryRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private AuthenticationManager authenticationManager;
-
-    @Mock
-    private JwtUtil jwtUtil;
+    private PointService pointService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -86,16 +102,25 @@ public class UserServiceTest {
         SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
+        given(accountRepository.existsByLoginId(anyString())).willReturn(false);
         given(userRepository.existsByPhoneNumber(anyString())).willReturn(false);
         given(userRepository.existsByEmail(anyString())).willReturn(false);
-        given(accountRepository.existsByLoginId(anyString())).willReturn(false);
+
         given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
-        given(userRepository.save(any(User.class))).willReturn(testUser);
+
+        Grade generalGrade = new Grade("GENERAL", BigDecimal.ONE);
+        Status activeStatus = new Status("ACTIVE");
+
+        given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(generalGrade));
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(activeStatus));
 
         userService.signUp(request);
 
         verify(userRepository).save(any(User.class));
         verify(accountRepository).save(any(Account.class));
+        verify(userGradeHistoryRepository).save(any(UserGradeHistory.class));
+        verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
+        verify(pointService).earnPointByPolicy(request.loginId(), "REGISTER");
     }
 
     @Test
@@ -144,47 +169,34 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공")
-    void test5() {
-        LoginRequest request = new LoginRequest("test", "pwd123!@#");
-
-        Authentication mockAuthentication = mock(Authentication.class);
-
-        given(accountRepository.findByIdWithUser("test")).willReturn(Optional.of(testAccount));
-        given(authenticationManager.authenticate(any())).willReturn(mockAuthentication);
-        given(jwtUtil.createAccessToken(testLoginId, "USER")).willReturn("Daiso token");
-
-        String token = userService.login(request);
-
-        assertThat(token).isEqualTo("Daiso token");
-        assertThat(testUser.getLastLoginAt()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("로그인 실패 - 인증 실패")
-    void test6() {
-        LoginRequest request = new LoginRequest("test", "wrong");
-
-        given(authenticationManager.authenticate(any())).willThrow();
-
-        assertThatThrownBy(() -> userService.login(request));
-    }
-
-    @Test
     @DisplayName("회원 정보 조회 성공")
-    void test9() {
+    void test5() {
         given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(testAccount));
+
+        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
+        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "승급");
+        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+                .willReturn(Optional.of(gradeHistory));
+
+        Status status = new Status("ACTIVE");
+        UserStatusHistory statusHistory = new UserStatusHistory(testUser, status);
+        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+                .willReturn(Optional.of(statusHistory));
+
+        given(pointService.getCurrentPoint(testLoginId)).willReturn(new PointResponse(5000L));
 
         UserResponse response = userService.getUserInfo(testLoginId);
 
         assertThat(response).isNotNull();
         assertThat(response.userName()).isEqualTo("테스트");
-        assertThat(response.email()).isEqualTo("test@test.com");
+        assertThat(response.gradeName()).isEqualTo("GOLD");
+        assertThat(response.statusName()).isEqualTo("ACTIVE");
+        assertThat(response.point()).isEqualTo(5000L);
     }
 
     @Test
     @DisplayName("회원 정보 조회 실패 - 존재하지 않는 회원")
-    void test10() {
+    void test6() {
         given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserInfo("wrong"))
@@ -193,24 +205,21 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("회원 정보 수정 성공")
-    void test11() {
+    void test7() {
         UserModifyRequest request = new UserModifyRequest("수정된 이름",
                 "010-1234-5678", "new@new.com", testBirthDate);
 
-        User spyUser = mock(User.class);
-        Account spyAccount = new Account(testLoginId, "pwd", Role.USER, spyUser);
-
-        given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(spyAccount));
+        given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(testAccount));
 
         userService.modifyUserInfo(testLoginId, request);
 
-        verify(accountRepository).findByIdWithUser(testLoginId);
-        verify(spyUser).modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
+        assertThat(testUser.getUserName()).isEqualTo("수정된 이름");
+        assertThat(testUser.getEmail()).isEqualTo("new@new.com");
     }
 
     @Test
     @DisplayName("회원 정보 수정 실패 - 존재하지 않는 유저")
-    void test12() {
+    void test8() {
         UserModifyRequest request = new UserModifyRequest("a", "b", "c", testBirthDate);
 
         given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
@@ -221,34 +230,41 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("비밀번호 수정 성공")
-    void test13() {
-        PasswordModifyRequest request = new PasswordModifyRequest("pwd111!!!", "new123!@#");
-
-        String encodedNewPassword = "ENCODED_NEW_PASSWORD";
+    void test9() {
+        PasswordModifyRequest request = new PasswordModifyRequest("oldPwd", "newPwd");
 
         Account mockAccount = mock(Account.class);
 
         given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(mockAccount));
-        given(mockAccount.getPassword()).willReturn("ENCODED_CURRENT_PASSWORD");
-        given(passwordEncoder.matches("pwd111!!!", "ENCODED_CURRENT_PASSWORD")).willReturn(true);
-        given(passwordEncoder.encode("new123!@#")).willReturn(encodedNewPassword);
+
+        given(mockAccount.getPassword()).willReturn("encodedOld");
+        given(passwordEncoder.matches("oldPwd", "encodedOld")).willReturn(true);
+        given(passwordEncoder.encode("newPwd")).willReturn("encodedNew");
 
         userService.modifyUserPassword(testLoginId, request);
 
-        verify(passwordEncoder).matches("pwd111!!!", "ENCODED_CURRENT_PASSWORD");
-        verify(passwordEncoder).encode("new123!@#");
-        verify(mockAccount).modifyPassword(encodedNewPassword);
+        verify(mockAccount).modifyPassword("encodedNew");
     }
 
     @Test
     @DisplayName("비밀번호 수정 실패 - 존재하지 않는 유저")
-    void test15() {
+    void test10() {
         PasswordModifyRequest request = new PasswordModifyRequest("any", "any");
 
         given(accountRepository.findByIdWithUser("wrong")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.modifyUserPassword("wrong", request))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("로그인 시 마지막 접속일 갱신")
+    void test11() {
+        given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.of(testAccount));
+
+        userService.modifyLastLoginAt(testLoginId);
+
+        assertThat(testUser.getLastLoginAt()).isNotNull();
     }
 
 }

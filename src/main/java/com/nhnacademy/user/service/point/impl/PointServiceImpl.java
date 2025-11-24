@@ -14,14 +14,18 @@ package com.nhnacademy.user.service.point.impl;
 
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
+import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.point.PointHistory;
+import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
+import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
+import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.service.point.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,31 +41,54 @@ public class PointServiceImpl implements PointService {
 
     private final PointHistoryRepository pointHistoryRepository;
 
+    private final PointPolicyRepository pointPolicyRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public PointResponse getCurrentPoint(String loginId) {  // 현재 내 포인트 잔액 조회
+        User user = getAccount(loginId).getUser();
+
+        Long point = pointHistoryRepository.getPointByUser(user);
+
+        return new PointResponse(point);
+    }
+
     @Override
     @Transactional
-    public void processPoint(PointRequest request) {
+    public void earnPointByPolicy(String loginId, String policyType) {  // 정책 기반 포인트 적립
+        User user = getAccount(loginId).getUser();
+
+        PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
+                .orElseThrow(() -> new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다: " + policyType));
+
+        long amount = pointPolicy.getEarnPoint().longValue();
+
+        PointHistory pointHistory = new PointHistory(user, amount, Type.EARN, pointPolicy.getPolicyName());
+        pointHistoryRepository.save(pointHistory);
+    }
+
+    @Override
+    @Transactional
+    public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
         User user = getAccount(request.loginId()).getUser();
 
-        long changeAmount = request.amount();
+        long amount = request.amount();
 
         if (request.type() == Type.USE) {
-            if (user.getPoint() < changeAmount) {
-                throw new PointNotEnoughException("포인트 잔액이 부족합니다.");
-            }
+            Long currentPoint = pointHistoryRepository.getPointByUser(user);
 
-            changeAmount = -changeAmount;
+            if (currentPoint < amount) {
+                throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
+            }
         }
 
-        user.modifyPoint(changeAmount);
-
-        PointHistory pointHistory = new PointHistory(user, changeAmount, request.type(), request.description());
-
+        PointHistory pointHistory = new PointHistory(user, amount, request.type(), request.description());
         pointHistoryRepository.save(pointHistory);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PointHistoryResponse> getMyPointHistory(String loginId, Pageable pageable) {
+    public Page<PointHistoryResponse> getMyPointHistory(String loginId, Pageable pageable) {    // 내 포인트 내역 조회
         Account account = getAccount(loginId);
 
         User user = account.getUser();

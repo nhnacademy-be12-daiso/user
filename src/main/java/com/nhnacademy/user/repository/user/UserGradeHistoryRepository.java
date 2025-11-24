@@ -10,18 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.point;
+package com.nhnacademy.user.repository.user;
 
-import com.nhnacademy.user.entity.point.PointPolicy;
+import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.entity.user.UserGradeHistory;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PointPolicyRepository extends JpaRepository<PointPolicy, Long> {
+public interface UserGradeHistoryRepository extends JpaRepository<UserGradeHistory, Long> {
 
-    // 정책 이름으로 조회 (ex: "회원가입 이벤트")
-    Optional<PointPolicy> findByPolicyName(String policyName);
-
-    // 정책 타입으로 조회 (ex: "REGISTER")
-    Optional<PointPolicy> findByPolicyType(String policyType);
+    // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터(최근, == 현재)를 가져옴
+    Optional<UserGradeHistory> findTopByUserOrderByChangedAtDesc(User user);
 
 }

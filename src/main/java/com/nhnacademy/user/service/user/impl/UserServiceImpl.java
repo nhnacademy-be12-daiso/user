@@ -12,33 +12,34 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.dto.request.LoginRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
-import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
+import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
-import com.nhnacademy.user.entity.point.PointPolicy;
-import com.nhnacademy.user.entity.point.Type;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import com.nhnacademy.user.repository.account.AccountRepository;
-import com.nhnacademy.user.repository.point.PointPolicyRepository;
+import com.nhnacademy.user.repository.user.GradeRepository;
+import com.nhnacademy.user.repository.user.StatusRepository;
+import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
+import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import com.nhnacademy.user.util.JwtUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,20 +53,25 @@ public class UserServiceImpl implements UserService {
 
     private final AccountRepository accountRepository;
 
-    private final PointPolicyRepository pointPolicyRepository;
+    private final GradeRepository gradeRepository;
+
+    private final StatusRepository statusRepository;
+
+    private final UserGradeHistoryRepository userGradeHistoryRepository;
+
+    private final UserStatusHistoryRepository userStatusHistoryRepository;
 
     private final PointService pointService;
 
     private final PasswordEncoder passwordEncoder;
 
-    private final AuthenticationManager authenticationManager;
-
-    // JWT 토큰 생성 및 검증
-    private final JwtUtil jwtUtil;
-
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
     public void signUp(SignupRequest request) { // 회원가입
+        if (accountRepository.existsByLoginId(request.loginId())) {
+            throw new UserAlreadyExistsException("이미 존재하는 아이디입니다.");
+        }
+
         if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
@@ -74,43 +80,28 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
-        if (accountRepository.existsByLoginId(request.loginId())) {
-            throw new UserAlreadyExistsException("이미 존재하는 아이디입니다.");
-        }
+        // Users 테이블 저장
+        User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
+        userRepository.save(user);
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
-        User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
-        User saved = userRepository.save(user);
-
-        Account account = new Account(request.loginId(), encodedPassword, Role.USER, saved);
+        // Accounts 테이블 저장 (인코딩된 비밀번호)
+        Account account = new Account(request.loginId(), encodedPassword, Role.USER, user);
         accountRepository.save(account);
 
-        // 회원가입시 5,000 적립
-        PointPolicy pointPolicy = pointPolicyRepository.findByPolicyName("회원가입")
-                .orElse(null);  // 정책이 없으면 적립 안 함 (추후에 예외 처리 해도 됨)
+        // 초기 등급(GENERAL) 저장
+        Grade grade = gradeRepository.findByGradeName("GENERAL")
+                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 등급 데이터가 없습니다."));
+        userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
 
-        if (pointPolicy != null) {
-            long amount = pointPolicy.getEarnPoint().longValue();
+        // 초기 상태(ACTIVE) 저장
+        Status status = statusRepository.findByStatusName("ACTIVE")
+                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
+        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
-            pointService.processPoint(new PointRequest(request.loginId(), amount,
-                    Type.EARN, "회원가입 축하 포인트")); // 추후에 주문 ID도 레코드에 추가되면 같이 처리해줘야됨!!!!
-        }
-    }
-
-    @Override
-    @Transactional
-    public String login(LoginRequest request) { // 로그인
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.loginId(), request.password()));
-
-        Account account = getAccount(request.loginId());
-
-        // 최근 로그인 시간 업데이트
-        account.getUser().modifyLastLoginAt();
-
-        // JWT 토큰 생성(클라이언트에 반환할 access token)
-        return jwtUtil.createAccessToken(account.getLoginId(), account.getRole().name());
+        // 회원가입 축하 포인트 지급
+        pointService.earnPointByPolicy(request.loginId(), "REGISTER");
     }
 
     @Override
@@ -120,7 +111,22 @@ public class UserServiceImpl implements UserService {
 
         User user = account.getUser();
 
-        return UserResponse.fromEntity(user);
+        Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+                .map(UserStatusHistory::getStatus)
+                .orElseThrow(() -> new RuntimeException("회원 상태 정보가 누락되었습니다."));
+
+        if ("WITHDRAWN".equals(status.getStatusName())) {
+            throw new UserWithdrawnException("이미 탈퇴한 회원입니다.");
+        }
+
+        Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+                .map(UserGradeHistory::getGrade)
+                .orElseThrow(() -> new RuntimeException("회원 등급 정보가 누락되었습니다."));
+
+        PointResponse pointResponse = pointService.getCurrentPoint(loginId);
+
+        return new UserResponse(user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
+                grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), user.getJoinedAt());
     }
 
     @Override
@@ -137,21 +143,24 @@ public class UserServiceImpl implements UserService {
         Account account = getAccount(loginId);
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
-            throw new BadCredentialsException("현재 비밀번호가 일치하지 않습니다.");
+            throw new PasswordNotMatchException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        String newPassword = passwordEncoder.encode(request.newPassword());
+        account.modifyPassword(passwordEncoder.encode(request.newPassword()));
+    }
 
-        account.modifyPassword(newPassword);
+    @Override
+    public void modifyLastLoginAt(String loginId) {
+        Account account = getAccount(loginId);
+
+        account.getUser().modifyLastLoginAt();
     }
 
     @Override
     @Transactional
     public void withdrawUser(String loginId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
-        User user = getAccount(loginId).getUser();
-
         // 계정 상태를 WITHDRAWN으로 변경
-        user.withdraw();
+        changeStatus(loginId, "WITHDRAWN");
 
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
@@ -162,10 +171,13 @@ public class UserServiceImpl implements UserService {
         LocalDateTime lastLoginAtBefore = LocalDateTime.now().minusDays(90);
 
         // 휴면 대상자 조회
-        List<User> dormantUsers = userRepository.findAllByStatusAndLastLoginAtBefore(Status.ACTIVE, lastLoginAtBefore);
+        List<User> dormantUsers = userRepository.findDormantUser(lastLoginAtBefore);
+
+        Status status = statusRepository.findByStatusName("DORMANT")
+                .orElseThrow(() -> new RuntimeException("DORMANT 상태 없음"));
 
         for (User dormantUser : dormantUsers) {
-            dormantUser.dormant();
+            userStatusHistoryRepository.save(new UserStatusHistory(dormantUser, status));
         }
 
         log.info("{}명의 회원을 휴면 계정으로 전환했습니다.", dormantUsers.size());
@@ -173,22 +185,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void activeUser(String loginId) {
-        Account account = getAccount(loginId);
-
-        User user = account.getUser();
-
-        // 휴면 계정이 아니라면 실행할 필요 없음
-        if (user.getStatus() != Status.DORMANT) {   // 휴면 계정 복구
-            // 이미 활성 중이거나 탈퇴한 계정은 복구 대상이 아님
-            throw new IllegalStateException("휴면 상태의 계정만 활성화할 수 있습니다.");
-        }
-
-        user.active();
+        // 휴면 해제 시 인증 절차 필요함!! > dooray messenger sender..??
+        changeStatus(loginId, "ACTIVE");
     }
 
     private Account getAccount(String loginId) {
         return accountRepository.findByIdWithUser(loginId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));
+    }
+
+    private void changeStatus(String loginId, String statusName) {
+        User user = getAccount(loginId).getUser();
+
+        Status status = statusRepository.findByStatusName(statusName)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태: " + statusName));
+
+        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
     }
 
 }

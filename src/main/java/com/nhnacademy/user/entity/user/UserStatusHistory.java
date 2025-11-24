@@ -14,35 +14,45 @@ package com.nhnacademy.user.entity.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "Grades")
+@Table(name = "UserStatusHistories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Grade {    // 회원 등급 및 혜택 정보
+public class UserStatusHistory {        // 회원 상태 변경 내역
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "grade_id")
-    private Long gradeId;           // 등급 고유 ID (PK, AI)
+    @Column(name = "user_status_history_id")
+    private Long userStatusHistoryId;   // 회원 상태 변경 내역 고유 ID (PK, AI)
 
-    @Column(name = "grade_name", nullable = false, length = 10)
-    private String gradeName;       // GENERAL, ROYAL, GOLD, PLATINUM
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_created_id", nullable = false)
+    private User user;                  // Users 테이블 외래키 (FK)
 
-    @Column(name = "point_rate", nullable = false, precision = 4, scale = 2)
-    private BigDecimal pointRate;   // 등급별 적립률
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id", nullable = false)
+    private Status status;              // Status 테이블 외래키 (FK)
 
-    public Grade(String gradeName, BigDecimal pointRate) {
-        this.gradeName = gradeName;
-        this.pointRate = pointRate;
+    @CreationTimestamp
+    @Column(name = "changed_at", nullable = false, updatable = false)
+    private LocalDateTime changedAt;
+
+    public UserStatusHistory(User user, Status status) {
+        this.user = user;
+        this.status = status;
     }
 
 }
