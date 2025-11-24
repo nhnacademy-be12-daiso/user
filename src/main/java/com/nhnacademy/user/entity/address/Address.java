@@ -46,22 +46,29 @@ public class Address {      // 회원 배송지 주소
     @Column(name = "address_name", nullable = false)
     private String addressName;     // 주소 별칭
 
-    @Length(max = 255)
+    @Length(max = 50)
+    @Column(name = "road_address", nullable = false)
+    private String roadAddress;     // 도로명 주소
+
+    @Length(max = 100)
     @Column(name = "address_detail", nullable = false)
     private String addressDetail;   // 전체 주소
 
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;      // 기본 배송지 여부
 
-    public Address(User user, String addressName, String addressDetail, boolean isDefault) {
+    public Address(User user, String addressName, String roadAddress, String addressDetail, boolean isDefault) {
         this.user = user;
         this.addressName = addressName;
+        this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;
     }
 
-    public void modifyDetails(String addressName, String addressDetail, boolean isDefault) {
+    public void modifyDetails(String addressName, String roadAddress, String addressDetail,
+                              boolean isDefault) {    // 주소 변경하는 메소드
         this.addressName = addressName;
+        this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;
     }

@@ -10,7 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.properties;
+package com.nhnacademy.user.exception.point;
 
-public interface PropertiesBase {   // UserApplication.java에서 해당 패키지(properties)를 자동으로 스프링 빈으로 등록되게 도와줌
+// 존재하지 않는 포인트 정책
+public class PointPolicyNotFoundException extends RuntimeException {
+    public PointPolicyNotFoundException(String message) {
+        super(message);
+    }
 }

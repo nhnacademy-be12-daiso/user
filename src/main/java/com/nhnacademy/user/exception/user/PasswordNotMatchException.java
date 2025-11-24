@@ -10,18 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.point;
+package com.nhnacademy.user.exception.user;
 
-import com.nhnacademy.user.entity.point.PointPolicy;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface PointPolicyRepository extends JpaRepository<PointPolicy, Long> {
-
-    // 정책 이름으로 조회 (ex: "회원가입 이벤트")
-    Optional<PointPolicy> findByPolicyName(String policyName);
-
-    // 정책 타입으로 조회 (ex: "REGISTER")
-    Optional<PointPolicy> findByPolicyType(String policyType);
-
+// 비밀번호 불일치
+public class PasswordNotMatchException extends RuntimeException {
+    public PasswordNotMatchException(String message) {
+        super(message);
+    }
 }

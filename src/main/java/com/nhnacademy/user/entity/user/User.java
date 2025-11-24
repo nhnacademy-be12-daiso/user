@@ -17,8 +17,6 @@ import com.nhnacademy.user.entity.address.Address;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,25 +50,14 @@ public class User {     // 회원 기본 정보
     private String userName;                // 회원 이름
 
     @Length(max = 30)
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;             // 연락처 (UK)
 
     @Length(max = 80)
-    @Column(nullable = false, unique = true)
-    private String email;                   // 이메일 (UK)
+    @Column(unique = true)
+    private String email;                    // 이메일 (UK)
 
-    private LocalDate birth;                // 생년월일, YYYY-MM-DD 패턴
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Grade grade = Grade.GENERAL;    // 회원 등급, default = 'GENERAL'
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status = Status.ACTIVE;  // 계정 상태, default = 'ACTIVE'
-
-    @Column(nullable = false)
-    private long point = 0L;                 // 보유 포인트, default = 0
+    private LocalDate birth;                 // 생년월일, YYYY-MM-DD 패턴
 
     @CreationTimestamp
     @Column(name = "joined_at", nullable = false, updatable = false)
@@ -90,9 +77,6 @@ public class User {     // 회원 기본 정보
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.birth = birth;
-        this.grade = Grade.GENERAL;
-        this.status = Status.ACTIVE;
-        this.point = 0L;
     }
 
     public void modifyLastLoginAt() {               // 최근 로그인 시각을 현재 시각으로 변경하는 메소드
@@ -104,26 +88,6 @@ public class User {     // 회원 기본 정보
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.birth = birth;
-    }
-
-    public void withdraw() {                        // 탈퇴 회원으로 변경하는 메소드
-        this.status = Status.WITHDRAWN;
-    }
-
-    public void dormant() {                         // 휴면 회원으로 변경하는 메소드
-        this.status = Status.DORMANT;
-    }
-
-    public void active() {                          // 활성 회원으로 변경하는 메소드
-        this.status = Status.ACTIVE;
-    }
-
-    public void modifyPoint(long amount) {   // 포인트 잔액을 변경하는 메소드
-        this.point += amount;
-    }
-
-    public void modifyGrade(Grade newGrade) {      // 등급 변경하는 메소드
-        this.grade = newGrade;
     }
 
 }

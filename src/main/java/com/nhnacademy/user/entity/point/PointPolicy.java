@@ -21,16 +21,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "PointPolicies")
 @Getter
+//@NoArgsConstructor  // 테스트용
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PointPolicy {  // 포인트 정책(관리자 전용)
+public class PointPolicy {  // 포인트 정책 (관리자 전용)
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +44,10 @@ public class PointPolicy {  // 포인트 정책(관리자 전용)
     @Column(name = "policy_name", nullable = false)
     private String policyName;      // 포인트 정책 이름
 
+    @Length(max = 20)
+    @Column(name = "policy_type", nullable = false, unique = true)
+    private String policyType;      // REGISTER, REVIEW, ORDER_BASIC 등
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Method method;          // 적립 방식
@@ -50,9 +57,8 @@ public class PointPolicy {  // 포인트 정책(관리자 전용)
     @Column(name = "earn_point", nullable = false, precision = 10, scale = 2)   // 총 자릿수: 10, 소수점 오른쪽의 자릿수: 2
     private BigDecimal earnPoint;   // 적립액 or 적립률
 
-    public void modifyPolicy(Method method, BigDecimal earnPoint) { // 값 변경을 위한 메소드 (관리자용)
-        this.method = method;
-        this.earnPoint = earnPoint;
-    }
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
 }

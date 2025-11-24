@@ -12,14 +12,11 @@
 
 package com.nhnacademy.user;
 
-import com.nhnacademy.user.properties.PropertiesBase;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {PropertiesBase.class})   // 해당 클래스가 있는 패키지 기준으로 스캔
 @EnableScheduling   // 특정 시간마다 자동으로 실행되는 작업(배치 작업)
 public class UserApplication {
 

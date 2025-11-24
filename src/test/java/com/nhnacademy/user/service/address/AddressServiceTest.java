@@ -64,7 +64,7 @@ public class AddressServiceTest {
     void setUp() {
         testUser = new User("테스트", "010-1234-5678", "test@nhn.com", LocalDate.now());
         testAccount = new Account(testLoginId, "password", Role.USER, testUser);
-        testRequest = new AddressRequest("조선대학교", "광주광역시 동구 조선대길 146", true);
+        testRequest = new AddressRequest("조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
     }
 
     private void mockUserFind() {
@@ -112,8 +112,8 @@ public class AddressServiceTest {
     void test4() {
         mockUserFind();
 
-        Address addr1 = new Address(testUser, "집", "광주", true);
-        Address addr2 = new Address(testUser, "회사", "판교", false);
+        Address addr1 = new Address(testUser, "집", "광주", "1층", true);
+        Address addr2 = new Address(testUser, "회사", "판교", "1층", false);
 
         given(addressRepository.findAllByUser(testUser))
                 .willReturn(List.of(addr1, addr2));
@@ -130,8 +130,8 @@ public class AddressServiceTest {
     void test5() {
         mockUserFind();
 
-        Address originalAddress = new Address(testUser, "옛날 별칭", "옛날 주소", false);
-        AddressRequest modifyRequest = new AddressRequest("새 별칭", "새로운 주소", true);
+        Address originalAddress = new Address(testUser, "옛날 별칭", "옛날 주소", "1층", false);
+        AddressRequest modifyRequest = new AddressRequest("새 별칭", "새로운 주소", "1층", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(originalAddress));
@@ -141,7 +141,7 @@ public class AddressServiceTest {
         verify(addressRepository).clearAllDefaultsByUser(testUser);
 
         assertThat(originalAddress.getAddressName()).isEqualTo("새 별칭");
-        assertThat(originalAddress.getAddressDetail()).isEqualTo("새로운 주소");
+        assertThat(originalAddress.getAddressDetail()).isEqualTo("1층");
         assertThat(originalAddress.isDefault()).isTrue();
     }
 
@@ -163,7 +163,7 @@ public class AddressServiceTest {
     void test7() {
         mockUserFind();
 
-        Address address = new Address(testUser, "집", "광주", true);
+        Address address = new Address(testUser, "집", "광주", "1층", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(address));

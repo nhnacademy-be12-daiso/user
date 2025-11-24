@@ -47,7 +47,7 @@ public class PointHistory { // 포인트 사용 내역
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", nullable = false)
-    private User user;                  // 회원 고유 ID (FK)
+    private User user;                  // Users 테이블 외래키 (FK)
 
     @Column(nullable = false)
     private long amount;                 // 포인트 사용 금액

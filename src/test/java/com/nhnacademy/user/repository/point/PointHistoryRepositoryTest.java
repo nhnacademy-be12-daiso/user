@@ -10,11 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.address;
+package com.nhnacademy.user.repository.point;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.nhnacademy.user.entity.address.Address;
+import com.nhnacademy.user.entity.point.PointHistory;
+import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
 import java.time.LocalDate;
@@ -24,31 +25,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 @DataJpaTest
-public class AddressRepositoryTest {
+class PointHistoryRepositoryTest {
 
     @Autowired
-    private AddressRepository addressRepository;
+    PointHistoryRepository pointHistoryRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Test
-    @DisplayName("주소 저장 성공")
+    @DisplayName("포인트 잔액 계산 확인 (적립 - 사용 + 취소)")
     void test1() {
-        User user = new User("테스트_이름", "010-1234-5678",
-                "test@test.com", LocalDate.of(2003, 11, 7));
+        User user = new User("테스트", "010-1111-2222", "test@test.com", LocalDate.now());
         userRepository.save(user);
 
-        Address address = new Address(user, "조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
-        addressRepository.save(address);
+        pointHistoryRepository.save(new PointHistory(user, 1000, Type.EARN, "가입"));
+        pointHistoryRepository.save(new PointHistory(user, 500, Type.USE, "구매"));
+        pointHistoryRepository.save(new PointHistory(user, 500, Type.EARN, "리뷰"));
 
-        Address found = addressRepository.findById(address.getAddressId()).orElse(null);
+        // 1000 - 500 + 500 = 1000
+        Long balance = pointHistoryRepository.getPointByUser(user);
 
-        assertThat(found).isNotNull();
-        assertThat(found.getAddressName()).isEqualTo("조선대학교");
-        assertThat(found.getAddressDetail()).contains("1층");
-        assertThat(found.isDefault()).isTrue();
-        assertThat(found.getUser()).isEqualTo(user);
+        assertThat(balance).isEqualTo(1000L);
     }
 
+    @Test
+    @DisplayName("내역이 없을 때 잔액은 0원이어야 한다")
+    void test2() {
+        User user = new User("테스트2", "010-3333-4444", "test2@test.com", LocalDate.now());
+        userRepository.save(user);
+
+        Long balance = pointHistoryRepository.getPointByUser(user);
+
+        assertThat(balance).isEqualTo(0L);
+    }
+    
 }

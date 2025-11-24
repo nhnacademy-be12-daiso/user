@@ -55,6 +55,7 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+
         <!-- eureka client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -81,10 +82,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- security -->
+        <!-- password encoder -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
         <!-- spring boot -->
@@ -115,13 +116,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <!-- jjwt -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.12.6</version>
         </dependency>
 
         <!-- springdoc -->

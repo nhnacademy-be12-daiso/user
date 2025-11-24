@@ -16,13 +16,15 @@ import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
+import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
+import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -41,21 +43,30 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PointNotEnoughException.class)
     public ResponseEntity<ErrorResponse> handlerPointNotEnoughException(PointNotEnoughException ex) {
-        // 등록된 주소 10개 초과
+        // 포인트 잔액 부족
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
     }
 
-    // 401 Unauthorized
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handlerAuthenticationException(AuthenticationException ex) {
-        // 로그인 실패 (ID/PW 불일치)
+    @ExceptionHandler(PasswordNotMatchException.class)
+    public ResponseEntity<ErrorResponse> handlerPasswordNotMatchException(PasswordNotMatchException ex) {
+        // 비밀번호 불일치
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+                .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ErrorResponse("UNAUTHORIZED", 401, "아이디 또는 비밀번호가 일치하지 않습니다."));
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    // 403 Forbidden
+    @ExceptionHandler(UserWithdrawnException.class)
+    public ResponseEntity<ErrorResponse> handlerUserWithdrawnException(UserWithdrawnException ex) {
+        // 탈퇴한 회원
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse("FORBIDDEN", 403, ex.getMessage()));
     }
 
     // 404 Not Found
@@ -71,6 +82,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AddressNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlerAddressNotFoundException(AddressNotFoundException ex) {
         // 찾을 수 없는 주소
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(PointPolicyNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerPointPolicyNotFoundException(PointPolicyNotFoundException ex) {
+        // 존재하지 않는 포인트 정책
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)

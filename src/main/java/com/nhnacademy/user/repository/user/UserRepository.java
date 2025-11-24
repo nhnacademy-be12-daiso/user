@@ -12,11 +12,12 @@
 
 package com.nhnacademy.user.repository.user;
 
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -24,7 +25,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
-    // 휴면 전환 대상자(ACTIVE 상태이면서 last_login_at이 90일보다 오래된 회원)를 찾는 쿼리
-    List<User> findAllByStatusAndLastLoginAtBefore(Status status, LocalDateTime lastLoginAtBefore);
+    // 휴면 전환 대상자
+    // 조건 1: 마지막 로그인 일시(last_login_at)가 기준 시간(cutoffDate) 이전일 것
+    // 조건 2: 현재 상태가 ACTIVE일 것 (가장 최신 StatusHistory가 ACTIVE)
+    @Query(value = "SELECT * FROM Users u " +
+            "WHERE u.last_login_at < :cutoffDate " +
+            "AND (" +
+            "   SELECT s.status_name " +
+            "   FROM UserStatusHistories ush " +
+            "   JOIN Statuses s ON ush.status_id = s.status_id " +
+            "   WHERE ush.user_created_id = u.user_created_id " +
+            "   ORDER BY ush.changed_at DESC LIMIT 1" +
+            ") = 'ACTIVE'", nativeQuery = true)
+    List<User> findDormantUser(@Param("cutoffDate") LocalDateTime lastLoginAtBefore);
 
 }

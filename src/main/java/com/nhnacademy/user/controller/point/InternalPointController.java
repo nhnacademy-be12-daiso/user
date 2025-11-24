@@ -25,16 +25,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "내부용 포인트 API", description = "Shop/Batch 서버 등 내부 시스템 전용 API")
+@Tag(name = "내부용 포인트 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/internal/points")
+@RequestMapping("/api/internal/points")
 public class InternalPointController {
 
     private final PointService pointService;
 
-    // POST /internal/points
-    @Operation(summary = "포인트 적립/사용 처리", description = "외부 서비스(주문 등)에서 포인트 변동을 요청할 때 사용합니다.")
+    // POST /api/internal/points
+    @Operation(summary = "포인트 적립/사용 처리")
     @PostMapping
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
 
