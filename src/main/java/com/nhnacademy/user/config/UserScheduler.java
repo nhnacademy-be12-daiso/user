@@ -26,7 +26,15 @@ public class UserScheduler {    // 휴면 계정 전환을 위한 스케줄러
 
     private final UserService userService;
 
-    // (cron = "초 분 시 일 월 요일")
+    // (cron = "초 분 시 일 월 요일 년")
+    // * : 모든 값을 뜻합니다.
+    // ? : 특정한 값이 없음을 뜻합니다.
+    // - : 범위를 뜻합니다. (예) 월요일에서 수요일까지는 MON-WED로 표현
+    // , : 특별한 값일 때만 동작 (예) 월,수,금 MON,WED,FRI
+    // / : 시작시간 / 단위 (예) 0분부터 매 5분 0/5
+    // L : 일에서 사용하면 마지막 일, 요일에서는 마지막 요일(토요일)
+    // W : 가장 가까운 평일 (예) 15W는 15일에서 가장 가까운 평일 (월 ~ 금)을 찾음
+    // # : 몇째주의 무슨 요일을 표현 (예) 3#2 : 2번째주 수요일
     @Scheduled(cron = "0 0 4 * * *")
     @Transactional
     public void runDormantAccount() {   // 매일 새벽 4시에 휴면 계정 전환 배치 작업 실행
