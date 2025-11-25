@@ -104,12 +104,14 @@ public class UserServiceImpl implements UserService {
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
         // 회원가입 축하 포인트 지급
-        pointService.earnPointByPolicy(request.loginId(), "REGISTER");
+        pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
 
         // 웰컴 쿠폰 발급 요청
         try {
             couponFeignClient.issueWelcomeCoupon(saved.getUserCreatedId());
+
             log.info("웰컴 쿠폰 발급 요청 성공: userId={}", saved.getUserCreatedId());
+
         } catch (Exception e) {
             log.error("웰컴 쿠폰 발급 실패 (가입은 정상 처리됨): userId={}, error={}", saved.getUserCreatedId(), e.getMessage());
         }
@@ -117,10 +119,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserInfo(String loginId) {   // 회원 정보 조회
-        Account account = getAccount(loginId);
-
-        User user = account.getUser();
+    public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
+        User user = getUser(userCreatedId);
 
         Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserStatusHistory::getStatus)
@@ -134,24 +134,27 @@ public class UserServiceImpl implements UserService {
                 .map(UserGradeHistory::getGrade)
                 .orElseThrow(() -> new RuntimeException("회원 등급 정보가 누락되었습니다."));
 
-        PointResponse pointResponse = pointService.getCurrentPoint(loginId);
+        PointResponse pointResponse = pointService.getCurrentPoint(userCreatedId);
 
-        return new UserResponse(user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
+        return new UserResponse(user.getAccount().getLoginId(),
+                user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
                 grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), user.getJoinedAt());
     }
 
     @Override
     @Transactional
-    public void modifyUserInfo(String loginId, UserModifyRequest request) { // 회원 정보 수정
-        User user = getAccount(loginId).getUser();
+    public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
+        User user = getUser(userCreatedId);
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
     }
 
     @Override
     @Transactional
-    public void modifyUserPassword(String loginId, PasswordModifyRequest request) { // 비밀번호 수정
-        Account account = getAccount(loginId);
+    public void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request) { // 비밀번호 수정
+        User user = getUser(userCreatedId);
+
+        Account account = user.getAccount();
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
             throw new PasswordNotMatchException("현재 비밀번호가 일치하지 않습니다.");
@@ -162,17 +165,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void modifyLastLoginAt(String loginId) {
-        Account account = getAccount(loginId);
-
-        account.getUser().modifyLastLoginAt();
+    public void modifyLastLoginAt(Long userCreatedId) {
+        getUser(userCreatedId).modifyLastLoginAt();
     }
 
     @Override
     @Transactional
-    public void withdrawUser(String loginId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
+    public void withdrawUser(Long userCreatedId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
+        User user = getUser(userCreatedId);
+
+        Status status = statusRepository.findByStatusName("WITHDRAWN")
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+
         // 계정 상태를 WITHDRAWN으로 변경
-        changeStatus(loginId, "WITHDRAWN");
+        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
@@ -198,21 +204,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void activeUser(String loginId) {
-        changeStatus(loginId, "ACTIVE");
-    }
+        User user = accountRepository.findByIdWithUser(loginId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
+                .getUser();
 
-    private Account getAccount(String loginId) {
-        return accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));
-    }
-
-    private void changeStatus(String loginId, String statusName) {
-        User user = getAccount(loginId).getUser();
-
-        Status status = statusRepository.findByStatusName(statusName)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태: " + statusName));
+        Status status = statusRepository.findByStatusName("ACTIVE")
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
+    }
+
+    private User getUser(Long userCreatedId) {
+        return userRepository.findById(userCreatedId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 
 }

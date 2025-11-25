@@ -38,9 +38,9 @@ public class PointController {
     // GET /api/users/me/points
     @Operation(summary = "내 포인트 내역 조회")
     @GetMapping
-    public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader(name = "X-USER-ID") String loginId,
+    public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
                                                                   @PageableDefault Pageable pageable) {
-        Page<PointHistoryResponse> pointHistoryResponses = pointService.getMyPointHistory(loginId, pageable);
+        Page<PointHistoryResponse> pointHistoryResponses = pointService.getMyPointHistory(userCreatedId, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(pointHistoryResponses);
     }

@@ -25,7 +25,6 @@ public class UserScheduler {    // 휴면 계정 자동 전환 스케줄러
 
     private final UserService userService;
 
-
     //  Cron 표현식 설명 (cron = "초 분 시 일 월 요일 년")
     // ───────────────────────────────────────────────────
     // * : 모든 값

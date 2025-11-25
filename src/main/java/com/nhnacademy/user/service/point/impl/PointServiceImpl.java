@@ -15,7 +15,6 @@ package com.nhnacademy.user.service.point.impl;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
-import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.point.Type;
@@ -23,9 +22,9 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
+import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PointServiceImpl implements PointService {
 
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
     private final PointHistoryRepository pointHistoryRepository;
 
@@ -46,8 +45,8 @@ public class PointServiceImpl implements PointService {
 
     @Override
     @Transactional(readOnly = true)
-    public PointResponse getCurrentPoint(String loginId) {  // 현재 내 포인트 잔액 조회
-        User user = getAccount(loginId).getUser();
+    public PointResponse getCurrentPoint(Long userCreatedId) {  // 현재 내 포인트 잔액 조회
+        User user = getUser(userCreatedId);
 
         BigDecimal point = pointHistoryRepository.getPointByUser(user);
 
@@ -60,8 +59,8 @@ public class PointServiceImpl implements PointService {
 
     @Override
     @Transactional
-    public void earnPointByPolicy(String loginId, String policyType) {  // 정책 기반 포인트 적립
-        User user = getAccount(loginId).getUser();
+    public void earnPointByPolicy(Long userCreatedId, String policyType) {  // 정책 기반 포인트 적립
+        User user = getUser(userCreatedId);
 
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다: " + policyType));
@@ -76,7 +75,7 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
-        User user = getAccount(request.loginId()).getUser();
+        User user = getUser(request.userCreatedId());
 
         BigDecimal amount = request.amount();
 
@@ -99,19 +98,17 @@ public class PointServiceImpl implements PointService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PointHistoryResponse> getMyPointHistory(String loginId, Pageable pageable) {    // 내 포인트 내역 조회
-        Account account = getAccount(loginId);
-
-        User user = account.getUser();
+    public Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable) {    // 내 포인트 내역 조회
+        User user = getUser(userCreatedId);
 
         return pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(user, pageable)
                 .map(history -> new PointHistoryResponse(
                         history.getAmount(), history.getType(), history.getDescription(), history.getCreatedAt()));
     }
 
-    private Account getAccount(String loginId) {
-        return accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));
+    private User getUser(Long userCreatedId) {
+        return userRepository.findById(userCreatedId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 
 }

@@ -19,8 +19,8 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
+import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.address.AddressService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,14 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AddressServiceImpl implements AddressService {
 
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
     private final AddressRepository addressRepository;
 
     @Override
     @Transactional
-    public void addAddress(String loginId, AddressRequest request) {    // 새 배송지 추가
-        User user = getUser(loginId);
+    public void addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
+        User user = getUser(userCreatedId);
 
         // 주소 개수 확인
         if (addressRepository.countByUser(user) >= 10) {
@@ -59,8 +59,8 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AddressResponse> getMyAddresses(String loginId) {   // 모든 주소 목록 조회
-        User user = getUser(loginId);
+    public List<AddressResponse> getMyAddresses(Long userCreatedId) {   // 모든 주소 목록 조회
+        User user = getUser(userCreatedId);
 
         List<Address> addresses = addressRepository.findAllByUser(user);
 
@@ -72,8 +72,8 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public void modifyAddress(String loginId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
-        User user = getUser(loginId);
+    public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
+        User user = getUser(userCreatedId);
 
         Address address = getAddress(addressId, user);
 
@@ -88,18 +88,17 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public void deleteAddress(String loginId, Long addressId) { // 특정 주소 삭제
-        User user = getUser(loginId);
+    public void deleteAddress(Long userCreatedId, Long addressId) { // 특정 주소 삭제
+        User user = getUser(userCreatedId);
 
         Address address = getAddress(addressId, user);
 
         addressRepository.delete(address);
     }
 
-    private User getUser(String loginId) {
-        return accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
-                .getUser();
+    private User getUser(Long userCreatedId) {
+        return userRepository.findById(userCreatedId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 
     private Address getAddress(Long addressId, User user) {
