@@ -52,4 +52,13 @@ logging:
 # Custom Properties
 dooray:
   hook:
-    url: https://nhnacademy.dooray.com/services/3204376758577275363/4208785448943273505/P-UcX5QCSY-AxUjp0zz_Xw
+    url: ${NHN_DOORAY_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
