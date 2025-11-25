@@ -22,15 +22,13 @@ import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.AddressRequest;
 import com.nhnacademy.user.dto.response.AddressResponse;
-import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
+import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.address.impl.AddressServiceImpl;
 import java.time.LocalDate;
 import java.util.List;
@@ -48,7 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class AddressServiceTest {
 
     @Mock
-    private AccountRepository accountRepository;
+    private UserRepository userRepository;
 
     @Mock
     private AddressRepository addressRepository;
@@ -57,20 +55,20 @@ public class AddressServiceTest {
     private AddressServiceImpl addressService;
 
     private User testUser;
-    private Account testAccount;
-    private String testLoginId = "testUser";
+    private Long testUserId = 1L;
     private AddressRequest testRequest;
 
     @BeforeEach
     void setUp() {
         testUser = new User("테스트", "010-1234-5678", "test@nhn.com", LocalDate.now());
-        testAccount = new Account(testLoginId, "password", Role.USER, testUser);
+        ReflectionTestUtils.setField(testUser, "userCreatedId", testUserId);
+
         testRequest = new AddressRequest("조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
     }
 
     private void mockUserFind() {
-        given(accountRepository.findByIdWithUser(testLoginId))
-                .willReturn(Optional.of(testAccount));
+        given(userRepository.findById(testUserId))
+                .willReturn(Optional.of(testUser));
     }
 
     @Test
@@ -80,7 +78,7 @@ public class AddressServiceTest {
 
         given(addressRepository.countByUser(testUser)).willReturn(5L);
 
-        addressService.addAddress(testLoginId, testRequest);
+        addressService.addAddress(testUserId, testRequest);
 
         verify(addressRepository).clearAllDefaultsByUser(testUser);
         verify(addressRepository).save(any(Address.class));
@@ -92,7 +90,7 @@ public class AddressServiceTest {
         mockUserFind();
         given(addressRepository.countByUser(testUser)).willReturn(10L);
 
-        assertThatThrownBy(() -> addressService.addAddress(testLoginId, testRequest))
+        assertThatThrownBy(() -> addressService.addAddress(testUserId, testRequest))
                 .isInstanceOf(AddressLimitExceededException.class)
                 .hasMessage("최대 10개의 주소만 등록할 수 있습니다.");
 
@@ -102,9 +100,9 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 등록 실패 - 존재하지 않는 유저")
     void test3() {
-        given(accountRepository.findByIdWithUser(testLoginId)).willReturn(Optional.empty());
+        given(userRepository.findById(testUserId)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.addAddress(testLoginId, testRequest))
+        assertThatThrownBy(() -> addressService.addAddress(testUserId, testRequest))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -122,10 +120,11 @@ public class AddressServiceTest {
         given(addressRepository.findAllByUser(testUser))
                 .willReturn(List.of(addr1, addr2));
 
-        List<AddressResponse> responses = addressService.getMyAddresses(testLoginId);
+        List<AddressResponse> responses = addressService.getMyAddresses(testUserId);
 
         assertThat(responses).hasSize(2);
         assertThat(responses.get(0).addressName()).isEqualTo("집");
+        assertThat(responses.get(0).addressId()).isEqualTo(1L);
         assertThat(responses.get(1).addressName()).isEqualTo("회사");
     }
 
@@ -140,7 +139,7 @@ public class AddressServiceTest {
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(originalAddress));
 
-        addressService.modifyAddress(testLoginId, 1L, modifyRequest);
+        addressService.modifyAddress(testUserId, 1L, modifyRequest);
 
         verify(addressRepository).clearAllDefaultsByUser(testUser);
 
@@ -157,7 +156,7 @@ public class AddressServiceTest {
         given(addressRepository.findByAddressIdAndUser(anyLong(), any(User.class)))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.modifyAddress(testLoginId, 99L, testRequest))
+        assertThatThrownBy(() -> addressService.modifyAddress(testUserId, 99L, testRequest))
                 .isInstanceOf(AddressNotFoundException.class)
                 .hasMessage("찾을 수 없는 주소입니다.");
     }
@@ -172,7 +171,7 @@ public class AddressServiceTest {
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(address));
 
-        addressService.deleteAddress(testLoginId, 1L);
+        addressService.deleteAddress(testUserId, 1L);
 
         verify(addressRepository).delete(address);
     }
@@ -185,7 +184,7 @@ public class AddressServiceTest {
         given(addressRepository.findByAddressIdAndUser(99L, testUser))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.deleteAddress(testLoginId, 99L))
+        assertThatThrownBy(() -> addressService.deleteAddress(testUserId, 99L))
                 .isInstanceOf(AddressNotFoundException.class);
 
         verify(addressRepository, never()).delete(any());

@@ -21,15 +21,15 @@ import org.springframework.data.domain.Pageable;
 public interface PointService {
 
     // 현재 내 포인트 잔액 조회
-    PointResponse getCurrentPoint(String loginId);
+    PointResponse getCurrentPoint(Long userCreatedId);
 
     // 정책 기반 포인트 적립
-    void earnPointByPolicy(String loginId, String policyType);
+    void earnPointByPolicy(Long userCreatedId, String policyType);
 
     // 포인트 변동 수동 처리
     void processPoint(PointRequest request);
 
     // 내 포인트 내역 조회
-    Page<PointHistoryResponse> getMyPointHistory(String loginId, Pageable pageable);
+    Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable);
 
 }

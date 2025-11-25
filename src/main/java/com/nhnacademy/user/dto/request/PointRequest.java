@@ -13,11 +13,10 @@
 package com.nhnacademy.user.dto.request;
 
 import com.nhnacademy.user.entity.point.Type;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
-public record PointRequest(@NotBlank String loginId,
+public record PointRequest(@NotNull Long userCreatedId,
                            BigDecimal amount,
                            @NotNull Type type,
                            String description) {

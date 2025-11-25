@@ -19,15 +19,15 @@ import java.util.List;
 public interface AddressService {
 
     // 새 배송지 추가
-    void addAddress(String loginId, AddressRequest request);
+    void addAddress(Long userCreatedId, AddressRequest request);
 
     // 모든 주소 목록 조회
-    List<AddressResponse> getMyAddresses(String loginId);
+    List<AddressResponse> getMyAddresses(Long userCreatedId);
 
     // 특정 주소 정보 수정
-    void modifyAddress(String loginId, Long addressId, AddressRequest request);
+    void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request);
 
     // 특정 주소 삭제
-    void deleteAddress(String loginId, Long addressId);
+    void deleteAddress(Long userCreatedId, Long addressId);
 
 }

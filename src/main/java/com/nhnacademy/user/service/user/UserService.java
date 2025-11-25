@@ -23,19 +23,19 @@ public interface UserService {
     void signUp(SignupRequest request);
 
     // 회원 정보 조회
-    UserResponse getUserInfo(String loginId);
+    UserResponse getUserInfo(Long userCreatedId);
 
     // 회원 정보 수정
-    void modifyUserInfo(String loginId, UserModifyRequest request);
+    void modifyUserInfo(Long userCreatedId, UserModifyRequest request);
 
     // 비밀번호 수정
-    void modifyUserPassword(String loginId, PasswordModifyRequest request);
+    void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request);
 
     // 마지막 로그인 시간 갱신
-    void modifyLastLoginAt(String loginId);
+    void modifyLastLoginAt(Long userCreatedId);
 
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
-    void withdrawUser(String loginId);
+    void withdrawUser(Long userCreatedId);
 
     // 휴면 계정 전환 배치 작업
     void dormantAccounts();

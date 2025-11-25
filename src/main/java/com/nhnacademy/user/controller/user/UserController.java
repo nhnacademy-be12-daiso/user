@@ -57,9 +57,9 @@ public class UserController {
     // GET /api/users/me
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-USER-ID") String loginId) {
+    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-USER-ID") Long userCreatedId) {
         // 사용자 정보 조회
-        UserResponse userInfo = userService.getUserInfo(loginId);
+        UserResponse userInfo = userService.getUserInfo(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).body(userInfo);
     }
@@ -67,10 +67,10 @@ public class UserController {
     // PATCH /api/users/me
     @Operation(summary = "내 정보 수정")
     @PatchMapping("/me")
-    public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-USER-ID") String loginId,
+    public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
                                              @Valid @RequestBody UserModifyRequest request) {
         // 사용자 정보 수정
-        userService.modifyUserInfo(loginId, request);
+        userService.modifyUserInfo(userCreatedId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -78,10 +78,10 @@ public class UserController {
     // PATCH /api/users/me/password
     @Operation(summary = "비밀번호 변경")
     @PutMapping("/me/password")
-    public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-USER-ID") String loginId,
+    public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
                                                  @Valid @RequestBody PasswordModifyRequest request) {
         // 사용자 비밀번호 수정
-        userService.modifyUserPassword(loginId, request);
+        userService.modifyUserPassword(userCreatedId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -89,8 +89,8 @@ public class UserController {
     // DELETE /api/users/me
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
-    public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") String loginId) {
-        userService.withdrawUser(loginId);
+    public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-USER-ID") Long userCreatedId) {
+        userService.withdrawUser(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
