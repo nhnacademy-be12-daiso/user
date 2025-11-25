@@ -42,6 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class AddressServiceTest {
@@ -114,6 +115,9 @@ public class AddressServiceTest {
 
         Address addr1 = new Address(testUser, "집", "광주", "1층", true);
         Address addr2 = new Address(testUser, "회사", "판교", "1층", false);
+
+        ReflectionTestUtils.setField(addr1, "addressId", 1L);
+        ReflectionTestUtils.setField(addr2, "addressId", 2L);
 
         given(addressRepository.findAllByUser(testUser))
                 .willReturn(List.of(addr1, addr2));

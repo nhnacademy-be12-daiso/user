@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
     // 주소가 여러 개인 회원이 새 기본 주소를 추가했을 때 일어나는 N+1 문제를 해결하기 위한 쿼리 메소드
-    @Modifying
+    @Modifying(clearAutomatically = true)   // 영속성 컨텍스트 클리어
     @Query("UPDATE Address a SET a.isDefault = false WHERE a.user = :user")
     void clearAllDefaultsByUser(User user);
 

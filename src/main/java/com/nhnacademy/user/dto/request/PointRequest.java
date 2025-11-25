@@ -15,9 +15,10 @@ package com.nhnacademy.user.dto.request;
 import com.nhnacademy.user.entity.point.Type;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 public record PointRequest(@NotBlank String loginId,
-                           long amount,
+                           BigDecimal amount,
                            @NotNull Type type,
                            String description) {
     // 포인트 변동 요청 시 사용하는 DTO

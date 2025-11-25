@@ -23,6 +23,7 @@ import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.service.point.impl.PointServiceImpl;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,11 +62,11 @@ class PointServiceTest {
     @DisplayName("현재 포인트 잔액 조회 (DB 계산 결과 반환)")
     void test1() {
         given(accountRepository.findByIdWithUser("testId")).willReturn(Optional.of(account));
-        given(pointHistoryRepository.getPointByUser(user)).willReturn(1000L);
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(1000));
 
         PointResponse response = pointService.getCurrentPoint("testId");
 
-        assertThat(response.currentPoint()).isEqualTo(1000L);
+        assertThat(response.currentPoint()).isEqualTo(BigDecimal.valueOf(1000));
     }
 
 //    @Test

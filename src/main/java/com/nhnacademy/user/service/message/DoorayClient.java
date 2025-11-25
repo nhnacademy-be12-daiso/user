@@ -10,15 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.service.message;
 
-import com.nhnacademy.user.common.ValidationUtils;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
-// 아이디: 영문 소문자 + 숫자, 3~16자
-// 비밀번호: 로그인용이기 때문에 빈 칸만 아니면 됨
-public record LoginRequest(@NotBlank @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN) String loginId,
-                           @NotBlank String password) {
-    // 클라이언트로부터 로그인 요청 데이터를 받기 위한 요청 DTO
+@FeignClient(name = "dooray-client", url = "${dooray.hook.url}")
+public interface DoorayClient { // 해당 url로 훅 메시지를 보내는 feign client
+
+    @PostMapping
+    void send(@RequestBody DoorayPayload payload);
+
 }

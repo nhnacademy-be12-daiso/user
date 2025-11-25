@@ -19,11 +19,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SwaggerConfig {
-    // swagger 관련 설정 파일
+public class SwaggerConfig {    // Swagger(OpenAPI) 설정을 위한 클래스
 
     @Bean
-    public OpenAPI OpenAPI() {
+    public OpenAPI openAPI() {
         return new OpenAPI()
                 .components(new Components())
                 .info(apiInfo());

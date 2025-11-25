@@ -25,7 +25,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "Addresses")
@@ -42,16 +41,13 @@ public class Address {      // 회원 배송지 주소
     @JoinColumn(name = "user_created_id", nullable = false)
     private User user;              // Users 테이블 외래키 (FK), 다대일 관계
 
-    @Length(max = 50)
-    @Column(name = "address_name", nullable = false)
+    @Column(name = "address_name", nullable = false, length = 50)
     private String addressName;     // 주소 별칭
 
-    @Length(max = 50)
-    @Column(name = "road_address", nullable = false)
+    @Column(name = "road_address", nullable = false, length = 50)
     private String roadAddress;     // 도로명 주소
 
-    @Length(max = 100)
-    @Column(name = "address_detail", nullable = false)
+    @Column(name = "address_detail", nullable = false, length = 100)
     private String addressDetail;   // 전체 주소
 
     @Column(name = "is_default", nullable = false)

@@ -27,6 +27,7 @@ import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.service.point.PointService;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +49,11 @@ public class PointServiceImpl implements PointService {
     public PointResponse getCurrentPoint(String loginId) {  // 현재 내 포인트 잔액 조회
         User user = getAccount(loginId).getUser();
 
-        Long point = pointHistoryRepository.getPointByUser(user);
+        BigDecimal point = pointHistoryRepository.getPointByUser(user);
+
+        if (point == null) {
+            point = BigDecimal.ZERO;
+        }
 
         return new PointResponse(point);
     }
@@ -61,9 +66,10 @@ public class PointServiceImpl implements PointService {
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다: " + policyType));
 
-        long amount = pointPolicy.getEarnPoint().longValue();
+        BigDecimal amount = pointPolicy.getEarnPoint();
 
         PointHistory pointHistory = new PointHistory(user, amount, Type.EARN, pointPolicy.getPolicyName());
+
         pointHistoryRepository.save(pointHistory);
     }
 
@@ -72,17 +78,22 @@ public class PointServiceImpl implements PointService {
     public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
         User user = getAccount(request.loginId()).getUser();
 
-        long amount = request.amount();
+        BigDecimal amount = request.amount();
 
         if (request.type() == Type.USE) {
-            Long currentPoint = pointHistoryRepository.getPointByUser(user);
+            BigDecimal currentPoint = pointHistoryRepository.getPointByUser(user);
 
-            if (currentPoint < amount) {
+            if (currentPoint == null) {
+                currentPoint = BigDecimal.ZERO;
+            }
+
+            if (currentPoint.compareTo(amount) < 0) {
                 throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
             }
         }
 
         PointHistory pointHistory = new PointHistory(user, amount, request.type(), request.description());
+
         pointHistoryRepository.save(pointHistory);
     }
 
@@ -94,7 +105,8 @@ public class PointServiceImpl implements PointService {
         User user = account.getUser();
 
         return pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(user, pageable)
-                .map(PointHistoryResponse::fromEntity);
+                .map(history -> new PointHistoryResponse(
+                        history.getAmount(), history.getType(), history.getDescription(), history.getCreatedAt()));
     }
 
     private Account getAccount(String loginId) {

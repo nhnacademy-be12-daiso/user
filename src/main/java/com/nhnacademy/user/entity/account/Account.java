@@ -25,7 +25,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "Accounts")
@@ -34,11 +33,10 @@ import org.hibernate.validator.constraints.Length;
 public class Account {      // 회원 인증 (로그인) 정보
 
     @Id
-    @Length(max = 16)
-    @Column(name = "login_id")
+    @Column(name = "login_id", length = 16)
     private String loginId;         // 로그인 아이디: 사용자 입력 (PK)
 
-    @Length(max = 255)
+    @Column                         // DB에는 인코딩 된 값이 들어감
     private String password;        // 로그인 비밀번호: 사용자 입력
 
     @Enumerated(EnumType.STRING)

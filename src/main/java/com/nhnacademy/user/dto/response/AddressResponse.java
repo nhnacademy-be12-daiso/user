@@ -12,18 +12,10 @@
 
 package com.nhnacademy.user.dto.response;
 
-import com.nhnacademy.user.entity.address.Address;
-
 public record AddressResponse(Long addressId,
                               String addressName,
+                              String roadAddress,
                               String addressDetail,
                               boolean isDefault) {
     // 클라이언트에게 반환할 주소 정보를 담는 응답 DTO
-
-    // Address 엔티티 > DTO 변환 메소드
-    public static AddressResponse fromEntity(Address address) {
-        return new AddressResponse(address.getAddressId(), address.getAddressName(),
-                address.getAddressDetail(), address.isDefault());
-    }
-
 }

@@ -12,11 +12,12 @@
 
 package com.nhnacademy.user.dto.request;
 
+import com.nhnacademy.user.common.ValidationUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 // 새로운 비밀번호: 최소 1개의 영문 + 최소 1개의 숫자 + 최소 1개의 특수문자, 8~20자
 public record PasswordModifyRequest(@NotBlank String currentPassword,
-                                    @NotBlank @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$") String newPassword) {
+                                    @NotBlank @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN) String newPassword) {
     // 클라이언트로부터 변경할 비밀번호 데이터를 받기 위한 요청 DTO
 }

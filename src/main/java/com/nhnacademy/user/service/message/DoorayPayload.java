@@ -10,15 +10,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.service.message;
 
-import com.nhnacademy.user.common.ValidationUtils;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-
-// 아이디: 영문 소문자 + 숫자, 3~16자
-// 비밀번호: 로그인용이기 때문에 빈 칸만 아니면 됨
-public record LoginRequest(@NotBlank @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN) String loginId,
-                           @NotBlank String password) {
-    // 클라이언트로부터 로그인 요청 데이터를 받기 위한 요청 DTO
+public record DoorayPayload(String botName,
+                            String text) {
+    // 원하는 봇 이름과 내용을 보내기 위한 DTO
 }

@@ -26,7 +26,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "PointPolicies")
@@ -40,21 +39,18 @@ public class PointPolicy {  // 포인트 정책 (관리자 전용)
     @Column(name = "point_policy_id")
     private Long pointPolicyId;     // 포인트 적립 정책 고유 ID (PK, AI)
 
-    @Length(max = 30)
-    @Column(name = "policy_name", nullable = false)
+    @Column(name = "policy_name", nullable = false, length = 30)
     private String policyName;      // 포인트 정책 이름
 
-    @Length(max = 20)
-    @Column(name = "policy_type", nullable = false, unique = true)
+    @Column(name = "policy_type", nullable = false, unique = true, length = 20)
     private String policyType;      // REGISTER, REVIEW, ORDER_BASIC 등
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Method method;          // 적립 방식
 
-    // BigDecimal 사용법.. 익혀야 함
-    // 참고: https://dev.gmarket.com/75
-    @Column(name = "earn_point", nullable = false, precision = 10, scale = 2)   // 총 자릿수: 10, 소수점 오른쪽의 자릿수: 2
+    // BigDecimal 사용법 참고: https://dev.gmarket.com/75
+    @Column(name = "earn_point", nullable = false, precision = 8, scale = 2)   // 99.99%, 999999.99원 까지 가능
     private BigDecimal earnPoint;   // 적립액 or 적립률
 
     @CreationTimestamp

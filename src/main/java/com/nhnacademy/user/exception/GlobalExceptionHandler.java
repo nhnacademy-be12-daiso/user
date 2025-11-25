@@ -15,16 +15,18 @@ package com.nhnacademy.user.exception;
 import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
+import com.nhnacademy.user.exception.user.NotDormantUserException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -37,7 +39,6 @@ public class GlobalExceptionHandler {
         // 등록된 주소 10개 초과
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
     }
 
@@ -46,7 +47,6 @@ public class GlobalExceptionHandler {
         // 포인트 잔액 부족
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
     }
 
@@ -55,8 +55,32 @@ public class GlobalExceptionHandler {
         // 비밀번호 불일치
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotDormantUserException.class)
+    public ResponseEntity<ErrorResponse> handlerNotDormantUserException(NotDormantUserException ex) {
+        // 휴면 상태가 아닌 회원
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        // @Valid 유효성 검사 실패
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    // 401 Unauthorized
+    @ExceptionHandler(InvalidCodeException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidCodeException(InvalidCodeException ex) {
+        // 올바르지 않은 코드 입력
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("UNAUTHORIZED", 401, ex.getMessage()));
     }
 
     // 403 Forbidden
@@ -65,7 +89,6 @@ public class GlobalExceptionHandler {
         // 탈퇴한 회원
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("FORBIDDEN", 403, ex.getMessage()));
     }
 
@@ -75,7 +98,6 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 유저
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
     }
 
@@ -84,7 +106,6 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 주소
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
     }
 
@@ -93,7 +114,6 @@ public class GlobalExceptionHandler {
         // 존재하지 않는 포인트 정책
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
     }
 
@@ -103,7 +123,6 @@ public class GlobalExceptionHandler {
         // 이미 존재하는 유저
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));
     }
 
@@ -113,7 +132,6 @@ public class GlobalExceptionHandler {
         // 휴면 상태인 유저
         return ResponseEntity
                 .status(HttpStatus.LOCKED)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));
     }
 

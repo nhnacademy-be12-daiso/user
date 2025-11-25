@@ -10,15 +10,23 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.service.message;
 
-import com.nhnacademy.user.common.ValidationUtils;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-// 아이디: 영문 소문자 + 숫자, 3~16자
-// 비밀번호: 로그인용이기 때문에 빈 칸만 아니면 됨
-public record LoginRequest(@NotBlank @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN) String loginId,
-                           @NotBlank String password) {
-    // 클라이언트로부터 로그인 요청 데이터를 받기 위한 요청 DTO
+@RequiredArgsConstructor
+@Component
+public class DoorayMessageSender {
+
+    private final DoorayClient doorayClient;
+
+    public void send(String loginId, String message) {  // 사용자에게 훅 메시지를 보내는 메소드 (임시)
+        // 실제로는 loginId로 유저 정보를 조회해서 그 사람의 훅 URL을 찾거나
+        // 공용 봇으로 "유저 [loginId]님의 인증번호: ..."라고 보낼 수도 있음
+        DoorayPayload payload = new DoorayPayload("휴면 계정 활성화 봇", message);
+
+        doorayClient.send(payload);
+    }
+
 }

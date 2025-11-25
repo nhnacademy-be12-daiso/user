@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling   // 특정 시간마다 자동으로 실행되는 작업(배치 작업)
-@EnableFeignClients
+@EnableFeignClients // Dooray Message Sender를 위한 feign
 public class UserApplication {
 
     public static void main(String[] args) {
