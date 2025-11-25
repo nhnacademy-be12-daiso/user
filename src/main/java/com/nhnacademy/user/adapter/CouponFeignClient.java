@@ -17,7 +17,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "coupon")
+@FeignClient(name = "team3-coupon")
 public interface CouponFeignClient {
 
     // 아까 만든 "시스템 내부용 웰컴 쿠폰 발급 API" 호출
