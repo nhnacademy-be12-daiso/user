@@ -15,6 +15,7 @@ package com.nhnacademy.user.exception;
 import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
@@ -57,6 +58,16 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    // 401 Unauthorized
+    @ExceptionHandler(InvalidCodeException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidCodeException(InvalidCodeException ex) {
+        // 올바르지 않은 코드 입력
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorResponse("UNAUTHORIZED", 401, ex.getMessage()));
     }
 
     // 403 Forbidden

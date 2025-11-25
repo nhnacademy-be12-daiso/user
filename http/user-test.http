@@ -5,11 +5,11 @@
 #@host = http://localhost:8082
 @host = http://localhost:8083
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testId = testuser1
+@testId = testuser2
 @testPw = pwd123!@#
-@testName = 테스트유저1
-@testEmail = testuser1@test.com
-@testPhone = 010-1111-1111
+@testName = 테스트유저2
+@testEmail = testuser2@test.com
+@testPhone = 010-2222-2222
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
 POST {{host}}/api/users/signup
@@ -21,7 +21,7 @@ Content-Type: application/json
   "userName": "{{testName}}",
   "phoneNumber": "{{testPhone}}",
   "email": "{{testEmail}}",
-  "birth": "2001-01-01"
+  "birth": "2002-02-02"
 }
 
 ### 2. 내 정보 조회 - 200 OK 확인
@@ -126,3 +126,21 @@ X-USER-ID: {{testId}}
 ### 14. 휴면/탈퇴 계정 활성화 (임시)
 POST {{host}}/api/users/activate?loginId={{testId}}
 Content-Type: application/json
+
+### 15. 휴면 해제 - 인증 코드 발송 요청
+POST {{host}}/api/users/activate/send-code?loginId={{testId}}
+Content-Type: application/json
+
+### 16. 휴면 해제 - 인증 실패 (틀린 코드)
+POST {{host}}/api/users/activate
+Content-Type: application/x-www-form-urlencoded
+
+loginId = {{testId}} &
+code = 000000
+
+### 17. 휴면 해제 - 인증 성공 및 활성화
+POST {{host}}/api/users/activate
+Content-Type: application/x-www-form-urlencoded
+
+loginId = {{testId}} &
+code = 748566

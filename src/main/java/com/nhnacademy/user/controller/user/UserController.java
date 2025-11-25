@@ -16,6 +16,7 @@ import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.service.message.VerificationService;
 import com.nhnacademy.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,6 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    private final VerificationService verificationService;
 
     // POST /api/users/signup
     @Operation(summary = "회원가입")
@@ -92,10 +95,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    // POST /api/users/activate?loginId={loginId}
-    @Operation(summary = "휴면 계정 활성화")
+    // POST /api/users/activate/send-code?loginId={loginId}
+    @Operation(summary = "휴면 해제 인증코드 발송")
+    @PostMapping("/activate/send-code")
+    public ResponseEntity<Void> sendVerifyCode(@RequestParam String loginId) {
+        verificationService.sendCode(loginId);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // POST /api/users/activate?loginId={loginId}&code={code}
+    @Operation(summary = "휴면 계정 활성화 (인증코드 필수)")
     @PostMapping("/activate")
-    public ResponseEntity<Void> activateAccount(@RequestParam("loginId") String loginId) {
+    public ResponseEntity<Void> activateAccount(@RequestParam String loginId,
+                                                @RequestParam String code) {
+        verificationService.verifyCode(loginId, code);
+
         userService.activeUser(loginId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
