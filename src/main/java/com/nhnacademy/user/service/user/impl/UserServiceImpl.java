@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.adapter.CouponFeignClient;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -65,6 +66,8 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final CouponFeignClient couponFeignClient;
+
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
     public void signUp(SignupRequest request) { // 회원가입
@@ -82,7 +85,7 @@ public class UserServiceImpl implements UserService {
 
         // Users 테이블 저장
         User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
@@ -102,6 +105,14 @@ public class UserServiceImpl implements UserService {
 
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(request.loginId(), "REGISTER");
+
+        // 웰컴 쿠폰 발급 요청
+        try {
+            couponFeignClient.issueWelcomeCoupon(saved.getUserCreatedId());
+            log.info("웰컴 쿠폰 발급 요청 성공: userId={}", saved.getUserCreatedId());
+        } catch (Exception e) {
+            log.error("웰컴 쿠폰 발급 실패 (가입은 정상 처리됨): userId={}, error={}", saved.getUserCreatedId(), e.getMessage());
+        }
     }
 
     @Override
