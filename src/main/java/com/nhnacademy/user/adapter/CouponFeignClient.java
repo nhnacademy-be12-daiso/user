@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface CouponFeignClient {
 
     // 아까 만든 "시스템 내부용 웰컴 쿠폰 발급 API" 호출
-    @PostMapping("/api/user-coupons/welcome/{userId}")
+    @PostMapping("/api/coupons/welcome/{userId}")
     void issueWelcomeCoupon(@PathVariable("userId") Long userId);
 
 }
