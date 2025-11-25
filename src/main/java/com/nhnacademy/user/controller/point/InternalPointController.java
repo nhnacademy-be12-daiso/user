@@ -34,7 +34,7 @@ public class InternalPointController {
     private final PointService pointService;
 
     // POST /api/internal/points
-    @Operation(summary = "포인트 적립/사용 처리")
+    @Operation(summary = "[내부] 포인트 적립/사용 처리")
     @PostMapping
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
 

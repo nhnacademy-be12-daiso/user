@@ -16,6 +16,8 @@ import com.nhnacademy.user.adapter.CouponFeignClient;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
+import com.nhnacademy.user.dto.response.InternalAddressResponse;
+import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -30,6 +32,7 @@ import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
@@ -37,6 +40,7 @@ import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +58,8 @@ public class UserServiceImpl implements UserService {
 
     private final AccountRepository accountRepository;
 
+    private final AddressRepository addressRepository;
+
     private final GradeRepository gradeRepository;
 
     private final StatusRepository statusRepository;
@@ -67,6 +73,40 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final CouponFeignClient couponFeignClient;
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsUser(Long userCreatedId) { // 회원 유효성 검증
+        return userRepository.existsById(userCreatedId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
+        User user = getUser(userCreatedId);
+
+        Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+                .map(UserStatusHistory::getStatus)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+
+        if ("WITHDRAWN".equals(status.getStatusName())) {
+            throw new UserNotFoundException("탈퇴한 회원입니다.");
+        }
+
+        String grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+                .map(history -> history.getGrade().getGradeName())
+                .orElse("GENERAL");
+
+        BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
+
+        InternalAddressResponse addressResponse = addressRepository.findFirstByUserAndIsDefaultTrue(user)
+                .map(address -> new InternalAddressResponse(
+                        address.getAddressName(), address.getRoadAddress(), address.getAddressDetail()))
+                .orElse(null);
+
+        return new InternalUserResponse(userCreatedId,
+                user.getUserName(), user.getPhoneNumber(), user.getEmail(), grade, point, addressResponse);
+    }
 
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
@@ -192,7 +232,7 @@ public class UserServiceImpl implements UserService {
         List<User> dormantUsers = userRepository.findDormantUser(lastLoginAtBefore);
 
         Status status = statusRepository.findByStatusName("DORMANT")
-                .orElseThrow(() -> new RuntimeException("DORMANT 상태 없음"));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         for (User dormantUser : dormantUsers) {
             userStatusHistoryRepository.save(new UserStatusHistory(dormantUser, status));
