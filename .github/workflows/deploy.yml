@@ -2,9 +2,9 @@ name: User - Build and Deploy (Compose HA)
 
 on:
   push:
-    branches: [ main, feature/cicd ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, feature/cicd ]
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -40,7 +40,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/team3-user:latest
 
-      - name: Deploy to Server (Docker Compose Rolling Update)
+      - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -50,8 +50,6 @@ jobs:
           script: |
             set -e
             
-            echo "User Server 이중화 배포 시작 (Rolling Update)..."
-            
             export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
             export DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
             cd ~/infra
@@ -59,17 +57,31 @@ jobs:
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             docker compose pull team3-user-1
             
-            echo "User-1 컨테이너 재시작..."
             docker compose --env-file .env up -d --no-deps --force-recreate team3-user-1
             
-            echo "User-1 부팅 및 Eureka 등록 대기 (30초)..."
-            sleep 30
+            for retry in {1..30}; do
+              if docker exec team3-user-1 curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
+                  echo "User-1 UP"
+                  break
+              fi
+              sleep 3
+              if [ $retry -eq 30 ]; then
+                exit 1
+              fi
+            done
             
-            echo "User-2 컨테이너 재시작..."
             docker compose --env-file .env up -d --no-deps --force-recreate team3-user-2
             
-            echo "User Server 이중화 배포 완료!"
+            for retry in {1..30}; do
+              if docker exec team3-user-2 curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
+                  echo "User-2 UP"
+                  break
+              fi
+              sleep 3
+              if [ $retry -eq 30 ]; then
+                exit 1
+              fi
+            done
             
-            # 확인용 로그 (User-1만 확인)
-            sleep 5
+            sleep 2
             docker logs --tail 20 team3-user-1
