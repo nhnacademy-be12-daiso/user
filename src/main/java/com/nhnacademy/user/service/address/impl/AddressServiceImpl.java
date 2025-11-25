@@ -65,7 +65,8 @@ public class AddressServiceImpl implements AddressService {
         List<Address> addresses = addressRepository.findAllByUser(user);
 
         return addresses.stream()
-                .map(AddressResponse::fromEntity)
+                .map(address -> new AddressResponse(address.getAddressId(), address.getAddressName(),
+                        address.getRoadAddress(), address.getAddressDetail(), address.isDefault()))
                 .collect(Collectors.toList());
     }
 
@@ -81,8 +82,8 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
-        address.modifyDetails(request.addressName(), request.roadAddress(), request.addressDetail(),
-                request.isDefault());
+        address.modifyDetails(
+                request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
     }
 
     @Override

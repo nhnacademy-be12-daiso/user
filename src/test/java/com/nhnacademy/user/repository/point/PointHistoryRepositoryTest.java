@@ -18,6 +18,7 @@ import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,14 +40,14 @@ class PointHistoryRepositoryTest {
         User user = new User("테스트", "010-1111-2222", "test@test.com", LocalDate.now());
         userRepository.save(user);
 
-        pointHistoryRepository.save(new PointHistory(user, 1000, Type.EARN, "가입"));
-        pointHistoryRepository.save(new PointHistory(user, 500, Type.USE, "구매"));
-        pointHistoryRepository.save(new PointHistory(user, 500, Type.EARN, "리뷰"));
+        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(1000), Type.EARN, "가입"));
+        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.USE, "구매"));
+        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.EARN, "리뷰"));
 
         // 1000 - 500 + 500 = 1000
-        Long balance = pointHistoryRepository.getPointByUser(user);
+        BigDecimal balance = pointHistoryRepository.getPointByUser(user);
 
-        assertThat(balance).isEqualTo(1000L);
+        assertThat(balance).isEqualByComparingTo(BigDecimal.valueOf(1000));
     }
 
     @Test
@@ -55,9 +56,9 @@ class PointHistoryRepositoryTest {
         User user = new User("테스트2", "010-3333-4444", "test2@test.com", LocalDate.now());
         userRepository.save(user);
 
-        Long balance = pointHistoryRepository.getPointByUser(user);
+        BigDecimal balance = pointHistoryRepository.getPointByUser(user);
 
-        assertThat(balance).isEqualTo(0L);
+        assertThat(balance).isEqualByComparingTo(BigDecimal.ZERO);
     }
-    
+
 }

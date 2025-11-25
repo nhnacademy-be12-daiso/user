@@ -26,17 +26,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     // 휴면 전환 대상자
-    // 조건 1: 마지막 로그인 일시(last_login_at)가 기준 시간(cutoffDate) 이전일 것
-    // 조건 2: 현재 상태가 ACTIVE일 것 (가장 최신 StatusHistory가 ACTIVE)
-    @Query(value = "SELECT * FROM Users u " +
-            "WHERE u.last_login_at < :cutoffDate " +
-            "AND (" +
-            "   SELECT s.status_name " +
-            "   FROM UserStatusHistories ush " +
-            "   JOIN Statuses s ON ush.status_id = s.status_id " +
-            "   WHERE ush.user_created_id = u.user_created_id " +
-            "   ORDER BY ush.changed_at DESC LIMIT 1" +
-            ") = 'ACTIVE'", nativeQuery = true)
+    // 1. 각 유저별로 가장 '최신' 상태 변경 이력의 ID를 찾습니다. (Group By)
+    // 2. 위에서 찾은 ID로 실제 상태 정보를 조인합니다.
+    // 3. 조건 필터링: 로그인 날짜 기준 + 현재 상태가 ACTIVE인 사람
+    @Query(value = """
+                SELECT u.*
+                FROM Users u
+                INNER JOIN (
+                    SELECT user_created_id, MAX(user_status_history_id) as max_history_id
+                    FROM UserStatusHistories
+                    GROUP BY user_created_id
+                ) latest_history ON u.user_created_id = latest_history.user_created_id
+                INNER JOIN UserStatusHistories ush ON ush.user_status_history_id = latest_history.max_history_id
+                INNER JOIN Statuses s ON ush.status_id = s.status_id
+                WHERE u.last_login_at < :cutoffDate
+                AND s.status_name = 'ACTIVE'
+            """, nativeQuery = true)
     List<User> findDormantUser(@Param("cutoffDate") LocalDateTime lastLoginAtBefore);
 
 }

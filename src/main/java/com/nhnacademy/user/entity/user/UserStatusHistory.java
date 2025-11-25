@@ -48,7 +48,7 @@ public class UserStatusHistory {        // 회원 상태 변경 내역
 
     @CreationTimestamp
     @Column(name = "changed_at", nullable = false, updatable = false)
-    private LocalDateTime changedAt;
+    private LocalDateTime changedAt;    // 변경일시
 
     public UserStatusHistory(User user, Status status) {
         this.user = user;

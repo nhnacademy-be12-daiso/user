@@ -150,6 +150,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void modifyLastLoginAt(String loginId) {
         Account account = getAccount(loginId);
 
@@ -184,8 +185,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void activeUser(String loginId) {
-        // 휴면 해제 시 인증 절차 필요함!! > dooray messenger sender..??
         changeStatus(loginId, "ACTIVE");
     }
 

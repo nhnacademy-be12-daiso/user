@@ -18,7 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-public class PasswordEncoderConfig {
+public class PasswordEncoderConfig {    // 비밀번호 암호화를 위한 Bean 등록
 
     @Bean
     public PasswordEncoder passwordEncoder() {

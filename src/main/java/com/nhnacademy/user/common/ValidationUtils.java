@@ -10,15 +10,20 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.common;
 
-import com.nhnacademy.user.common.ValidationUtils;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-// 아이디: 영문 소문자 + 숫자, 3~16자
-// 비밀번호: 로그인용이기 때문에 빈 칸만 아니면 됨
-public record LoginRequest(@NotBlank @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN) String loginId,
-                           @NotBlank String password) {
-    // 클라이언트로부터 로그인 요청 데이터를 받기 위한 요청 DTO
+@NoArgsConstructor(access = AccessLevel.PRIVATE)    // 인스턴스화 방지
+public class ValidationUtils {  // 정규식 패턴 상수 클래스
+    // 보안 정책이 바뀌었을 때 해당 클래스의 상수만 수정하면 됨
+
+    public static final String LOGIN_ID_PATTERN = "^[a-z0-9]{3,16}$";
+
+    public static final String PASSWORD_PATTERN =
+            "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$";
+
+    public static final String PHONE_PATTERN = "^010-\\d{3,4}-\\d{4}$";
+
 }

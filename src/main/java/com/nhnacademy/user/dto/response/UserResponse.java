@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,7 +21,7 @@ public record UserResponse(String userName,
                            String email,
                            LocalDate birth,
                            String gradeName,
-                           long point,
+                           BigDecimal point,
                            String statusName,
                            LocalDateTime joinedAt) {
     // 클라이언트에게 반환할 회원 정보를 담는 응답 DTO

@@ -183,7 +183,7 @@ public class UserServiceTest {
         given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
                 .willReturn(Optional.of(statusHistory));
 
-        given(pointService.getCurrentPoint(testLoginId)).willReturn(new PointResponse(5000L));
+        given(pointService.getCurrentPoint(testLoginId)).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
 
         UserResponse response = userService.getUserInfo(testLoginId);
 
@@ -191,7 +191,7 @@ public class UserServiceTest {
         assertThat(response.userName()).isEqualTo("테스트");
         assertThat(response.gradeName()).isEqualTo("GOLD");
         assertThat(response.statusName()).isEqualTo("ACTIVE");
-        assertThat(response.point()).isEqualTo(5000L);
+        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
     }
 
     @Test

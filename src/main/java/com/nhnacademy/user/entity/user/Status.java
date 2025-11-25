@@ -33,7 +33,7 @@ public class Status {   // 회원 상태 정보
     @Column(name = "status_id")
     private Long statusId;      // 상태 고유 ID (PK, AI)
 
-    @Column(name = "status_name", nullable = false, length = 20)
+    @Column(name = "status_name", nullable = false, length = 10)
     private String statusName; // ACTIVE, DORMANT, WITHDRAWN
 
     public Status(String statusName) {

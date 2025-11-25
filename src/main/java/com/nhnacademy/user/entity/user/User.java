@@ -32,7 +32,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "Users")
@@ -45,16 +44,13 @@ public class User {     // 회원 기본 정보
     @Column(name = "user_created_id")
     private Long userCreatedId;             // 회원 고유 ID (PK, AI)
 
-    @Length(max = 30)
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "user_name", nullable = false, length = 30)
     private String userName;                // 회원 이름
 
-    @Length(max = 30)
-    @Column(name = "phone_number", unique = true)
+    @Column(name = "phone_number", unique = true, length = 30)
     private String phoneNumber;             // 연락처 (UK)
 
-    @Length(max = 80)
-    @Column(unique = true)
+    @Column(unique = true, length = 80)
     private String email;                    // 이메일 (UK)
 
     private LocalDate birth;                 // 생년월일, YYYY-MM-DD 패턴
@@ -69,7 +65,7 @@ public class User {     // 회원 기본 정보
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Account account;                // 연관 계정, 일대일 관계, User 삭제 시 Account 함께 삭제
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();    // 배송지 리스트, 일대다 관계, User 삭제 시 Addresses 함께 삭제
 
     public User(String userName, String phoneNumber, String email, LocalDate birth) {

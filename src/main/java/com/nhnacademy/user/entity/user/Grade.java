@@ -37,7 +37,8 @@ public class Grade {    // 회원 등급 및 혜택 정보
     @Column(name = "grade_name", nullable = false, length = 10)
     private String gradeName;       // GENERAL, ROYAL, GOLD, PLATINUM
 
-    @Column(name = "point_rate", nullable = false, precision = 4, scale = 2)
+    // BigDecimal 사용법 참고: https://dev.gmarket.com/75
+    @Column(name = "point_rate", nullable = false, precision = 4, scale = 2)    // 99.99% 까지 가능
     private BigDecimal pointRate;   // 등급별 적립률
 
     public Grade(String gradeName, BigDecimal pointRate) {
