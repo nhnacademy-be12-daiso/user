@@ -13,9 +13,11 @@
 package com.nhnacademy.user.service.message;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
+@Slf4j
 @Component
 public class DoorayMessageSender {
 
@@ -26,7 +28,14 @@ public class DoorayMessageSender {
         // 공용 봇으로 "유저 [loginId]님의 인증번호: ..."라고 보낼 수도 있음
         DoorayPayload payload = new DoorayPayload("휴면 계정 활성화 봇", message);
 
-        doorayClient.send(payload);
+        log.debug("Dooray 메시지 발송 시도 - target: {}", loginId);
+
+        try {
+            doorayClient.send(payload);
+
+        } catch (Exception e) {
+            log.error("Dooray 메시지 발송 실패 - target: {}, error: {}", loginId, e.getMessage());
+        }
     }
 
 }

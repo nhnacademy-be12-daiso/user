@@ -5,13 +5,13 @@
 #@host = http://localhost:8082
 @host = http://localhost:8080
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testCreatedId = 27
-@testId = testuser7
+@testCreatedId = 28
+@testId = testuser8
 @testPw = pwd123!@#
-@testName = 테스트유저7
-@testEmail = testuser7@test.com
-@testPhone = 010-7777-7777
-@testBirth = 2007-07-07
+@testName = 테스트유저8
+@testEmail = testuser8@test.com
+@testPhone = 010-8888-8888
+@testBirth = 2008-08-08
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
 POST {{host}}/api/users/signup
@@ -88,7 +88,7 @@ X-USER-ID: {{testCreatedId}}
 }
 
 ### 8. 주소 삭제 - 204 No Content 확인
-DELETE {{host}}/api/users/me/addresses/1
+DELETE {{host}}/api/users/me/addresses/14
 X-USER-ID: {{testCreatedId}}
 
 ### 9. 포인트 적립
@@ -126,19 +126,19 @@ GET {{host}}/api/users/me
 X-USER-ID: 19
 
 ### 14. 휴면 해제 - 인증 코드 발송 요청
-POST {{host}}/api/users/activate/send-code?loginId=adsfa123
+POST {{host}}/api/users/activate/send-code?loginId=testuser8
 Content-Type: application/json
 
 ### 15. 휴면 해제 - 인증 실패 (틀린 코드)
 POST {{host}}/api/users/activate
 Content-Type: application/x-www-form-urlencoded
 
-loginId = {{testId}} &
+loginId = testuser8 &
 code = 000000
 
 ### 16. 휴면 해제 - 인증 성공 및 활성화
 POST {{host}}/api/users/activate
 Content-Type: application/x-www-form-urlencoded
 
-loginId = adsfa123 &
-code = 571962
+loginId = testuser8 &
+code = 639111

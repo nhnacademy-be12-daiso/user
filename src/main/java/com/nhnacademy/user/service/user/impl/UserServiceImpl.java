@@ -143,6 +143,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
+        log.info("회원가입 성공 - userCreatedId: {}, loginId: {}", saved.getUserCreatedId(), request.loginId());
+
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
 
@@ -150,10 +152,11 @@ public class UserServiceImpl implements UserService {
         try {
             couponFeignClient.issueWelcomeCoupon(saved.getUserCreatedId());
 
-            log.info("웰컴 쿠폰 발급 요청 성공: userId={}", saved.getUserCreatedId());
+            log.info("웰컴 쿠폰 발급 요청 성공 - userCreatedId: {}", saved.getUserCreatedId());
 
         } catch (Exception e) {
-            log.error("웰컴 쿠폰 발급 실패 (가입은 정상 처리됨): userId={}, error={}", saved.getUserCreatedId(), e.getMessage());
+            log.error("웰컴 쿠폰 발급 실패 (가입은 정상 처리됨) - userCreatedId: {}, error: {}",
+                    saved.getUserCreatedId(), e.getMessage());
         }
     }
 
@@ -220,6 +223,7 @@ public class UserServiceImpl implements UserService {
         // 계정 상태를 WITHDRAWN으로 변경
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
+        log.info("회원 탈퇴 처리 완료 - userCreatedId: {}", userCreatedId);
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
 
@@ -227,6 +231,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void dormantAccounts() { // 휴면 계정 전환 배치 작업
         LocalDateTime lastLoginAtBefore = LocalDateTime.now().minusDays(90);
+
+        log.info("휴면 계정 전환 배치 시작 - 기준일: {}", lastLoginAtBefore);
 
         // 휴면 대상자 조회
         List<User> dormantUsers = userRepository.findDormantUser(lastLoginAtBefore);
@@ -238,7 +244,7 @@ public class UserServiceImpl implements UserService {
             userStatusHistoryRepository.save(new UserStatusHistory(dormantUser, status));
         }
 
-        log.info("{}명의 회원을 휴면 계정으로 전환했습니다.", dormantUsers.size());
+        log.info("휴면 계정 전환 배치 완료 - 총 {}명 전환", dormantUsers.size());
     }
 
     @Override
@@ -252,6 +258,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
+
+        log.info("휴면 계정 활성화 완료 - loginId: {}", loginId);
     }
 
     private User getUser(Long userCreatedId) {
