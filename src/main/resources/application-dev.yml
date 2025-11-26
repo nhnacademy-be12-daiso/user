@@ -7,6 +7,12 @@ server:
 spring:
   application:
     name: team3-user
+  data:
+    redis:
+      host: s4.java21.net
+      port: 6379
+      password: "*N2vya7H@muDTwdNMR!"
+      database: 371
   datasource:
     url: jdbc:mysql://s4.java21.net:13306/project_be12_team3?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
     username: project_be12_team3

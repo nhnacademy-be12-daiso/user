@@ -15,6 +15,7 @@ package com.nhnacademy.user.exception;
 import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
@@ -69,6 +70,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         // @Valid 유효성 검사 실패
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(DefaultAddressDeletionException.class)
+    public ResponseEntity<ErrorResponse> handlerDefaultAddressDeletionException(DefaultAddressDeletionException ex) {
+        // 기본 배송지 삭제
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
