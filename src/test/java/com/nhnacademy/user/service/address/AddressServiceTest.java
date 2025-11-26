@@ -17,6 +17,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -26,6 +27,7 @@ import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -64,18 +66,13 @@ public class AddressServiceTest {
         ReflectionTestUtils.setField(testUser, "userCreatedId", testUserId);
 
         testRequest = new AddressRequest("조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
-    }
 
-    private void mockUserFind() {
-        given(userRepository.findById(testUserId))
-                .willReturn(Optional.of(testUser));
+        lenient().when(userRepository.findByIdWithAccount(testUserId)).thenReturn(Optional.of(testUser));
     }
 
     @Test
     @DisplayName("주소 등록 성공 (기본 배송지 설정)")
     void test1() {
-        mockUserFind();
-
         given(addressRepository.countByUser(testUser)).willReturn(5L);
 
         addressService.addAddress(testUserId, testRequest);
@@ -87,7 +84,6 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 등록 실패 - 주소 10개 초과")
     void test2() {
-        mockUserFind();
         given(addressRepository.countByUser(testUser)).willReturn(10L);
 
         assertThatThrownBy(() -> addressService.addAddress(testUserId, testRequest))
@@ -100,17 +96,17 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 등록 실패 - 존재하지 않는 유저")
     void test3() {
-        given(userRepository.findById(testUserId)).willReturn(Optional.empty());
+        given(userRepository.findByIdWithAccount(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> addressService.addAddress(testUserId, testRequest))
+        AddressRequest request = new AddressRequest("테스트", "주소", "상세", false);
+
+        assertThatThrownBy(() -> addressService.addAddress(999L, request))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
     @DisplayName("주소 목록 조회 성공")
     void test4() {
-        mockUserFind();
-
         Address addr1 = new Address(testUser, "집", "광주", "1층", true);
         Address addr2 = new Address(testUser, "회사", "판교", "1층", false);
 
@@ -131,8 +127,6 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 수정 성공")
     void test5() {
-        mockUserFind();
-
         Address originalAddress = new Address(testUser, "옛날 별칭", "옛날 주소", "1층", false);
         AddressRequest modifyRequest = new AddressRequest("새 별칭", "새로운 주소", "1층", true);
 
@@ -151,8 +145,6 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 수정 실패 - 존재하지 않는 주소")
     void test6() {
-        mockUserFind();
-
         given(addressRepository.findByAddressIdAndUser(anyLong(), any(User.class)))
                 .willReturn(Optional.empty());
 
@@ -164,9 +156,7 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 삭제 성공")
     void test7() {
-        mockUserFind();
-
-        Address address = new Address(testUser, "집", "광주", "1층", true);
+        Address address = new Address(testUser, "집", "광주", "1층", false);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(address));
@@ -179,14 +169,28 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 삭제 실패 - 존재하지 않는 주소")
     void test8() {
-        mockUserFind();
-
         given(addressRepository.findByAddressIdAndUser(99L, testUser))
                 .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> addressService.deleteAddress(testUserId, 99L))
                 .isInstanceOf(AddressNotFoundException.class);
 
+        verify(addressRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("주소 삭제 실패 - 기본 배송지는 삭제 불가")
+    void test9() {
+        Address address = new Address(testUser, "집", "광주", "1층", true);
+
+        given(addressRepository.findByAddressIdAndUser(1L, testUser))
+                .willReturn(Optional.of(address));
+
+        assertThatThrownBy(() -> addressService.deleteAddress(testUserId, 1L))
+                .isInstanceOf(DefaultAddressDeletionException.class)
+                .hasMessage("기본 배송지는 삭제할 수 없습니다.");
+
+        // [검증] 삭제 메서드가 절대 호출되지 않았는지 확인
         verify(addressRepository, never()).delete(any());
     }
 

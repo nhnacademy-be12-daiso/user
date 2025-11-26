@@ -42,7 +42,7 @@ class PointHistoryRepositoryTest {
 
         pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(1000), Type.EARN, "가입"));
         pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.USE, "구매"));
-        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.EARN, "리뷰"));
+        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.CANCEL, "구매 취소"));
 
         // 1000 - 500 + 500 = 1000
         BigDecimal balance = pointHistoryRepository.getPointByUser(user);

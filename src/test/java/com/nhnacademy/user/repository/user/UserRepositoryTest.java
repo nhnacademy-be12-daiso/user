@@ -15,9 +15,12 @@ package com.nhnacademy.user.repository.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.repository.account.AccountRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
@@ -38,6 +42,12 @@ public class UserRepositoryTest {
 
     @Autowired
     UserStatusHistoryRepository historyRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
     @DisplayName("User 저장 및 조회 성공")
@@ -104,9 +114,26 @@ public class UserRepositoryTest {
         LocalDateTime cutoffDate = LocalDateTime.now().minusYears(1);
         List<User> result = userRepository.findDormantUser(cutoffDate);
 
-        // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getUserName()).isEqualTo("target");
+    }
+
+    @Test
+    @DisplayName("User 조회 시 Account까지 한 번에 조회(Fetch Join)")
+    void testFindByIdWithAccount() {
+        User user = new User("페치조인", "010-5555-5555", "fetch@join.com", LocalDate.now());
+        userRepository.save(user);
+
+        Account account = new Account("fetch_id", "pass", Role.USER, user);
+        accountRepository.save(account);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        User foundUser = userRepository.findByIdWithAccount(user.getUserCreatedId()).orElseThrow();
+
+        assertThat(foundUser.getAccount()).isNotNull();
+        assertThat(foundUser.getAccount().getLoginId()).isEqualTo("fetch_id");
     }
 
     private User createUser(String name, String phone, String email) {

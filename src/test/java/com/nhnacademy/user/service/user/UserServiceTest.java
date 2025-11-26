@@ -36,6 +36,7 @@ import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
@@ -64,6 +65,9 @@ public class UserServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private AddressRepository addressRepository;
 
     @Mock
     private GradeRepository gradeRepository;
@@ -175,7 +179,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("회원 정보 조회 성공")
     void test5() {
-        given(userRepository.findById(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
         UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "승급");
@@ -201,7 +205,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("회원 정보 조회 실패 - 존재하지 않는 회원")
     void test6() {
-        given(userRepository.findById(99L)).willReturn(Optional.empty());
+        given(userRepository.findByIdWithAccount(99L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserInfo(99L))
                 .isInstanceOf(UserNotFoundException.class);
@@ -213,7 +217,7 @@ public class UserServiceTest {
         UserModifyRequest request = new UserModifyRequest("수정된 이름",
                 "010-1234-5678", "new@new.com", testBirthDate);
 
-        given(userRepository.findById(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         userService.modifyUserInfo(testUserId, request);
 
@@ -226,7 +230,7 @@ public class UserServiceTest {
     void test8() {
         PasswordModifyRequest request = new PasswordModifyRequest("oldPwd", "newPwd");
 
-        given(userRepository.findById(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         Account mockAccount = mock(Account.class);
         ReflectionTestUtils.setField(testUser, "account", mockAccount);
@@ -243,11 +247,54 @@ public class UserServiceTest {
     @Test
     @DisplayName("로그인 시 마지막 접속일 갱신")
     void test9() {
-        given(userRepository.findById(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         userService.modifyLastLoginAt(testUserId);
 
         assertThat(testUser.getLastLoginAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
+    void test10() {
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+
+        Status status = new Status("ACTIVE");
+
+        UserStatusHistory statusHistory = new UserStatusHistory(testUser, status);
+
+        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+                .willReturn(Optional.of(statusHistory));
+
+        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
+
+        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "reason");
+
+        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+                .willReturn(Optional.of(gradeHistory));
+
+        given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+        given(addressRepository.findFirstByUserAndIsDefaultTrue(testUser)).willReturn(Optional.empty());
+
+        var response = userService.getInternalUserInfo(testUserId);
+
+        assertThat(response).isNotNull();
+        assertThat(response.userCreatedId()).isEqualTo(testUserId);
+        assertThat(response.gradeName()).isEqualTo("GOLD");
+        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 - 상태 변경 이력 저장 확인")
+    void test11() {
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+
+        Status withdrawnStatus = new Status("WITHDRAWN");
+        given(statusRepository.findByStatusName("WITHDRAWN")).willReturn(Optional.of(withdrawnStatus));
+
+        userService.withdrawUser(testUserId);
+
+        verify(userStatusHistoryRepository, times(1)).save(any(UserStatusHistory.class));
     }
 
 }
