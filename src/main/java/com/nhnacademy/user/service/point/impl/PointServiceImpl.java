@@ -28,12 +28,14 @@ import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class PointServiceImpl implements PointService {
 
@@ -70,6 +72,9 @@ public class PointServiceImpl implements PointService {
         PointHistory pointHistory = new PointHistory(user, amount, Type.EARN, pointPolicy.getPolicyName());
 
         pointHistoryRepository.save(pointHistory);
+
+        log.info("정책 기반 포인트 적립 - userCreatedId: {}, type: {}, amount: {}",
+                userCreatedId, policyType, amount);
     }
 
     @Override
@@ -87,6 +92,9 @@ public class PointServiceImpl implements PointService {
             }
 
             if (currentPoint.compareTo(amount) < 0) {
+                log.warn("포인트 사용 실패 (잔액 부족) - userCreatedId: {}, current: {}, request: {}",
+                        request.userCreatedId(), currentPoint, amount);
+
                 throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
             }
         }
@@ -94,6 +102,9 @@ public class PointServiceImpl implements PointService {
         PointHistory pointHistory = new PointHistory(user, amount, request.type(), request.description());
 
         pointHistoryRepository.save(pointHistory);
+
+        log.info("포인트 변동 처리 - userCreatedId: {}, type: {}, amount: {}, description: {}",
+                request.userCreatedId(), request.type(), request.amount(), request.description());
     }
 
     @Override

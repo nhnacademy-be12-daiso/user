@@ -26,10 +26,12 @@ import com.nhnacademy.user.service.address.AddressService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class AddressServiceImpl implements AddressService {
 
@@ -55,7 +57,9 @@ public class AddressServiceImpl implements AddressService {
         Address address = new Address(
                 user, request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
 
-        addressRepository.save(address);
+        Address saved = addressRepository.save(address);
+
+        log.info("배송지 추가 - userCreatedId: {}, addressId: {}", userCreatedId, saved.getAddressId());
     }
 
     @Override
@@ -100,6 +104,8 @@ public class AddressServiceImpl implements AddressService {
         }
 
         addressRepository.delete(address);
+
+        log.info("배송지 삭제 - userCreatedId: {}, addressId: {}", userCreatedId, addressId);
     }
 
     private User getUser(Long userCreatedId) {
