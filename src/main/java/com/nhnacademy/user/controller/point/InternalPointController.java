@@ -37,7 +37,6 @@ public class InternalPointController {
     @Operation(summary = "[내부] 포인트 적립/사용 처리")
     @PostMapping
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
-
         // 서비스 로직 호출 (User 업데이트 + History 저장)
         pointService.processPoint(request);
 

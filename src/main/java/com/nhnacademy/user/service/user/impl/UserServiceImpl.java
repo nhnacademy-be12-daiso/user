@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private User getUser(Long userCreatedId) {
-        return userRepository.findById(userCreatedId)
+        return userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 

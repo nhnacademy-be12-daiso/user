@@ -18,6 +18,7 @@ import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
+import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -75,12 +76,12 @@ public class AddressServiceImpl implements AddressService {
     public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
         User user = getUser(userCreatedId);
 
-        Address address = getAddress(addressId, user);
-
         // 요청이 기본 배송지로 왔을 때 기존 기본 배송지를 초기화
         if (request.isDefault()) {
             addressRepository.clearAllDefaultsByUser(user);
         }
+
+        Address address = getAddress(addressId, user);
 
         address.modifyDetails(
                 request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
@@ -93,11 +94,16 @@ public class AddressServiceImpl implements AddressService {
 
         Address address = getAddress(addressId, user);
 
+        // 지우려는 배송지가 기본 배송지면 예외
+        if (address.isDefault()) {
+            throw new DefaultAddressDeletionException("기본 배송지는 삭제할 수 없습니다.");
+        }
+
         addressRepository.delete(address);
     }
 
     private User getUser(Long userCreatedId) {
-        return userRepository.findById(userCreatedId)
+        return userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 

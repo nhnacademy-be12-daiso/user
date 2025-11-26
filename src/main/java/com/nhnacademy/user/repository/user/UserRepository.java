@@ -15,9 +15,9 @@ package com.nhnacademy.user.repository.user;
 import com.nhnacademy.user.entity.user.User;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -39,9 +39,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 ) latest_history ON u.user_created_id = latest_history.user_created_id
                 INNER JOIN UserStatusHistories ush ON ush.user_status_history_id = latest_history.max_history_id
                 INNER JOIN Statuses s ON ush.status_id = s.status_id
-                WHERE u.last_login_at < :cutoffDate
+                WHERE u.last_login_at < :lastLoginAtBefore
                 AND s.status_name = 'ACTIVE'
             """, nativeQuery = true)
-    List<User> findDormantUser(@Param("cutoffDate") LocalDateTime lastLoginAtBefore);
+    List<User> findDormantUser(LocalDateTime lastLoginAtBefore);
+
+    // 내 정보 조회 성능 최적화
+    @Query("SELECT u FROM User u JOIN FETCH u.account WHERE u.userCreatedId = :userCreatedId")
+    Optional<User> findByIdWithAccount(Long userCreatedId);
 
 }
