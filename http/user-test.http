@@ -126,12 +126,14 @@ GET {{host}}/api/users/me
 X-User-Id: 19
 
 ### 14. 휴면 해제 - 인증 코드 발송 요청
-POST {{host}}/api/users/activate/send-code?loginId=testuser8
+POST {{host}}/api/users/activate/send-code
 Content-Type: application/json
+X-User-Id: 28
 
 ### 15. 휴면 해제 - 인증 실패 (틀린 코드)
 POST {{host}}/api/users/activate
 Content-Type: application/x-www-form-urlencoded
+X-User-Id: 28
 
 loginId = testuser8 &
 code = 000000
@@ -139,6 +141,7 @@ code = 000000
 ### 16. 휴면 해제 - 인증 성공 및 활성화
 POST {{host}}/api/users/activate
 Content-Type: application/x-www-form-urlencoded
+X-User-Id: 28
 
 loginId = testuser8 &
-code = 639111
+code = 127575

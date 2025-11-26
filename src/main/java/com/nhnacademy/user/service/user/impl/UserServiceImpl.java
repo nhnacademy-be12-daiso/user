@@ -249,17 +249,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void activeUser(String loginId) {
-        User user = accountRepository.findByIdWithUser(loginId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."))
-                .getUser();
+    public void activeUser(Long userCreatedId) {
+        User user = getUser(userCreatedId);
 
         Status status = statusRepository.findByStatusName("ACTIVE")
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
-        log.info("휴면 계정 활성화 완료 - loginId: {}", loginId);
+        log.info("휴면 계정 활성화 완료 - userCreatedId: {}", userCreatedId);
     }
 
     private User getUser(Long userCreatedId) {

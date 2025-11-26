@@ -48,6 +48,6 @@ public interface UserService {
     void dormantAccounts();
 
     // 휴면 계정 복구
-    void activeUser(String loginId);
+    void activeUser(Long userCreatedId);
 
 }
