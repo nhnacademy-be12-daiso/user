@@ -27,7 +27,7 @@ import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
-import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ class VerificationServiceTest {
     ValueOperations<String, String> valueOperations;
 
     @Mock
-    AccountRepository accountRepository;
+    UserRepository userRepository;
 
     @Mock
     UserStatusHistoryRepository statusHistoryRepository;
@@ -61,42 +61,54 @@ class VerificationServiceTest {
     @InjectMocks
     VerificationService verificationService;
 
+    private User mockUser;
+
     private Account mockAccount;
 
     private UserStatusHistory mockHistory;
 
     @BeforeEach
     void setUp() {
-        User user = mock(User.class);
+        mockUser = mock(User.class);
         mockAccount = mock(Account.class);
         mockHistory = mock(UserStatusHistory.class);
         Status status = new Status("DORMANT");
 
-        lenient().when(mockAccount.getUser()).thenReturn(user);
+        lenient().when(mockUser.getAccount()).thenReturn(mockAccount);
+        lenient().when(mockAccount.getUser()).thenReturn(mockUser);
         lenient().when(mockHistory.getStatus()).thenReturn(status);
     }
 
     @Test
     @DisplayName("인증 번호 발송 - 성공")
     void test1() {
+        Long userCreatedId = 1L;
+        String loginId = "testuser";
+
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
-        given(accountRepository.findByIdWithUser("testUser")).willReturn(Optional.of(mockAccount));
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(mockUser));
         given(statusHistoryRepository.findTopByUserOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
+        given(mockAccount.getLoginId()).willReturn(loginId);
 
-        verificationService.sendCode("testUser");
+        verificationService.sendCode(userCreatedId);
 
-        verify(valueOperations).set(anyString(), anyString(), anyLong(), any());
-        verify(doorayMessageSender).send(eq("testUser"), anyString());
+        verify(valueOperations).set(eq("ACTIVE_CODE:" + userCreatedId), anyString(), anyLong(), any());
+        verify(doorayMessageSender).send(eq(loginId), anyString());
     }
 
     @Test
     @DisplayName("인증 번호 검증 실패 - 코드 불일치")
     void test2() {
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(valueOperations.get("ACTIVE_CODE:testUser")).willReturn("123456");
+        Long userCreatedId = 1L;
+        String wrongCode = "000000";
+        String correctCode = "123456";
 
-        assertThatThrownBy(() -> verificationService.verifyCode("testUser", "000000"))
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+
+        given(valueOperations.get("ACTIVE_CODE:" + userCreatedId)).willReturn(correctCode);
+
+        assertThatThrownBy(() -> verificationService.verifyCode(userCreatedId, wrongCode))
                 .isInstanceOf(InvalidCodeException.class);
     }
 

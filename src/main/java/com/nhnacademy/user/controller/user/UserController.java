@@ -95,23 +95,23 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    // POST /api/users/activate/send-code?loginId={loginId}
+    // POST /api/users/activate/send-code
     @Operation(summary = "휴면 해제 인증코드 발송")
     @PostMapping("/activate/send-code")
-    public ResponseEntity<Void> sendVerifyCode(@RequestParam String loginId) {
-        verificationService.sendCode(loginId);
+    public ResponseEntity<Void> sendVerifyCode(@RequestHeader("X-User-Id") Long userCreatedId) {
+        verificationService.sendCode(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    // POST /api/users/activate?loginId={loginId}&code={code}
+    // POST /api/users/activate?code={code}
     @Operation(summary = "휴면 계정 활성화 (인증코드 필수)")
     @PostMapping("/activate")
-    public ResponseEntity<Void> activateAccount(@RequestParam String loginId,
+    public ResponseEntity<Void> activateAccount(@RequestHeader("X-User-Id") Long userCreatedId,
                                                 @RequestParam String code) {
-        verificationService.verifyCode(loginId, code);
+        verificationService.verifyCode(userCreatedId, code);
 
-        userService.activeUser(loginId);
+        userService.activeUser(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
