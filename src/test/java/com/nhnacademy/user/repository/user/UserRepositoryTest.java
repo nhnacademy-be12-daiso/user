@@ -120,7 +120,7 @@ public class UserRepositoryTest {
 
     @Test
     @DisplayName("User 조회 시 Account까지 한 번에 조회(Fetch Join)")
-    void testFindByIdWithAccount() {
+    void test5() {
         User user = new User("페치조인", "010-5555-5555", "fetch@join.com", LocalDate.now());
         userRepository.save(user);
 
