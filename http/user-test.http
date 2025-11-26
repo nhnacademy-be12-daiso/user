@@ -3,15 +3,15 @@
 # ---------------------
 # 통신 확인 > 8082, api 단독 > 8083
 #@host = http://localhost:8082
-@host = http://localhost:8083
+@host = http://localhost:8080
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testCreatedId = 18
-@testId = testuser4
+@testCreatedId = 27
+@testId = testuser7
 @testPw = pwd123!@#
-@testName = 테스트유저4
-@testEmail = testuser4@test.com
-@testPhone = 010-4444-4444
-@testBirth = 2004-04-04
+@testName = 테스트유저7
+@testEmail = testuser7@test.com
+@testPhone = 010-7777-7777
+@testBirth = 2007-07-07
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
 POST {{host}}/api/users/signup

@@ -15,11 +15,13 @@ package com.nhnacademy.user.repository.user;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserStatusHistory;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserStatusHistoryRepository extends JpaRepository<UserStatusHistory, Long> {
 
     // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터(최근, == 현재)를 가져옴
+    @EntityGraph(attributePaths = "status")
     Optional<UserStatusHistory> findTopByUserOrderByChangedAtDesc(User user);
 
 }

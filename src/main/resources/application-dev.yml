@@ -1,24 +1,68 @@
-##
-## /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## + Copyright 2025. NHN Academy Corp. All rights reserved.
-## + * While every precaution has been taken in the preparation of this resource,  assumes no
-## + responsibility for errors or omissions, or for damages resulting from the use of the information
-## + contained herein
-## + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
-## + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
-## + prior written permission.
-## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-##
-#spring.jpa.show-sql=true
-#spring.jpa.properties.hibernate.show_sql=true
-#spring.jpa.hibernate.ddl-auto=create-drop
-#spring.jpa.database=h2
-#spring.jpa.open-in-view=false
-## swagger information
-#springdoc.packages-to-scan=com.nhnacademy.user.controller
-#springdoc.default-consumes-media-type=application/json;charset=UTF-8
-#springdoc.default-produces-media-type=application/json;charset=UTF-8
-#springdoc.swagger-ui.path=/
-#springdoc.swagger-ui.disable-swagger-default-url=true
-#springdoc.swagger-ui.display-request-duration=true
-#springdoc.swagger-ui.operations-sorter=alpha
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: team3-user
+  datasource:
+    url: jdbc:mysql://s4.java21.net:13306/project_be12_team3?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
+    username: project_be12_team3
+    password: Vu52gc0i(mNxDJyI
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: false
+
+  thymeleaf:
+    cache: false
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    org:
+      springframework:
+        web: INFO
+      # For Lazy Loading Test
+      hibernate:
+        SQL: DEBUG
+        orm:
+          jdbc:
+            bind: TRACE
+    com:
+      nhnacademy:
+        front:
+          client: DEBUG
+
+# Custom Properties
+dooray:
+  hook:
+    url: https://nhnacademy.dooray.com/services/3204376758577275363/4208785448943273505/P-UcX5QCSY-AxUjp0zz_Xw
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
