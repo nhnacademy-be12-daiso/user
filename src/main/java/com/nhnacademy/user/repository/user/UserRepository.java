@@ -13,11 +13,15 @@
 package com.nhnacademy.user.repository.user;
 
 import com.nhnacademy.user.entity.user.User;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -47,5 +51,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 내 정보 조회 성능 최적화
     @Query("SELECT u FROM User u JOIN FETCH u.account WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdWithAccount(Long userCreatedId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")}) // 3초 대기 후 실패
+    @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")
+    Optional<User> findByIdForUpdate(Long userCreatedId);
 
 }
