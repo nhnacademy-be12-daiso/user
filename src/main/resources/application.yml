@@ -1,3 +1,9 @@
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
 spring:
   application:
     name: team3-user
@@ -8,6 +14,20 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        show_sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: false
+
+
+
+  thymeleaf:
+    cache: false
     hibernate:
       ddl-auto: update
       naming:
@@ -28,6 +48,22 @@ eureka:
   instance:
     prefer-ip-address: true
   client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+
+logging:
+  level:
+    org:
+      springframework:
+        web: INFO
+    com:
+      nhnacademy:
+        front:
+          client: DEBUG
+
+# Custom Properties
     register-with-eureka: true
     fetch-registry: true
     service-url:

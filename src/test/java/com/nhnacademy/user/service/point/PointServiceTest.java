@@ -65,8 +65,7 @@ class PointServiceTest {
     @Test
     @DisplayName("현재 포인트 잔액 조회 (DB 계산 결과 반환)")
     void test1() {
-        // [변경] accountRepository -> userRepository
-        given(userRepository.findById(testUserId)).willReturn(Optional.of(user));
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
         given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(1000));
 
         PointResponse response = pointService.getCurrentPoint(testUserId);
@@ -77,8 +76,7 @@ class PointServiceTest {
 //    @Test
 //    @DisplayName("정책으로 포인트 적립")
 //    void test2() {
-//        // [변경] accountRepository -> userRepository
-//        given(userRepository.findById(testUserId)).willReturn(Optional.of(user));
+//        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
 //
 //        PointPolicy policy = new PointPolicy();
 //        ReflectionTestUtils.setField(policy, "policyName", "회원가입");

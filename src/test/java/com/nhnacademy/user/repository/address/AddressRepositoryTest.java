@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 @DataJpaTest
 public class AddressRepositoryTest {
@@ -31,6 +32,9 @@ public class AddressRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
     @DisplayName("주소 저장 성공")
@@ -49,6 +53,77 @@ public class AddressRepositoryTest {
         assertThat(found.getAddressDetail()).contains("1층");
         assertThat(found.isDefault()).isTrue();
         assertThat(found.getUser()).isEqualTo(user);
+    }
+
+    @Test
+    @DisplayName("기본 배송지 초기화(Bulk Update) 확인")
+    void test2() {
+        User user = new User("테스트", "010-0000-0000", "t@t.com", LocalDate.now());
+        userRepository.save(user);
+
+        Address addr1 = new Address(user, "집", "주소1", "상세1", true); // 기본
+        addressRepository.save(addr1);
+
+        Address addr2 = new Address(user, "회사", "주소2", "상세2", true); // 기본 (원래 이러면 안되지만 테스트니까)
+        addressRepository.save(addr2);
+
+        addressRepository.clearAllDefaultsByUser(user);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Address found1 = addressRepository.findById(addr1.getAddressId()).orElseThrow();
+        Address found2 = addressRepository.findById(addr2.getAddressId()).orElseThrow();
+
+        assertThat(found1.isDefault()).isFalse();
+        assertThat(found2.isDefault()).isFalse();
+    }
+
+    @Test
+    @DisplayName("유저별 주소 개수 카운트")
+    void test3() {
+        User user = new User("카운트", "010-9999-9999", "c@c.com", LocalDate.now());
+        userRepository.save(user);
+
+        addressRepository.save(new Address(user, "1", "1", "1", false));
+        addressRepository.save(new Address(user, "2", "2", "2", false));
+
+        long count = addressRepository.countByUser(user);
+
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("기본 배송지 1개 조회 - 기본 배송지가 있을 때")
+    void test4() {
+        User user = new User("배송지테스트", "010-1111-1111", "addr@test.com", LocalDate.now());
+        userRepository.save(user);
+
+        Address addr1 = new Address(user, "일반", "주소1", "상세1", false);
+        addressRepository.save(addr1);
+
+        Address addr2 = new Address(user, "기본", "주소2", "상세2", true);
+        addressRepository.save(addr2);
+
+        Address result = addressRepository.findFirstByUserAndIsDefaultTrue(user).orElse(null);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getAddressName()).isEqualTo("기본");
+        assertThat(result.isDefault()).isTrue();
+    }
+
+    @Test
+    @DisplayName("기본 배송지 1개 조회 - 없을 때 Null 반환")
+    void test5() {
+        User user = new User("배송지없음", "010-2222-2222", "noaddr@test.com", LocalDate.now());
+        userRepository.save(user);
+
+        Address addr1 = new Address(user, "일반", "주소1", "상세1", false);
+        addressRepository.save(addr1);
+
+        Address result = addressRepository.findFirstByUserAndIsDefaultTrue(user).orElse(null);
+
+        assertThat(result).isNull();
     }
 
 }
