@@ -80,7 +80,8 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
-        User user = getUser(request.userCreatedId());
+        User user = userRepository.findByIdForUpdate(request.userCreatedId())
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
 
         BigDecimal amount = request.amount();
 
