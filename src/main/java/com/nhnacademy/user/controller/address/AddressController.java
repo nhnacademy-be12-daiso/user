@@ -43,7 +43,7 @@ public class AddressController {
     // POST /api/users/me/addresses
     @Operation(summary = "새 배송지 추가")
     @PostMapping
-    public ResponseEntity<Void> addMyAddress(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
+    public ResponseEntity<Void> addMyAddress(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody AddressRequest request) {
         addressService.addAddress(userCreatedId, request);
 
@@ -53,7 +53,7 @@ public class AddressController {
     // GET /api/users/me/addresses
     @Operation(summary = "내 주소 목록 조회")
     @GetMapping
-    public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader(name = "X-USER-ID") Long userCreatedId) {
+    public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         List<AddressResponse> addresses = addressService.getMyAddresses(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).body(addresses);
@@ -62,7 +62,7 @@ public class AddressController {
     // PUT /api/users/me/addresses/{addressId}
     @Operation(summary = "주소 수정")
     @PutMapping("/{addressId}")
-    public ResponseEntity<Void> modifyAddress(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
+    public ResponseEntity<Void> modifyAddress(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                               @PathVariable Long addressId,
                                               @Valid @RequestBody AddressRequest request) {
         addressService.modifyAddress(userCreatedId, addressId, request);
@@ -73,7 +73,7 @@ public class AddressController {
     // DELETE /api/users/me/addresses/{addressId}
     @Operation(summary = "주소 삭제")
     @DeleteMapping("/{addressId}")
-    public ResponseEntity<Void> deleteAddress(@RequestHeader(name = "X-USER-ID") Long userCreatedId,
+    public ResponseEntity<Void> deleteAddress(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                               @PathVariable Long addressId) {
         addressService.deleteAddress(userCreatedId, addressId);
 

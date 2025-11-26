@@ -29,13 +29,13 @@ Content-Type: application/json
 ### 2. 내 정보 조회 - 200 OK 확인
 GET {{host}}/api/users/me
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 ### 3. 내 정보 수정 - 200 OK 확인
 # 이름과 이메일 변경
 PATCH {{host}}/api/users/me
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 {
   "userName": "테스트변경7",
@@ -47,7 +47,7 @@ X-USER-ID: {{testCreatedId}}
 ### 4. 비밀번호 변경 - 200 OK 확인
 PUT {{host}}/api/users/me/password
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 {
   "currentPassword": "{{testPw}}",
@@ -57,7 +57,7 @@ X-USER-ID: {{testCreatedId}}
 ### 5. 주소 추가 - 201 Created 확인
 POST {{host}}/api/users/me/addresses
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 {
   "addressName": "조선대학교 공용 PC실 2",
@@ -69,7 +69,7 @@ X-USER-ID: {{testCreatedId}}
 ### 6. 주소 목록 조회 - 200 OK
 GET {{host}}/api/users/me/addresses
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 > {%
     client.global.set("addressId", response.body[0].addressId);
@@ -78,7 +78,7 @@ X-USER-ID: {{testCreatedId}}
 ### 7. 주소 수정 - 200 OK 확인
 PUT {{host}}/api/users/me/addresses/11
 Content-Type: application/json
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 {
   "addressName": "조선대학교 중앙도서관",
@@ -89,7 +89,7 @@ X-USER-ID: {{testCreatedId}}
 
 ### 8. 주소 삭제 - 204 No Content 확인
 DELETE {{host}}/api/users/me/addresses/14
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 ### 9. 포인트 적립
 POST {{host}}/api/internal/points
@@ -115,15 +115,15 @@ Content-Type: application/json
 
 ### 11. 내 포인트 내역 및 잔액 조회
 GET {{host}}/api/users/me/points?page=0&size=10
-X-USER-ID: {{testCreatedId}}
+X-User-Id: {{testCreatedId}}
 
 ### 12. 회원 탈퇴
 DELETE {{host}}/api/users/me
-X-USER-ID: 19
+X-User-Id: 19
 
 ### 13. 탈퇴 후 조회 확인
 GET {{host}}/api/users/me
-X-USER-ID: 19
+X-User-Id: 19
 
 ### 14. 휴면 해제 - 인증 코드 발송 요청
 POST {{host}}/api/users/activate/send-code?loginId=testuser8
