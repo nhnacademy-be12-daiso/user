@@ -10,21 +10,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.point;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.entity.point.PointPolicy;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.nhnacademy.user.entity.point.Method;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
-public interface PointPolicyRepository extends JpaRepository<PointPolicy, Long> {
-
-    // 정책 이름으로 조회 (ex: "회원가입 이벤트")
-    Optional<PointPolicy> findByPolicyName(String policyName);
-
-    // 정책 타입으로 조회 (ex: "REGISTER")
-    Optional<PointPolicy> findByPolicyType(String policyType);
-
-    // 이미 존재하는 정책 타입인지 확인
-    boolean existsByPolicyType(String policyType);
-
+public record PointPolicyRequest(@NotBlank String policyName,
+                                 @NotBlank String policyType,
+                                 @NotNull Method method,
+                                 @Min(0) BigDecimal earnPoint) {
+    // 관리자 전용, 포인트 정책 관련 데이터를 줄 DTO
 }

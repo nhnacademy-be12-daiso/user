@@ -57,9 +57,9 @@ public class AddressServiceImpl implements AddressService {
         Address address = new Address(
                 user, request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
 
-        Address saved = addressRepository.save(address);
+        addressRepository.save(address);
 
-        log.info("배송지 추가 - userCreatedId: {}, addressId: {}", userCreatedId, saved.getAddressId());
+        log.info("배송지 추가 - userCreatedId: {}", userCreatedId);
     }
 
     @Override
