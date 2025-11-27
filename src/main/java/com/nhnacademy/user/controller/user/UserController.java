@@ -22,10 +22,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(name = "유저 API")
 @RestController
 @RequiredArgsConstructor
@@ -49,6 +51,11 @@ public class UserController {
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
+        log.info("========================================");
+        log.info("[UserController] 받은 X-User-Id: {}", userCreatedId);
+        log.info("[UserController] 내 정보 조회 요청");
+        log.info("========================================");
+
         // 사용자 정보 조회
         UserResponse userInfo = userService.getUserInfo(userCreatedId);
 
