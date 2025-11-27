@@ -36,7 +36,7 @@ eureka:
 
 dooray:
   hook:
-    url: ${DOORAY_HOOK_URL}
+    url: ${NHN_DOORAY_URL}
 
 logging:
   level:
