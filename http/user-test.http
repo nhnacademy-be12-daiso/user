@@ -5,13 +5,13 @@
 #@host = http://localhost:8082
 @host = http://localhost:8080
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testCreatedId = 28
-@testId = testuser8
+@testCreatedId = 30
+@testId = testadmin1
 @testPw = pwd123!@#
-@testName = 테스트유저8
-@testEmail = testuser8@test.com
-@testPhone = 010-8888-8888
-@testBirth = 2008-08-08
+@testName = 테스트관리자1
+@testEmail = testadmin1@test.com
+@testPhone = 010-0101-0101
+@testBirth = 1991-01-01
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
 POST {{host}}/api/users/signup
@@ -145,3 +145,52 @@ X-User-Id: 28
 
 loginId = testuser8 &
 code = 127575
+
+### 17. [Admin] 포인트 정책 등록 1 (정액: 회원가입 5000P)
+# Method: AMOUNT (정액)
+POST {{host}}/api/admin/points/policies
+Content-Type: application/json
+X-User-Id: 30
+
+{
+  "policyName": "회원가입 축하 포인트 두배 이벤트",
+  "policyType": "REGISTER_EVENT",
+  "earnPoint": 10000,
+  "method": "AMOUNT"
+}
+
+### 18. [Admin] 포인트 정책 등록 2 (정률: 상품 구매 5% 적립)
+# Method: RATIO (정률)
+POST {{host}}/api/admin/points/policies
+Content-Type: application/json
+X-User-Id: 30
+
+{
+  "policyName": "상품 구매 적립 두배 이벤트",
+  "policyType": "ORDER_EVENT",
+  "earnPoint": 2.0,
+  "method": "RATIO"
+}
+
+### 19. [Admin] 포인트 정책 전체 조회
+# 등록한 2개가 잘 나오는지 확인 (method 필드 확인)
+GET {{host}}/api/admin/points/policies
+Content-Type: application/json
+
+### 20. [Admin] 포인트 정책 수정 (구매 적립률 5% -> 10% 상향)
+# ID는 조회 결과(19번)를 보고 넣으세요. 예: 2번 정책 수정
+PUT {{host}}/api/admin/points/policies/2
+Content-Type: application/json
+
+{
+  "policyName": "상품 구매 적립 (이벤트)",
+  "policyType": "ORDER_REWARD",
+  "earnPoint": 0.10,
+  "method": "RATIO"
+}
+
+### 21. [Admin] 포인트 정책 삭제
+# 테스트 후 삭제해보기
+DELETE {{host}}/api/admin/points/policies/6
+X-User-Id: 999
+X-Role: ADMIN
