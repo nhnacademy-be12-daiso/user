@@ -13,11 +13,15 @@
 package com.nhnacademy.user.service.point;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.point.Method;
+import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
@@ -73,23 +77,23 @@ class PointServiceTest {
         assertThat(response.currentPoint()).isEqualTo(BigDecimal.valueOf(1000));
     }
 
-//    @Test
-//    @DisplayName("정책으로 포인트 적립")
-//    void test2() {
-//        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
-//
-//        PointPolicy policy = new PointPolicy();
-//        ReflectionTestUtils.setField(policy, "policyName", "회원가입");
-//        ReflectionTestUtils.setField(policy, "policyType", "REGISTER");
-//        ReflectionTestUtils.setField(policy, "method", Method.AMOUNT);
-//        ReflectionTestUtils.setField(policy, "earnPoint", BigDecimal.valueOf(5000));
-//
-//        given(pointPolicyRepository.findByPolicyType("REGISTER"))
-//                .willReturn(Optional.of(policy));
-//
-//        pointService.earnPointByPolicy(testUserId, "REGISTER");
-//
-//        verify(pointHistoryRepository).save(any());
-//    }
+    @Test
+    @DisplayName("정책으로 포인트 적립")
+    void test2() {
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
+
+        PointPolicy policy = new PointPolicy();
+        ReflectionTestUtils.setField(policy, "policyName", "회원가입");
+        ReflectionTestUtils.setField(policy, "policyType", "REGISTER");
+        ReflectionTestUtils.setField(policy, "method", Method.AMOUNT);
+        ReflectionTestUtils.setField(policy, "earnPoint", BigDecimal.valueOf(5000));
+
+        given(pointPolicyRepository.findByPolicyType("REGISTER"))
+                .willReturn(Optional.of(policy));
+
+        pointService.earnPointByPolicy(testUserId, "REGISTER");
+
+        verify(pointHistoryRepository).save(any());
+    }
 
 }

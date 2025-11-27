@@ -44,18 +44,23 @@ public class AddressServiceImpl implements AddressService {
     public void addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
         User user = getUser(userCreatedId);
 
+        long addressCount = addressRepository.countByUser(user);
+
         // 주소 개수 확인
-        if (addressRepository.countByUser(user) >= 10) {
+        if (addressCount >= 10) {
             throw new AddressLimitExceededException("최대 10개의 주소만 등록할 수 있습니다.");
         }
 
+        // 사용자가 기본 배송지로 설정했거나 처음으로 주소를 등록할 때 해당 주소를 기본 배송지로 설정
+        boolean isDefault = request.isDefault() || (addressCount == 0);
+
         // 요청이 기본 배송지로 왔을 때 기존 기본 배송지를 초기화
-        if (request.isDefault()) {
+        if (isDefault) {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
         Address address = new Address(
-                user, request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
+                user, request.addressName(), request.roadAddress(), request.addressDetail(), isDefault);
 
         addressRepository.save(address);
 
