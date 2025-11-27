@@ -33,19 +33,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 1. 각 유저별로 가장 '최신' 상태 변경 이력의 ID를 찾습니다. (Group By)
     // 2. 위에서 찾은 ID로 실제 상태 정보를 조인합니다.
     // 3. 조건 필터링: 로그인 날짜 기준 + 현재 상태가 ACTIVE인 사람
-    @Query(value = """
-                SELECT u.*
-                FROM Users u
-                INNER JOIN (
-                    SELECT user_created_id, MAX(user_status_history_id) as max_history_id
-                    FROM UserStatusHistories
-                    GROUP BY user_created_id
-                ) latest_history ON u.user_created_id = latest_history.user_created_id
-                INNER JOIN UserStatusHistories ush ON ush.user_status_history_id = latest_history.max_history_id
-                INNER JOIN Statuses s ON ush.status_id = s.status_id
-                WHERE u.last_login_at < :lastLoginAtBefore
-                AND s.status_name = 'ACTIVE'
-            """, nativeQuery = true)
+    @Query("SELECT u FROM User u " +
+            "WHERE u.lastLoginAt < :lastLoginAtBefore " +
+            "AND (SELECT ush.status.statusName FROM UserStatusHistory ush " +
+            "     WHERE ush.user = u AND ush.userStatusHistoryId = " +
+            "         (SELECT MAX(h.userStatusHistoryId) FROM UserStatusHistory h WHERE h.user = u)" +
+            "    ) = 'ACTIVE'")
     List<User> findDormantUser(LocalDateTime lastLoginAtBefore);
 
     // 내 정보 조회 성능 최적화

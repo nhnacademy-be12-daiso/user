@@ -95,8 +95,9 @@ public class UserRepositoryTest {
     @DisplayName("휴면 전환 대상자(1년 이상 미접속 + 현재 ACTIVE) 조회")
     void test4() {
         Status active = new Status("ACTIVE");
-        Status dormant = new Status("DORMANT");
         statusRepository.save(active);
+
+        Status dormant = new Status("DORMANT");
         statusRepository.save(dormant);
 
         User targetUser = createUser("target", "010-1111-1111", "t@t.com");

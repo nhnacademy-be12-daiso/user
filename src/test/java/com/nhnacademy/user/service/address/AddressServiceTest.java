@@ -190,7 +190,6 @@ public class AddressServiceTest {
                 .isInstanceOf(DefaultAddressDeletionException.class)
                 .hasMessage("기본 배송지는 삭제할 수 없습니다.");
 
-        // [검증] 삭제 메서드가 절대 호출되지 않았는지 확인
         verify(addressRepository, never()).delete(any());
     }
 
