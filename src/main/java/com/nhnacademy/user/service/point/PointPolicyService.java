@@ -10,21 +10,24 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.point;
+package com.nhnacademy.user.service.point;
 
-import com.nhnacademy.user.entity.point.PointPolicy;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.nhnacademy.user.dto.request.PointPolicyRequest;
+import com.nhnacademy.user.dto.response.PointPolicyResponse;
+import java.util.List;
 
-public interface PointPolicyRepository extends JpaRepository<PointPolicy, Long> {
+public interface PointPolicyService {
 
-    // 정책 이름으로 조회 (ex: "회원가입 이벤트")
-    Optional<PointPolicy> findByPolicyName(String policyName);
+    // 정책 등록
+    void createPolicy(PointPolicyRequest request);
 
-    // 정책 타입으로 조회 (ex: "REGISTER")
-    Optional<PointPolicy> findByPolicyType(String policyType);
+    // 정책 조회
+    List<PointPolicyResponse> getPolicies();
 
-    // 이미 존재하는 정책 타입인지 확인
-    boolean existsByPolicyType(String policyType);
+    // 정책 수정
+    void modifyPolicy(Long pointPolicyId, PointPolicyRequest request);
+
+    // 정책 삭제
+    void deletePolicy(Long pointPolicyId);
 
 }
