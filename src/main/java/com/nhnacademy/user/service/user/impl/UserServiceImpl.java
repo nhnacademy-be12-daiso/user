@@ -22,32 +22,25 @@ import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
-import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.Status;
-import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.entity.user.*;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
-import com.nhnacademy.user.repository.user.GradeRepository;
-import com.nhnacademy.user.repository.user.StatusRepository;
-import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
-import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
+import com.nhnacademy.user.repository.user.*;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -163,6 +156,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
+        log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
+
         User user = getUser(userCreatedId);
 
         Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
@@ -178,6 +173,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("회원 등급 정보가 누락되었습니다."));
 
         PointResponse pointResponse = pointService.getCurrentPoint(userCreatedId);
+
+        log.info("회원 정보 조회 완료 - userCreatedId: {}, loginId: {}, status: {}",
+                userCreatedId, user.getAccount().getLoginId(), status.getStatusName());
 
         return new UserResponse(user.getAccount().getLoginId(),
                 user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
