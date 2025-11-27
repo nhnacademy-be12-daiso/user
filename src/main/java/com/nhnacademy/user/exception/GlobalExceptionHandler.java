@@ -18,6 +18,7 @@ import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
+import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.exception.user.NotDormantUserException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
@@ -130,6 +131,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handlerUserAlreadyExistsException(UserAlreadyExistsException ex) {
         // 이미 존재하는 유저
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));
+    }
+
+    @ExceptionHandler(PointPolicyAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handlerUserPointPolicyAlreadyExistsException(
+            PointPolicyAlreadyExistsException ex) {
+        // 이미 존재하는 정책
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));

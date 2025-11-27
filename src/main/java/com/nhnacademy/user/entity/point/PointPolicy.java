@@ -57,4 +57,18 @@ public class PointPolicy {  // 포인트 정책 (관리자 전용)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    public PointPolicy(String policyName, String policyType, Method method, BigDecimal earnPoint) {
+        this.policyName = policyName;
+        this.policyType = policyType;
+        this.method = method;
+        this.earnPoint = earnPoint;
+    }
+
+    public void modifyPolicy(String policyName, String policyType, Method method, BigDecimal earnPoint) {  // 정책 수정
+        this.policyName = policyName;
+        this.policyType = policyType;
+        this.method = method;
+        this.earnPoint = earnPoint;
+    }
+
 }

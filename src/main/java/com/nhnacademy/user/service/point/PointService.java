@@ -15,6 +15,7 @@ package com.nhnacademy.user.service.point;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
+import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,6 +26,9 @@ public interface PointService {
 
     // 정책 기반 포인트 적립
     void earnPointByPolicy(Long userCreatedId, String policyType);
+
+    // 기준 금액이 필요한 포인트 적립
+    void earnPointByPolicy(Long userCreatedId, String policyType, BigDecimal targetAmount);
 
     // 포인트 변동 수동 처리
     void processPoint(PointRequest request);
