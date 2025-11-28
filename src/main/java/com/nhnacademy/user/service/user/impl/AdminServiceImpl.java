@@ -56,17 +56,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getAllUsers(Pageable pageable) {  // 전체 회원 목록 조회(페이징)
-        return userRepository.findAll(pageable)
-                .map(user ->
-                        new UserResponse(user.getAccount().getLoginId(),
-                                user.getUserName(),
-                                user.getPhoneNumber(),
-                                user.getEmail(),
-                                user.getBirth(),
-                                getGrade(user).getGradeName(),
-                                pointService.getCurrentPoint(user.getUserCreatedId()).currentPoint(),
-                                getStatus(user).getStatusName(),
-                                user.getJoinedAt()));
+        return userRepository.findAllUser(pageable);
     }
 
     @Override
