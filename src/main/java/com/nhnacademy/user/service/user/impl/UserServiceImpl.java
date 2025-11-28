@@ -22,25 +22,32 @@ import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
-import com.nhnacademy.user.entity.user.*;
+import com.nhnacademy.user.entity.user.Grade;
+import com.nhnacademy.user.entity.user.Status;
+import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
-import com.nhnacademy.user.repository.user.*;
+import com.nhnacademy.user.repository.user.GradeRepository;
+import com.nhnacademy.user.repository.user.StatusRepository;
+import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
+import com.nhnacademy.user.repository.user.UserRepository;
+import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Slf4j

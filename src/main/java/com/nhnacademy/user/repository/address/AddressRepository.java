@@ -33,12 +33,15 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     long countByUser(User user);
 
     // 특정 사용자의 모든 주소 목록 조회
+    @Query("SELECT a FROM Address a JOIN FETCH a.user WHERE a.user = :user")
     List<Address> findAllByUser(User user);
 
     // 주소 아이디와 사용자 정보로 주소 조회
+    @Query("SELECT a FROM Address a JOIN FETCH a.user WHERE a.addressId = :addressId AND a.user = :user")
     Optional<Address> findByAddressIdAndUser(Long addressId, User user);
 
     // 기본 배송지 1개 조회
+    @Query("SELECT a FROM Address a JOIN FETCH a.user WHERE a.user = :user AND a.isDefault = true")
     Optional<Address> findFirstByUserAndIsDefaultTrue(User user);
 
 }
