@@ -10,15 +10,23 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.config;
 
-import com.nhnacademy.user.dto.response.UserResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface UserQuerydslRepository {
+@Configuration
+public class QueryDslConfig {
 
-    // 관리자 전용: N+1 없이 모든 정보를 한 번에 조회
-    Page<UserResponse> findAllUser(Pageable pageable);
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory() {
+        return new JPAQueryFactory(entityManager);
+    }
 
 }
