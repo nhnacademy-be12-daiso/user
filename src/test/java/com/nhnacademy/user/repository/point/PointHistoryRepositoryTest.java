@@ -14,6 +14,7 @@ package com.nhnacademy.user.repository.point;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
@@ -24,8 +25,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 
 @DataJpaTest
+@Import(QueryDslConfig.class)
 class PointHistoryRepositoryTest {
 
     @Autowired

@@ -39,6 +39,8 @@ import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,26 +100,22 @@ public class AdminServiceTest {
     @DisplayName("전체 회원 목록 조회 - 성공")
     void test1() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<User> userList = List.of(mockUser);
-        Page<User> userPage = new PageImpl<>(userList, pageable, 1);
 
-        given(mockUser.getAccount()).willReturn(mockAccount);
-        given(mockAccount.getLoginId()).willReturn("testUser");
-        given(mockUser.getUserCreatedId()).willReturn(1L);
+        UserResponse userResponse = new UserResponse(
+                "testUser",
+                "홍길동",
+                "010-1234-5678",
+                "test@email.com",
+                LocalDate.now(),
+                "GENERAL",
+                BigDecimal.valueOf(1000),
+                "ACTIVE",
+                LocalDateTime.now()
+        );
 
-        given(userRepository.findAll(pageable)).willReturn(userPage);
+        Page<UserResponse> responsePage = new PageImpl<>(List.of(userResponse), pageable, 1);
 
-        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(mockUser)).willReturn(
-                Optional.of(mockStatusHistory));
-        given(mockStatusHistory.getStatus()).willReturn(mockStatus);
-        given(mockStatus.getStatusName()).willReturn("ACTIVE");
-
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(mockUser)).willReturn(
-                Optional.of(mockGradeHistory));
-        given(mockGradeHistory.getGrade()).willReturn(mockGrade);
-        given(mockGrade.getGradeName()).willReturn("GENERAL");
-
-        given(pointService.getCurrentPoint(1L)).willReturn(new PointResponse(BigDecimal.valueOf(1000)));
+        given(userRepository.findAllUser(pageable)).willReturn(responsePage);
 
         Page<UserResponse> result = adminService.getAllUsers(pageable);
 
@@ -125,6 +123,8 @@ public class AdminServiceTest {
         assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
         assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
         assertThat(result.getContent().get(0).point()).isEqualTo(BigDecimal.valueOf(1000));
+
+        verify(userRepository).findAllUser(pageable);
     }
 
     @Test
