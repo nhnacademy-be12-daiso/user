@@ -25,7 +25,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @Tag(name = "유저 API")
@@ -62,9 +70,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userInfo);
     }
 
-    // PATCH /api/users/me
+    // PUT /api/users/me
     @Operation(summary = "내 정보 수정")
-    @PatchMapping("/me")
+    @PutMapping("/me")
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody UserModifyRequest request) {
         // 사용자 정보 수정
@@ -73,7 +81,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    // PATCH /api/users/me/password
+    // PUT /api/users/me/password
     @Operation(summary = "비밀번호 변경")
     @PutMapping("/me/password")
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
