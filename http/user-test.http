@@ -33,7 +33,7 @@ X-User-Id: {{testCreatedId}}
 
 ### 3. 내 정보 수정 - 200 OK 확인
 # 이름과 이메일 변경
-PATCH {{host}}/api/users/me
+PUT {{host}}/api/users/me
 Content-Type: application/json
 X-User-Id: {{testCreatedId}}
 
@@ -107,8 +107,8 @@ POST {{host}}/api/internal/points
 Content-Type: application/json
 
 {
-  "userCreatedId": {{testCreatedId}},
-  "amount": 12000,
+  "userCreatedId": 14,
+  "amount": 3000,
   "type": "USE",
   "description": "책 구매"
 }

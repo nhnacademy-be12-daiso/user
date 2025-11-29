@@ -44,6 +44,8 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @Query("SELECT u FROM User u JOIN FETCH u.account WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdWithAccount(Long userCreatedId);
 
+    // 포인트 수동 처리를 위한 조회 쿼리
+    // 동시에 여러 요청이 들어오면 안 됨: 비관적 락 사용
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")}) // 3초 대기 후 실패
     @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")

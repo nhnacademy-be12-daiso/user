@@ -34,10 +34,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @Tag(name = "관리자 API")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/admin/users")
 public class AdminController {
 
@@ -65,6 +65,8 @@ public class AdminController {
                                                  @RequestBody UserStatusRequest request) {
         adminService.modifyUserStatus(adminId, userCreatedId, request);
 
+        log.info("관리자 [{}] - 회원 [{}] 상태({}) 변경", adminId, userCreatedId, request.statusName());
+
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -75,6 +77,8 @@ public class AdminController {
                                                 @PathVariable Long userCreatedId,
                                                 @RequestBody UserGradeRequest request) {
         adminService.modifyUserGrade(adminId, userCreatedId, request);
+
+        log.info("관리자 [{}] - 회원 [{}] 등급({}) 변경", adminId, userCreatedId, request.gradeName());
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

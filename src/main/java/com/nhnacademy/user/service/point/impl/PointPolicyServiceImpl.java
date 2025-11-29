@@ -35,7 +35,7 @@ public class PointPolicyServiceImpl implements PointPolicyService {
 
     @Override
     @Transactional
-    public void createPolicy(PointPolicyRequest request) {  // 포인트 정책 등록(생성)
+    public void createPolicy(PointPolicyRequest request) {  // 포인트 정책 등록
         if (pointPolicyRepository.existsByPolicyType(request.policyType())) {
             throw new PointPolicyAlreadyExistsException("이미 존재하는 정책입니다.");
         }
@@ -52,7 +52,7 @@ public class PointPolicyServiceImpl implements PointPolicyService {
     @Override
     @Transactional(readOnly = true)
     public List<PointPolicyResponse> getPolicies() {    // 포인트 정책 전체 조회
-        // 현재 리스트로 받는데 포인트 정책이 방대해질 거 같으면 추후에 페이징 처리 해야 할 듯
+        // 지금은 리스트로 받는데 포인트 정책이 많아질 거 같으면 추후에 페이징 처리 해야 할 듯
         return pointPolicyRepository.findAll().stream()
                 .map(pointPolicy ->
                         new PointPolicyResponse(pointPolicy.getPointPolicyId(), pointPolicy.getPolicyName(),

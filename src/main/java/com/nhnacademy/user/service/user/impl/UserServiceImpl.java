@@ -143,10 +143,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
         userStatusHistoryRepository.save(new UserStatusHistory(user, status));
 
-        log.info("회원가입 성공 - userCreatedId: {}, loginId: {}", saved.getUserCreatedId(), request.loginId());
-
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
+
+        log.info("회원가입 성공 - userCreatedId: {}, loginId: {}", saved.getUserCreatedId(), request.loginId());
 
         // 웰컴 쿠폰 발급 요청
         try {

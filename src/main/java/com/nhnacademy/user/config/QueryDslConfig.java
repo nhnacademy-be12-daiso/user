@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class QueryDslConfig {
+public class QueryDslConfig {   // querydsl을 위한 빈 등록
 
     @PersistenceContext
     private EntityManager entityManager;

@@ -77,7 +77,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         log.info("휴면 해제 인증 성공 - userCreatedId: {}", userCreatedId);
     }
 
-    public void validateDormantAccount(User user) {
+    public void validateDormantAccount(User user) { // 계정의 상태 검증
         UserStatusHistory latestHistory = statusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .orElseThrow(() -> new RuntimeException("상태 정보가 없습니다."));
 

@@ -44,8 +44,11 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
 
     @Override
     public Page<UserResponse> findAllUser(Pageable pageable) {
+        // querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
+        // 서브쿼리 전용 별칭 선언
         QUserGradeHistory subGradeHistory = new QUserGradeHistory("subGradeHistory");
         QUserStatusHistory subStatusHistory = new QUserStatusHistory("subStatusHistory");
+        // 같은 테이블을 메인 쿼리와 서브 쿼리에서 동시에 사용하기 위한 규칙
 
         // 데이터 조회 쿼리
         List<UserResponse> content = jpaQueryFactory
@@ -67,7 +70,6 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                                         ))),
                         // [서브쿼리 2] 포인트 잔액 계산 (SUM)
                         JPAExpressions.select(
-                                        // new CaseBuilder()를 사용해야 합니다.
                                         new CaseBuilder()
                                                 .when(pointHistory.type.eq(Type.USE))
                                                 .then(pointHistory.amount.negate()) // 사용이면 -
