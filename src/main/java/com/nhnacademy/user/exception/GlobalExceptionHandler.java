@@ -13,6 +13,9 @@
 package com.nhnacademy.user.exception;
 
 import com.nhnacademy.user.dto.response.ErrorResponse;
+import com.nhnacademy.user.exception.account.AccountDormantException;
+import com.nhnacademy.user.exception.account.AccountWithdrawnException;
+import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
@@ -20,12 +23,9 @@ import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
-import com.nhnacademy.user.exception.user.NotDormantUserException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
-import com.nhnacademy.user.exception.user.UserDormantException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -60,9 +60,9 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
     }
 
-    @ExceptionHandler(NotDormantUserException.class)
-    public ResponseEntity<ErrorResponse> handlerNotDormantUserException(NotDormantUserException ex) {
-        // 휴면 상태가 아닌 회원
+    @ExceptionHandler(NotDormantAccountException.class)
+    public ResponseEntity<ErrorResponse> handlerNotDormantAccountException(NotDormantAccountException ex) {
+        // 휴면 상태가 아닌 계정
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
@@ -94,9 +94,9 @@ public class GlobalExceptionHandler {
     }
 
     // 403 Forbidden
-    @ExceptionHandler(UserWithdrawnException.class)
-    public ResponseEntity<ErrorResponse> handlerUserWithdrawnException(UserWithdrawnException ex) {
-        // 탈퇴한 회원
+    @ExceptionHandler(AccountWithdrawnException.class)
+    public ResponseEntity<ErrorResponse> handlerAccountWithdrawnException(AccountWithdrawnException ex) {
+        // 탈퇴한 계정
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("FORBIDDEN", 403, ex.getMessage()));
@@ -146,9 +146,9 @@ public class GlobalExceptionHandler {
     }
 
     // 423 Locked
-    @ExceptionHandler(UserDormantException.class)
-    public ResponseEntity<ErrorResponse> handlerUserDormantException(UserDormantException ex) {
-        // 휴면 상태인 유저
+    @ExceptionHandler(AccountDormantException.class)
+    public ResponseEntity<ErrorResponse> handlerAccountDormantException(AccountDormantException ex) {
+        // 휴면 상태인 계정
         return ResponseEntity
                 .status(HttpStatus.LOCKED)
                 .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));

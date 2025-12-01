@@ -12,7 +12,6 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.adapter.CouponFeignClient;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -21,29 +20,27 @@ import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.exception.user.UserWithdrawnException;
 import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
-import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -67,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserGradeHistoryRepository userGradeHistoryRepository;
 
-    private final UserStatusHistoryRepository userStatusHistoryRepository;
+    private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     private final PointService pointService;
 
@@ -85,13 +82,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
         User user = getUser(userCreatedId);
+        Account account = user.getAccount();
 
-        Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserStatusHistory::getStatus)
+        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+                .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         if ("WITHDRAWN".equals(status.getStatusName())) {
-            throw new UserNotFoundException("탈퇴한 회원입니다.");
+            throw new UserNotFoundException("탈퇴한 계정입니다.");
         }
 
         String grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
@@ -142,7 +140,7 @@ public class UserServiceImpl implements UserService {
         // 초기 상태(ACTIVE) 저장
         Status status = statusRepository.findByStatusName("ACTIVE")
                 .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
-        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
+        accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
@@ -164,13 +162,14 @@ public class UserServiceImpl implements UserService {
         log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
 
         User user = getUser(userCreatedId);
+        Account account = user.getAccount();
 
-        Status status = userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserStatusHistory::getStatus)
-                .orElseThrow(() -> new RuntimeException("회원 상태 정보가 누락되었습니다."));
+        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+                .map(AccountStatusHistory::getStatus)
+                .orElseThrow(() -> new RuntimeException("계정 상태 정보가 누락되었습니다."));
 
         if ("WITHDRAWN".equals(status.getStatusName())) {
-            throw new UserWithdrawnException("이미 탈퇴한 회원입니다.");
+            throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
@@ -182,9 +181,9 @@ public class UserServiceImpl implements UserService {
         log.info("회원 정보 조회 완료 - userCreatedId: {}, loginId: {}, status: {}",
                 userCreatedId, user.getAccount().getLoginId(), status.getStatusName());
 
-        return new UserResponse(user.getAccount().getLoginId(),
+        return new UserResponse(account.getLoginId(),
                 user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
-                grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), user.getJoinedAt());
+                grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), account.getJoinedAt());
     }
 
     @Override
@@ -199,7 +198,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request) { // 비밀번호 수정
         User user = getUser(userCreatedId);
-
         Account account = user.getAccount();
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
@@ -211,56 +209,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void modifyLastLoginAt(Long userCreatedId) {
-        getUser(userCreatedId).modifyLastLoginAt();
-    }
-
-    @Override
-    @Transactional
     public void withdrawUser(Long userCreatedId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
         User user = getUser(userCreatedId);
+        Account account = user.getAccount();
 
         Status status = statusRepository.findByStatusName("WITHDRAWN")
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         // 계정 상태를 WITHDRAWN으로 변경
-        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
+        accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
         log.info("회원 탈퇴 처리 완료 - userCreatedId: {}", userCreatedId);
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
-    }
-
-    @Override
-    @Transactional
-    public void dormantAccounts() { // 휴면 계정 전환 배치 작업
-        LocalDateTime lastLoginAtBefore = LocalDateTime.now().minusDays(90);
-
-        log.info("휴면 계정 전환 배치 시작 - 기준일: {}", lastLoginAtBefore);
-
-        // 휴면 대상자 조회
-        List<User> dormantUsers = userRepository.findDormantUser(lastLoginAtBefore);
-
-        Status status = statusRepository.findByStatusName("DORMANT")
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
-
-        for (User dormantUser : dormantUsers) {
-            userStatusHistoryRepository.save(new UserStatusHistory(dormantUser, status));
-        }
-
-        log.info("휴면 계정 전환 배치 완료 - 총 {}명 전환", dormantUsers.size());
-    }
-
-    @Override
-    @Transactional
-    public void activeUser(Long userCreatedId) {
-        User user = getUser(userCreatedId);
-
-        Status status = statusRepository.findByStatusName("ACTIVE")
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
-
-        userStatusHistoryRepository.save(new UserStatusHistory(user, status));
-
-        log.info("휴면 계정 활성화 완료 - userCreatedId: {}", userCreatedId);
     }
 
     private User getUser(Long userCreatedId) {

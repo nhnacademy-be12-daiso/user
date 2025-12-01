@@ -12,21 +12,22 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserStatusRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
-import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final StatusRepository statusRepository;
 
-    private final UserStatusHistoryRepository userStatusHistoryRepository;
+    private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     private final UserGradeHistoryRepository userGradeHistoryRepository;
 
@@ -63,6 +64,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(Long userCreatedId) {   // 특정 회원 상세 조회
         User user = getUser(userCreatedId);
+        Account account = user.getAccount();
 
         return new UserDetailResponse(userCreatedId,
                 user.getAccount().getLoginId(),
@@ -70,23 +72,24 @@ public class AdminServiceImpl implements AdminService {
                 user.getPhoneNumber(),
                 user.getEmail(),
                 user.getBirth(),
-                getStatus(user).getStatusName(),
+                getStatus(account).getStatusName(),
                 getGrade(user).getGradeName(),
                 user.getAccount().getRole().name(),
                 pointService.getCurrentPoint(user.getUserCreatedId()).currentPoint(),
-                user.getJoinedAt(),
-                user.getLastLoginAt());
+                account.getJoinedAt(),
+                account.getLastLoginAt());
     }
 
     @Override
     @Transactional
-    public void modifyUserStatus(Long adminId, Long userId, UserStatusRequest request) {    // 회원 상태 변경
+    public void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request) {    // 회원 상태 변경
         User user = getUser(userId);
+        Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
-        userStatusHistoryRepository.save(new UserStatusHistory(user, newStatus));
+        accountStatusHistoryRepository.save(new AccountStatusHistory(account, newStatus));
 
         log.info("관리자 [{}] - 회원 [{}]의 상태를 {}(으)로 변경", adminId, userId, newStatus);
     }
@@ -117,9 +120,9 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new RuntimeException("등급 정보가 누락되었습니다."));
     }
 
-    private Status getStatus(User user) {
-        return userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserStatusHistory::getStatus)
+    private Status getStatus(Account account) {
+        return accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+                .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("상태 정보가 누락되었습니다."));
     }
 

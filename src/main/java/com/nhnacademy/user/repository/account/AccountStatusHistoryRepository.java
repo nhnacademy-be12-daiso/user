@@ -10,11 +10,18 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception.user;
+package com.nhnacademy.user.repository.account;
 
-// 휴면 상태가 아닌 회원일 때
-public class NotDormantUserException extends RuntimeException {
-    public NotDormantUserException(String message) {
-        super(message);
-    }
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AccountStatusHistoryRepository extends JpaRepository<AccountStatusHistory, Long> {
+
+    // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터(최근, == 현재)를 가져옴
+    @EntityGraph(attributePaths = "status")
+    Optional<AccountStatusHistory> findTopByAccountOrderByChangedAtDesc(Account account);
+
 }

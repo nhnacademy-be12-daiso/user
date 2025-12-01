@@ -10,11 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception.user;
+package com.nhnacademy.user.exception.account;
 
-// 탈퇴한 회원
-public class UserWithdrawnException extends RuntimeException {
-    public UserWithdrawnException(String message) {
+// 휴면 상태가 아닌 계정일 때
+public class NotDormantAccountException extends RuntimeException {
+    public NotDormantAccountException(String message) {
         super(message);
     }
 }

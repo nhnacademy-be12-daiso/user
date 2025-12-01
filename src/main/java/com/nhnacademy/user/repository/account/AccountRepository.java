@@ -13,6 +13,8 @@
 package com.nhnacademy.user.repository.account;
 
 import com.nhnacademy.user.entity.account.Account;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,8 +23,19 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     boolean existsByLoginId(String loginId);
 
-    // 마지막 로그인 시간 수정할 때 일어나는 N+1 문제를 해결하기 위한 쿼리 메소드
-    @Query("SELECT a FROM Account a JOIN FETCH a.user WHERE a.loginId = :loginId")
-    Optional<Account> findByIdWithUser(String loginId);
+    // User의 PK로 Account 찾기
+    Optional<Account> findByUser_UserCreatedId(Long userUserCreatedId);
+
+    // 휴면 전환 대상자
+    // 1. 각 유저별로 가장 '최신' 상태 변경 이력의 ID를 찾습니다. (Group By)
+    // 2. 위에서 찾은 ID로 실제 상태 정보를 조인합니다.
+    // 3. 조건 필터링: 로그인 날짜 기준 + 현재 상태가 ACTIVE인 사람
+    @Query("SELECT DISTINCT a FROM Account a " +
+            "JOIN FETCH a.user " +
+            "JOIN AccountStatusHistory ash ON ash.account = a " +
+            "WHERE a.lastLoginAt < :lastLoginAtBefore " +
+            "AND ash.changedAt = (SELECT MAX(h.changedAt) FROM AccountStatusHistory h WHERE h.account = a) " +
+            "AND ash.status.statusName = 'ACTIVE'")
+    List<Account> findDormantAccounts(LocalDateTime lastLoginAtBefore);
 
 }

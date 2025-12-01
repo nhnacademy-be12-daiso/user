@@ -23,12 +23,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.user.Status;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
-import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,10 +50,10 @@ class VerificationServiceTest {
     ValueOperations<String, String> valueOperations;
 
     @Mock
-    UserRepository userRepository;
+    AccountRepository accountRepository;
 
     @Mock
-    UserStatusHistoryRepository statusHistoryRepository;
+    AccountStatusHistoryRepository statusHistoryRepository;
 
     @Mock
     DoorayMessageSender doorayMessageSender;
@@ -61,17 +61,15 @@ class VerificationServiceTest {
     @InjectMocks
     VerificationService verificationService;
 
-    private User mockUser;
-
     private Account mockAccount;
 
-    private UserStatusHistory mockHistory;
+    private AccountStatusHistory mockHistory;
 
     @BeforeEach
     void setUp() {
-        mockUser = mock(User.class);
+        User mockUser = mock(User.class);
         mockAccount = mock(Account.class);
-        mockHistory = mock(UserStatusHistory.class);
+        mockHistory = mock(AccountStatusHistory.class);
         Status status = new Status("DORMANT");
 
         lenient().when(mockUser.getAccount()).thenReturn(mockAccount);
@@ -87,8 +85,8 @@ class VerificationServiceTest {
 
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
-        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(mockUser));
-        given(statusHistoryRepository.findTopByUserOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
+        given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.of(mockAccount));
+        given(statusHistoryRepository.findTopByAccountOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
         given(mockAccount.getLoginId()).willReturn(loginId);
 
         verificationService.sendCode(userCreatedId);

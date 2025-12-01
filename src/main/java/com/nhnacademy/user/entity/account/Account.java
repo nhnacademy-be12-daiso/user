@@ -22,9 +22,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "Accounts")
@@ -46,6 +48,13 @@ public class Account {      // 회원 인증 (로그인) 정보
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_created_id", unique = true)
     private User user;              // Users 테이블 외래키 (FK), 일대일 관계
+
+    @CreationTimestamp
+    @Column(name = "joined_at", nullable = false, updatable = false)
+    private LocalDateTime joinedAt;         // 가입일시
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;      // 최근 로그인 일시
 
     public Account(String loginId, String password, Role role, User user) {
         this.loginId = loginId;

@@ -27,21 +27,21 @@ import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
-import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
 import java.math.BigDecimal;
@@ -79,7 +79,7 @@ public class UserServiceTest {
     private UserGradeHistoryRepository userGradeHistoryRepository;
 
     @Mock
-    private UserStatusHistoryRepository userStatusHistoryRepository;
+    private AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -187,8 +187,8 @@ public class UserServiceTest {
                 .willReturn(Optional.of(gradeHistory));
 
         Status status = new Status("ACTIVE");
-        UserStatusHistory statusHistory = new UserStatusHistory(testUser, status);
-        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
+        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
         given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
@@ -245,25 +245,15 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 시 마지막 접속일 갱신")
-    void test9() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
-
-        userService.modifyLastLoginAt(testUserId);
-
-        assertThat(testUser.getLastLoginAt()).isNotNull();
-    }
-
-    @Test
     @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
-    void test10() {
+    void test9() {
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         Status status = new Status("ACTIVE");
 
-        UserStatusHistory statusHistory = new UserStatusHistory(testUser, status);
+        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
 
-        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
+        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
         Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
@@ -282,19 +272,6 @@ public class UserServiceTest {
         assertThat(response.userCreatedId()).isEqualTo(testUserId);
         assertThat(response.gradeName()).isEqualTo("GOLD");
         assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
-    }
-
-    @Test
-    @DisplayName("회원 탈퇴 - 상태 변경 이력 저장 확인")
-    void test11() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
-
-        Status withdrawnStatus = new Status("WITHDRAWN");
-        given(statusRepository.findByStatusName("WITHDRAWN")).willReturn(Optional.of(withdrawnStatus));
-
-        userService.withdrawUser(testUserId);
-
-        verify(userStatusHistoryRepository, times(1)).save(any(UserStatusHistory.class));
     }
 
 }

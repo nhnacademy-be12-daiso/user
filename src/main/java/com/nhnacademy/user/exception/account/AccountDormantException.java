@@ -10,10 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.exception.account;
 
-import jakarta.validation.constraints.NotBlank;
-
-public record UserStatusRequest(@NotBlank String statusName) {
-    // 관리자 전용, 상태 변경 요청 DTO
+// 해당 계정이 휴면 상태임을 알려주는 예외
+public class AccountDormantException extends RuntimeException {
+    public AccountDormantException(String message) {
+        super(message);
+    }
 }

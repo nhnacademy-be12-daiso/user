@@ -13,17 +13,17 @@
 package com.nhnacademy.user.repository.user;
 
 import static com.nhnacademy.user.entity.account.QAccount.account;
+import static com.nhnacademy.user.entity.account.QAccountStatusHistory.accountStatusHistory;
+import static com.nhnacademy.user.entity.account.QStatus.status;
 import static com.nhnacademy.user.entity.point.QPointHistory.pointHistory;
 import static com.nhnacademy.user.entity.user.QGrade.grade;
-import static com.nhnacademy.user.entity.user.QStatus.status;
 import static com.nhnacademy.user.entity.user.QUser.user;
 import static com.nhnacademy.user.entity.user.QUserGradeHistory.userGradeHistory;
-import static com.nhnacademy.user.entity.user.QUserStatusHistory.userStatusHistory;
 
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;
-import com.nhnacademy.user.entity.user.QUserStatusHistory;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
@@ -47,7 +47,7 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
         // querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
         // 서브쿼리 전용 별칭 선언
         QUserGradeHistory subGradeHistory = new QUserGradeHistory("subGradeHistory");
-        QUserStatusHistory subStatusHistory = new QUserStatusHistory("subStatusHistory");
+        QAccountStatusHistory subStatusHistory = new QAccountStatusHistory("subStatusHistory");
         // 같은 테이블을 메인 쿼리와 서브 쿼리에서 동시에 사용하기 위한 규칙
 
         // 데이터 조회 쿼리
@@ -81,15 +81,15 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                                 .where(pointHistory.user.eq(user)),
                         // [서브쿼리 3] 가장 최근 날짜를 찾아서 그 날짜의 상태 데이터를 가져옴
                         JPAExpressions.select(status.statusName)
-                                .from(userStatusHistory)
-                                .join(userStatusHistory.status, status)
-                                .where(userStatusHistory.user.eq(user)
-                                        .and(userStatusHistory.changedAt.eq(
+                                .from(accountStatusHistory)
+                                .join(accountStatusHistory.status, status)
+                                .where(accountStatusHistory.account.eq(account)
+                                        .and(accountStatusHistory.changedAt.eq(
                                                 JPAExpressions.select(subStatusHistory.changedAt.max())
                                                         .from(subStatusHistory)
-                                                        .where(subStatusHistory.user.eq(user))
+                                                        .where(subStatusHistory.account.eq(account))
                                         ))),
-                        user.joinedAt
+                        account.joinedAt
                 ))
                 .from(user)
                 .join(user.account, account)

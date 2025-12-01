@@ -12,13 +12,13 @@
 
 package com.nhnacademy.user.service.message;
 
-import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
-import com.nhnacademy.user.exception.user.NotDormantUserException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.AccountRepository;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +35,9 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     private final DoorayMessageSender doorayMessageSender;
 
-    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
 
-    private final UserStatusHistoryRepository statusHistoryRepository;
+    private final AccountStatusHistoryRepository statusHistoryRepository;
 
     private static final String PREFIX = "ACTIVE_CODE:";
 
@@ -45,17 +45,17 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     @Transactional(readOnly = true)
     public void sendCode(Long userCreatedId) {  // 인증 번호 발송
-        User user = userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 회원입니다."));
+        Account account = accountRepository.findByUser_UserCreatedId(userCreatedId)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 계정입니다."));
 
-        validateDormantAccount(user);
+        validateDormantAccount(account);
 
         String code = String.valueOf((int) (Math.random() * 900000) + 100000);
 
         // key: ACTIVE_CODE:loginId, value: 123456, TTL: 5분)
         redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
 
-        String loginId = user.getAccount().getLoginId();
+        String loginId = account.getLoginId();
 
         doorayMessageSender.send(loginId, "휴면 해제 인증번호 [" + code + "]를 입력해주세요.");
 
@@ -77,12 +77,12 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         log.info("휴면 해제 인증 성공 - userCreatedId: {}", userCreatedId);
     }
 
-    public void validateDormantAccount(User user) { // 계정의 상태 검증
-        UserStatusHistory latestHistory = statusHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+    public void validateDormantAccount(Account account) { // 계정의 상태 검증
+        AccountStatusHistory latestHistory = statusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
                 .orElseThrow(() -> new RuntimeException("상태 정보가 없습니다."));
 
         if (!"DORMANT".equals(latestHistory.getStatus().getStatusName())) {
-            throw new NotDormantUserException("휴면 상태의 회원이 아닙니다.");
+            throw new NotDormantAccountException("휴면 상태의 계정이 아닙니다.");
         }
     }
 
