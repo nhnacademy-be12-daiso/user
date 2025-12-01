@@ -38,16 +38,7 @@ public interface UserService {
     // 비밀번호 수정
     void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request);
 
-    // 마지막 로그인 시간 갱신
-    void modifyLastLoginAt(Long userCreatedId);
-
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
     void withdrawUser(Long userCreatedId);
-
-    // 휴면 계정 전환 배치 작업
-    void dormantAccounts();
-
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
 
 }

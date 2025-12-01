@@ -18,20 +18,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
@@ -39,12 +34,6 @@ public class UserRepositoryTest {
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    StatusRepository statusRepository;
-
-    @Autowired
-    UserStatusHistoryRepository historyRepository;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -95,36 +84,8 @@ public class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("휴면 전환 대상자(1년 이상 미접속 + 현재 ACTIVE) 조회")
-    void test4() {
-        Status active = new Status("ACTIVE");
-        statusRepository.save(active);
-
-        Status dormant = new Status("DORMANT");
-        statusRepository.save(dormant);
-
-        User targetUser = createUser("target", "010-1111-1111", "t@t.com");
-        setLastLogin(targetUser, LocalDateTime.now().minusYears(2));
-        historyRepository.save(new UserStatusHistory(targetUser, active));
-
-        User recentUser = createUser("recent", "010-2222-2222", "r@r.com");
-        setLastLogin(recentUser, LocalDateTime.now().minusDays(1));
-        historyRepository.save(new UserStatusHistory(recentUser, active));
-
-        User dormantUser = createUser("dormant", "010-3333-3333", "d@d.com");
-        setLastLogin(dormantUser, LocalDateTime.now().minusYears(2));
-        historyRepository.save(new UserStatusHistory(dormantUser, dormant));
-
-        LocalDateTime cutoffDate = LocalDateTime.now().minusYears(1);
-        List<User> result = userRepository.findDormantUser(cutoffDate);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUserName()).isEqualTo("target");
-    }
-
-    @Test
     @DisplayName("User 조회 시 Account까지 한 번에 조회(Fetch Join)")
-    void test5() {
+    void test4() {
         User user = new User("페치조인", "010-5555-5555", "fetch@join.com", LocalDate.now());
         userRepository.save(user);
 
@@ -138,16 +99,6 @@ public class UserRepositoryTest {
 
         assertThat(foundUser.getAccount()).isNotNull();
         assertThat(foundUser.getAccount().getLoginId()).isEqualTo("fetch_id");
-    }
-
-    private User createUser(String name, String phone, String email) {
-        User user = new User(name, phone, email, LocalDate.now());
-        return userRepository.save(user);
-    }
-
-    private void setLastLogin(User user, LocalDateTime time) {
-        ReflectionTestUtils.setField(user, "lastLoginAt", time);
-        userRepository.save(user);
     }
 
 }

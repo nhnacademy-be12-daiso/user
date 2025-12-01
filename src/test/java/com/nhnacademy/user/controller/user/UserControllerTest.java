@@ -13,14 +13,11 @@
 package com.nhnacademy.user.controller.user;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -32,7 +29,6 @@ import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
-import com.nhnacademy.user.service.message.VerificationService;
 import com.nhnacademy.user.service.user.UserService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -56,9 +52,6 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
-
-    @MockitoBean
-    private VerificationService verificationService;
 
     @Test
     @DisplayName("회원가입 성공")
@@ -103,7 +96,7 @@ class UserControllerTest {
 
         doNothing().when(userService).modifyUserInfo(eq(userId), any());
 
-        mockMvc.perform(patch("/api/users/me")
+        mockMvc.perform(put("/api/users/me")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -137,34 +130,6 @@ class UserControllerTest {
         mockMvc.perform(delete("/api/users/me")
                         .header("X-User-Id", userId))
                 .andExpect(status().isNoContent())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("휴면 해제 인증코드 발송")
-    void test6() throws Exception {
-        Long userId = 1L;
-        doNothing().when(verificationService).sendCode(userId);
-
-        mockMvc.perform(post("/api/users/activate/send-code")
-                        .header("X-User-Id", userId))
-                .andExpect(status().isOk())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("휴면 계정 활성화")
-    void test7() throws Exception {
-        Long userId = 1L;
-        String code = "123456";
-
-        doNothing().when(verificationService).verifyCode(anyLong(), anyString());
-        doNothing().when(userService).activeUser(anyLong());
-
-        mockMvc.perform(post("/api/users/activate")
-                        .header("X-User-Id", userId)
-                        .param("code", code))
-                .andExpect(status().isOk())
                 .andDo(print());
     }
 

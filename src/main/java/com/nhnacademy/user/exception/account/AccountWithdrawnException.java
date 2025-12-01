@@ -10,11 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.exception.user;
+package com.nhnacademy.user.exception.account;
 
-// 해당 회원이 휴면 상태임을 알려주는 예외
-public class UserDormantException extends RuntimeException {
-    public UserDormantException(String message) {
+// 탈퇴한 계정
+public class AccountWithdrawnException extends RuntimeException {
+    public AccountWithdrawnException(String message) {
         super(message);
     }
 }

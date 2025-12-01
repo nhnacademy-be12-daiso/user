@@ -5,13 +5,13 @@
 #@host = http://localhost:8082
 @host = http://localhost:8080
 # 테스트할 아이디 (매번 바꾸거나 DB 초기화 후 사용)
-@testCreatedId = 33
-@testId = testuser10
+@testCreatedId = 2
+@testId = testuser1
 @testPw = pwd123!@#
-@testName = 테스트유저10
+@testName = 테스트유저1
 @testEmail = testuser1@test.com
-@testPhone = 010-1010-1010
-@testBirth = 2010-10-10
+@testPhone = 010-1111-1111
+@testBirth = 2001-01-01
 
 ### 1. 회원가입 (인증 불필요) - 201 Created 확인
 POST {{host}}/api/users/signup
@@ -38,10 +38,10 @@ Content-Type: application/json
 X-User-Id: {{testCreatedId}}
 
 {
-  "userName": "테스트유저10",
-  "phoneNumber": "010-1010-1010",
-  "email": "testuser10@test.com",
-  "birth": "2010-10-10"
+  "userName": "테스트유저1",
+  "phoneNumber": "010-1111-1111",
+  "email": "testuser1@test.com",
+  "birth": "2001-01-01"
 }
 
 ### 4. 비밀번호 변경 - 200 OK 확인
@@ -76,7 +76,7 @@ X-User-Id: {{testCreatedId}}
 %}
 
 ### 7. 주소 수정 - 200 OK 확인
-PUT {{host}}/api/users/me/addresses/15
+PUT {{host}}/api/users/me/addresses/20
 Content-Type: application/json
 X-User-Id: {{testCreatedId}}
 
@@ -88,7 +88,7 @@ X-User-Id: {{testCreatedId}}
 }
 
 ### 8. 주소 삭제 - 204 No Content 확인
-DELETE {{host}}/api/users/me/addresses/16
+DELETE {{host}}/api/users/me/addresses/20
 X-User-Id: {{testCreatedId}}
 
 ### 9. 포인트 적립
@@ -107,7 +107,7 @@ POST {{host}}/api/internal/points
 Content-Type: application/json
 
 {
-  "userCreatedId": 14,
+  "userCreatedId": 2,
   "amount": 3000,
   "type": "USE",
   "description": "책 구매"
@@ -119,16 +119,16 @@ X-User-Id: {{testCreatedId}}
 
 ### 12. 회원 탈퇴
 DELETE {{host}}/api/users/me
-X-User-Id: 16
+X-User-Id: 2
 
 ### 13. 탈퇴 후 조회 확인
 GET {{host}}/api/users/me
-X-User-Id: 16
+X-User-Id: 2
 
 ### 14. 휴면 해제 - 인증 코드 발송 요청
 POST {{host}}/api/users/activate/send-code
 Content-Type: application/json
-X-User-Id: 1
+X-User-Id: 2
 
 ### 15. 휴면 해제 - 인증 실패 (틀린 코드)
 POST {{host}}/api/users/activate?code=000000

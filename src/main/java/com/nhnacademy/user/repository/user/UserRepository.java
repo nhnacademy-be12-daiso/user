@@ -15,8 +15,6 @@ package com.nhnacademy.user.repository.user;
 import com.nhnacademy.user.entity.user.User;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -28,17 +26,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     boolean existsByPhoneNumber(String phoneNumber);
 
     boolean existsByEmail(String email);
-
-    // 휴면 전환 대상자
-    // 1. 각 유저별로 가장 '최신' 상태 변경 이력의 ID를 찾습니다. (Group By)
-    // 2. 위에서 찾은 ID로 실제 상태 정보를 조인합니다.
-    // 3. 조건 필터링: 로그인 날짜 기준 + 현재 상태가 ACTIVE인 사람
-    @Query("SELECT DISTINCT u FROM User u " +
-            "JOIN UserStatusHistory ush ON ush.user = u " +
-            "WHERE u.lastLoginAt < :lastLoginAtBefore " +
-            "AND ush.changedAt = (SELECT MAX(h.changedAt) FROM UserStatusHistory h WHERE h.user = u) " +
-            "AND ush.status.statusName = 'ACTIVE'")
-    List<User> findDormantUser(LocalDateTime lastLoginAtBefore);
 
     // 내 정보 조회 성능 최적화
     @Query("SELECT u FROM User u JOIN FETCH u.account WHERE u.userCreatedId = :userCreatedId")

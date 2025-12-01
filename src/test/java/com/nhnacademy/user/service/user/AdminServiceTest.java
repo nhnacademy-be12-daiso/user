@@ -19,23 +19,23 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserStatusRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
-import com.nhnacademy.user.entity.user.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
-import com.nhnacademy.user.repository.user.StatusRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.repository.user.UserStatusHistoryRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
 import java.math.BigDecimal;
@@ -68,7 +68,7 @@ public class AdminServiceTest {
     private StatusRepository statusRepository;
 
     @Mock
-    private UserStatusHistoryRepository userStatusHistoryRepository;
+    private AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     @Mock
     private UserGradeHistoryRepository userGradeHistoryRepository;
@@ -83,7 +83,7 @@ public class AdminServiceTest {
     private Account mockAccount;
     private Status mockStatus;
     private Grade mockGrade;
-    private UserStatusHistory mockStatusHistory;
+    private AccountStatusHistory mockStatusHistory;
     private UserGradeHistory mockGradeHistory;
 
     @BeforeEach
@@ -92,7 +92,7 @@ public class AdminServiceTest {
         mockAccount = mock(Account.class);
         mockStatus = mock(Status.class);
         mockGrade = mock(Grade.class);
-        mockStatusHistory = mock(UserStatusHistory.class);
+        mockStatusHistory = mock(AccountStatusHistory.class);
         mockGradeHistory = mock(UserGradeHistory.class);
     }
 
@@ -139,7 +139,7 @@ public class AdminServiceTest {
 
         given(userRepository.findByIdWithAccount(userId)).willReturn(Optional.of(mockUser));
 
-        given(userStatusHistoryRepository.findTopByUserOrderByChangedAtDesc(mockUser)).willReturn(
+        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
                 Optional.of(mockStatusHistory));
         given(mockStatusHistory.getStatus()).willReturn(mockStatus);
         given(mockStatus.getStatusName()).willReturn("ACTIVE");
@@ -163,14 +163,14 @@ public class AdminServiceTest {
     void test3() {
         Long adminId = 999L;
         Long targetUserId = 1L;
-        UserStatusRequest request = new UserStatusRequest("BANNED");
+        AccountStatusRequest request = new AccountStatusRequest("BANNED");
 
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(statusRepository.findByStatusName("BANNED")).willReturn(Optional.of(mockStatus));
 
         adminService.modifyUserStatus(adminId, targetUserId, request);
 
-        verify(userStatusHistoryRepository).save(any(UserStatusHistory.class));
+        verify(accountStatusHistoryRepository).save(any(AccountStatusHistory.class));
     }
 
     @Test
@@ -193,7 +193,7 @@ public class AdminServiceTest {
     void test5() {
         Long adminId = 999L;
         Long targetUserId = 1L;
-        UserStatusRequest request = new UserStatusRequest("WEIRD_STATUS");
+        AccountStatusRequest request = new AccountStatusRequest("WEIRD_STATUS");
 
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());

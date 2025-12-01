@@ -16,7 +16,6 @@ import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
-import com.nhnacademy.user.service.message.VerificationService;
 import com.nhnacademy.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -43,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
-
-    private final VerificationService verificationService;
 
     // POST /api/users/signup
     @Operation(summary = "회원가입")
@@ -99,27 +95,6 @@ public class UserController {
         userService.withdrawUser(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    // POST /api/users/activate/send-code
-    @Operation(summary = "휴면 해제 인증코드 발송")
-    @PostMapping("/activate/send-code")
-    public ResponseEntity<Void> sendVerifyCode(@RequestHeader("X-User-Id") Long userCreatedId) {
-        verificationService.sendCode(userCreatedId);
-
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    // POST /api/users/activate?code={code}
-    @Operation(summary = "휴면 계정 활성화 (인증코드 필수)")
-    @PostMapping("/activate")
-    public ResponseEntity<Void> activateAccount(@RequestHeader("X-User-Id") Long userCreatedId,
-                                                @RequestParam String code) {
-        verificationService.verifyCode(userCreatedId, code);
-
-        userService.activeUser(userCreatedId);
-
-        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

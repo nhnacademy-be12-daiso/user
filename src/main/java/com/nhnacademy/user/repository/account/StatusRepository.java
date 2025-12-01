@@ -10,18 +10,15 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.repository.account;
 
-import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
+import com.nhnacademy.user.entity.account.Status;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserStatusHistoryRepository extends JpaRepository<UserStatusHistory, Long> {
+public interface StatusRepository extends JpaRepository<Status, Long> {
 
-    // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터(최근, == 현재)를 가져옴
-    @EntityGraph(attributePaths = "status")
-    Optional<UserStatusHistory> findTopByUserOrderByChangedAtDesc(User user);
+    // StatusName으로 조회 (ACTIVE, DORMANT, WITHDRAWN)
+    Optional<Status> findByStatusName(String statusName);
 
 }

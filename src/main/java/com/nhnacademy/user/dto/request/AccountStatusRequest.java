@@ -10,15 +10,10 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.entity.user.Status;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import jakarta.validation.constraints.NotBlank;
 
-public interface StatusRepository extends JpaRepository<Status, Long> {
-
-    // StatusName으로 조회 (ACTIVE, DORMANT, WITHDRAWN)
-    Optional<Status> findByStatusName(String statusName);
-
+public record AccountStatusRequest(@NotBlank String statusName) {
+    // 관리자 전용, 상태 변경 요청 DTO
 }

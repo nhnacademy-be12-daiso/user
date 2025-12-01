@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.batch;
 
-import com.nhnacademy.user.service.user.UserService;
+import com.nhnacademy.user.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,9 +21,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class UserScheduler {    // 휴면 계정 자동 전환 스케줄러
+public class AccountScheduler {    // 휴면 계정 자동 전환 스케줄러
 
-    private final UserService userService;
+    private final AccountService accountService;
 
     //  Cron 표현식 설명 (cron = "초 분 시 일 월 요일 년")
     // ───────────────────────────────────────────────────
@@ -41,7 +41,7 @@ public class UserScheduler {    // 휴면 계정 자동 전환 스케줄러
         log.info("===== 휴면 계정 전환 배치 작업 시작 =====");
 
         try {
-            userService.dormantAccounts();
+            accountService.dormantAccounts();
 
             log.info("===== 휴면 계정 전환 배치 작업 성공 =====");
 

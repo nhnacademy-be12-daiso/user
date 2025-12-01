@@ -12,8 +12,8 @@
 
 package com.nhnacademy.user.service.user;
 
+import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserStatusRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import org.springframework.data.domain.Page;
@@ -28,7 +28,7 @@ public interface AdminService {
     UserDetailResponse getUserDetail(Long userCreatedId);
 
     // 회원 상태 변경
-    void modifyUserStatus(Long adminId, Long userId, UserStatusRequest request);
+    void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request);
 
     // 회원 등급 변경
     void modifyUserGrade(Long adminId, Long userId, UserGradeRequest request);

@@ -10,14 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.repository.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.nhnacademy.user.config.QueryDslConfig;
-import com.nhnacademy.user.entity.user.Status;
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserStatusHistory;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -29,40 +31,41 @@ import org.springframework.context.annotation.Import;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
-class UserStatusHistoryRepositoryTest {
+class AccountStatusHistoryRepositoryTest {
 
     @Autowired
-    private UserStatusHistoryRepository historyRepository;
+    private AccountStatusHistoryRepository historyRepository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Test
-    @DisplayName("유저의 가장 최근 상태 변경 이력 조회")
+    @DisplayName("계정(Account)의 가장 최근 상태 변경 이력 조회")
     void test1() {
         User user = new User("testUser", "010-1111-2222", "test@email.com", LocalDate.now());
         entityManager.persist(user);
+
+        Account account = new Account("testLoginId", "password", Role.USER, user);
+        entityManager.persist(account);
 
         Status active = new Status("ACTIVE");
         Status dormant = new Status("DORMANT");
         entityManager.persist(active);
         entityManager.persist(dormant);
 
-        UserStatusHistory history1 = new UserStatusHistory(user, active);
+        AccountStatusHistory history1 = new AccountStatusHistory(account, active);
         entityManager.persist(history1);
 
-        UserStatusHistory history2 = new UserStatusHistory(user, dormant);
+        AccountStatusHistory history2 = new AccountStatusHistory(account, dormant);
         entityManager.persist(history2);
 
         entityManager.flush();
         entityManager.clear();
 
-        Optional<UserStatusHistory> result = historyRepository.findTopByUserOrderByChangedAtDesc(user);
+        Optional<AccountStatusHistory> result = historyRepository.findTopByAccountOrderByChangedAtDesc(account);
 
         assertThat(result).isPresent();
         assertThat(result.get().getStatus().getStatusName()).isEqualTo("DORMANT");
-
-        assertThat(result.get().getStatus()).isNotNull();
     }
 
 }
