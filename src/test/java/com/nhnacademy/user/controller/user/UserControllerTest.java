@@ -74,7 +74,7 @@ class UserControllerTest {
     void test2() throws Exception {
         Long userId = 1L;
         UserResponse response = new UserResponse(
-                "testId", "홍길동", "010-1234-5678", "test@email.com", LocalDate.now(),
+                1L, "testId", "홍길동", "010-1234-5678", "test@email.com", LocalDate.now(),
                 "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now());
 
         given(userService.getUserInfo(userId)).willReturn(response);

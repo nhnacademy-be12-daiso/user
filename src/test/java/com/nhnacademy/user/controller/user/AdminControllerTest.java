@@ -57,7 +57,7 @@ public class AdminControllerTest {
     @DisplayName("전체 회원 목록 조회")
     void test1() throws Exception {
         UserResponse response = new UserResponse(
-                "testUser", "홍길동", "010-1234-5678", "test@test.com", null,
+                1L, "testUser", "홍길동", "010-1234-5678", "test@test.com", null,
                 "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now());
 
         Page<UserResponse> page = new PageImpl<>(List.of(response));

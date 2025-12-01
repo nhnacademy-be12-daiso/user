@@ -1,8 +1,29 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
 package com.nhnacademy.user.controller.user;
+
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.message.VerificationService;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +32,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 @TestPropertySource(properties = {
@@ -48,6 +59,7 @@ class UserControllerXUserIdTest {
         // given
         Long userCreatedId = 29L;
         UserResponse response = new UserResponse(
+                1L,
                 "testuser",
                 "테스트유저",
                 "01012345678",
@@ -112,12 +124,12 @@ class UserControllerXUserIdTest {
         Long userId2 = 20L;
 
         UserResponse response1 = new UserResponse(
-                "user1", "사용자1", "01011111111", "user1@test.com",
+                1L, "user1", "사용자1", "01011111111", "user1@test.com",
                 LocalDate.of(1990, 1, 1), "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now()
         );
 
         UserResponse response2 = new UserResponse(
-                "user2", "사용자2", "01022222222", "user2@test.com",
+                1L, "user2", "사용자2", "01022222222", "user2@test.com",
                 LocalDate.of(1991, 2, 2), "VIP", BigDecimal.valueOf(5000), "ACTIVE", LocalDateTime.now()
         );
 
@@ -145,7 +157,7 @@ class UserControllerXUserIdTest {
         // given
         Long expectedUserId = 99999L;
         UserResponse response = new UserResponse(
-                "testuser", "테스트", "01012345678", "test@test.com",
+                1L, "testuser", "테스트", "01012345678", "test@test.com",
                 LocalDate.of(1990, 1, 1), "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now()
         );
 

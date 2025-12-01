@@ -34,7 +34,7 @@ public class Status {   // 회원 상태 정보
     private Long statusId;      // 상태 고유 ID (PK, AI)
 
     @Column(name = "status_name", nullable = false, length = 10)
-    private String statusName; // ACTIVE, DORMANT, WITHDRAWN
+    private String statusName; // ACTIVE, DORMANT, WITHDRAWN, BANNED
 
     public Status(String statusName) {
         this.statusName = statusName;

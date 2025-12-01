@@ -18,7 +18,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StatusRepository extends JpaRepository<Status, Long> {
 
-    // StatusName으로 조회 (ACTIVE, DORMANT, WITHDRAWN)
+    // StatusName으로 조회 (ACTIVE, DORMANT, WITHDRAWN, BANNED)
     Optional<Status> findByStatusName(String statusName);
 
 }

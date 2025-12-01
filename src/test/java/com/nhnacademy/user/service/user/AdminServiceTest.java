@@ -102,6 +102,7 @@ public class AdminServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         UserResponse userResponse = new UserResponse(
+                1L,
                 "testUser",
                 "홍길동",
                 "010-1234-5678",

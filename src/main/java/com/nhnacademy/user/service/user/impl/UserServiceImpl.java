@@ -181,7 +181,7 @@ public class UserServiceImpl implements UserService {
         log.info("회원 정보 조회 완료 - userCreatedId: {}, loginId: {}, status: {}",
                 userCreatedId, user.getAccount().getLoginId(), status.getStatusName());
 
-        return new UserResponse(account.getLoginId(),
+        return new UserResponse(userCreatedId, account.getLoginId(),
                 user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
                 grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), account.getJoinedAt());
     }

@@ -61,8 +61,8 @@ public class Address {      // 회원 배송지 주소
         this.isDefault = isDefault;
     }
 
-    public void modifyDetails(String addressName, String roadAddress, String addressDetail,
-                              boolean isDefault) {    // 주소 변경하는 메소드
+    public void modifyDetails(
+            String addressName, String roadAddress, String addressDetail, boolean isDefault) {    // 주소 변경하는 메소드
         this.addressName = addressName;
         this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;

@@ -53,6 +53,7 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
         // 데이터 조회 쿼리
         List<UserResponse> content = jpaQueryFactory
                 .select(Projections.constructor(UserResponse.class,
+                        user.userCreatedId,
                         account.loginId,
                         user.userName,
                         user.phoneNumber,
