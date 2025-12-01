@@ -12,7 +12,6 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.adapter.CouponFeignClient;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -31,6 +30,7 @@ import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final CouponFeignClient couponFeignClient;
+    private final CouponMessageProducer couponMessageProducer; // rabbitMq 방식으로 보낼거라 바꿈.
 
     @Override
     @Transactional(readOnly = true)
@@ -149,13 +149,10 @@ public class UserServiceImpl implements UserService {
 
         // 웰컴 쿠폰 발급 요청
         try {
-            couponFeignClient.issueWelcomeCoupon(saved.getUserCreatedId());
-
-            log.info("웰컴 쿠폰 발급 요청 성공 - userCreatedId: {}", saved.getUserCreatedId());
-
+            couponMessageProducer.sendWelcomeeCouponMessage(saved.getUserCreatedId());
+            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송)
         } catch (Exception e) {
-            log.error("웰컴 쿠폰 발급 실패 (가입은 정상 처리됨) - userCreatedId: {}, error: {}",
-                    saved.getUserCreatedId(), e.getMessage());
+            log.error("웰컴 쿠폰 메시지 전송 실패 (나중에 재발급 배치 필요): {}", e.getMessage());
         }
     }
 

@@ -1,0 +1,32 @@
+package com.nhnacademy.user.producer;
+
+import com.nhnacademy.user.dto.message.CouponIssueMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+@Slf4j
+public class CouponMessageProducer {
+
+    private final RabbitTemplate rabbitTemplate;
+
+    public CouponMessageProducer(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
+
+    @Value("${rabbitmq.exchange.name}")
+    private String exchangeName;
+
+    @Value("${rabbitmq.routing.key}")
+    private String routingKey;
+
+    public void sendWelcomeeCouponMessage(Long userCreatedId){
+        CouponIssueMessage message = new CouponIssueMessage(userCreatedId);
+
+        // 메시지 발송
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
+        log.info("[RabbitMq] 웰컴 쿠폰 발급 메시지 전송 완료: userCreatedId={}", userCreatedId);
+    }
+}
