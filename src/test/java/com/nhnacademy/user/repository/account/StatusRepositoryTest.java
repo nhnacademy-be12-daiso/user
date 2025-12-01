@@ -10,12 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.repository.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.nhnacademy.user.config.QueryDslConfig;
-import com.nhnacademy.user.entity.user.Status;
+import com.nhnacademy.user.entity.account.Status;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

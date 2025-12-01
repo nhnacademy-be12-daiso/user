@@ -23,8 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserStatusRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.AdminService;
@@ -94,7 +94,7 @@ public class AdminControllerTest {
     void test3() throws Exception {
         Long adminId = 999L;
         Long targetId = 1L;
-        UserStatusRequest request = new UserStatusRequest("BANNED");
+        AccountStatusRequest request = new AccountStatusRequest("BANNED");
 
         doNothing().when(adminService).modifyUserStatus(eq(adminId), eq(targetId), any());
 

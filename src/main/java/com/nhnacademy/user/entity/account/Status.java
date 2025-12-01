@@ -10,49 +10,34 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.entity.user;
+package com.nhnacademy.user.entity.account;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "UserStatusHistories")
+@Table(name = "Statuses")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserStatusHistory {        // 회원 상태 변경 내역
+public class Status {   // 회원 상태 정보
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_status_history_id")
-    private Long userStatusHistoryId;   // 회원 상태 변경 내역 고유 ID (PK, AI)
+    @Column(name = "status_id")
+    private Long statusId;      // 상태 고유 ID (PK, AI)
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_created_id", nullable = false)
-    private User user;                  // Users 테이블 외래키 (FK)
+    @Column(name = "status_name", nullable = false, length = 10)
+    private String statusName; // ACTIVE, DORMANT, WITHDRAWN
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)
-    private Status status;              // Status 테이블 외래키 (FK)
-
-    @CreationTimestamp
-    @Column(name = "changed_at", nullable = false, updatable = false)
-    private LocalDateTime changedAt;    // 변경일시
-
-    public UserStatusHistory(User user, Status status) {
-        this.user = user;
-        this.status = status;
+    public Status(String statusName) {
+        this.statusName = statusName;
     }
 
 }

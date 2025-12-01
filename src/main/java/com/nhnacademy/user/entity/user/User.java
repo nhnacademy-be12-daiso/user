@@ -25,13 +25,11 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "Users")
@@ -55,13 +53,6 @@ public class User {     // 회원 기본 정보
 
     private LocalDate birth;                 // 생년월일, YYYY-MM-DD 패턴
 
-    @CreationTimestamp
-    @Column(name = "joined_at", nullable = false, updatable = false)
-    private LocalDateTime joinedAt;         // 가입일시
-
-    @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;      // 최근 로그인 일시
-
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Account account;                // 연관 계정, 일대일 관계, User 삭제 시 Account 함께 삭제
 
@@ -73,10 +64,6 @@ public class User {     // 회원 기본 정보
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.birth = birth;
-    }
-
-    public void modifyLastLoginAt() {               // 최근 로그인 시각을 현재 시각으로 변경하는 메소드
-        this.lastLoginAt = LocalDateTime.now();
     }
 
     public void modifyInfo(String userName, String phoneNumber, String email, LocalDate birth) {    // 회원 정보를 수정하는 메소드

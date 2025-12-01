@@ -12,8 +12,8 @@
 
 package com.nhnacademy.user.controller.user;
 
+import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserStatusRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.AdminService;
@@ -62,7 +62,7 @@ public class AdminController {
     @PutMapping("/{userCreatedId}/status")
     public ResponseEntity<Void> modifyUserStatus(@RequestHeader("X-User-Id") Long adminId,
                                                  @PathVariable Long userCreatedId,
-                                                 @RequestBody UserStatusRequest request) {
+                                                 @RequestBody AccountStatusRequest request) {
         adminService.modifyUserStatus(adminId, userCreatedId, request);
 
         log.info("관리자 [{}] - 회원 [{}] 상태({}) 변경", adminId, userCreatedId, request.statusName());
