@@ -22,7 +22,7 @@ public class CouponMessageProducer {
     @Value("${rabbitmq.routing.key}")
     private String routingKey;
 
-    public void sendWelcomeeCouponMessage(Long userCreatedId){
+    public void sendWelcomeCouponMessage(Long userCreatedId){
         CouponIssueMessage message = new CouponIssueMessage(userCreatedId);
 
         // 메시지 발송

@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
 
         // 웰컴 쿠폰 발급 요청
         try {
-            couponMessageProducer.sendWelcomeeCouponMessage(saved.getUserCreatedId());
+            couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
             // 웰컴 쿠폰 발급 요청(비동기 메시지 전송)
         } catch (Exception e) {
             log.error("웰컴 쿠폰 메시지 전송 실패 (나중에 재발급 배치 필요): {}", e.getMessage());
