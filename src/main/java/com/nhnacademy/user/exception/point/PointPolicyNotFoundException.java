@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.exception.point;
 
-// 존재하지 않는 포인트 정책
+// 존재하지 않는 포인트 정책일 때
 public class PointPolicyNotFoundException extends RuntimeException {
     public PointPolicyNotFoundException(String message) {
         super(message);

@@ -52,7 +52,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
         String code = String.valueOf((int) (Math.random() * 900000) + 100000);
 
-        // key: ACTIVE_CODE:loginId, value: 123456, TTL: 5분)
+        // key: ACTIVE_CODE:loginId, value: 123456, TTL: 5분
         redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
 
         String loginId = account.getLoginId();

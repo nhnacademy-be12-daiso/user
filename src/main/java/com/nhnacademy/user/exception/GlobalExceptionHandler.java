@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PointPolicyNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlerPointPolicyNotFoundException(PointPolicyNotFoundException ex) {
-        // 존재하지 않는 포인트 정책
+        // 찾을 수 없는 포인트 정책
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));

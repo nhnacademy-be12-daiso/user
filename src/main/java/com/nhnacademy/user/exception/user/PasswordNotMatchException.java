@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.exception.user;
 
-// 비밀번호 불일치
+// 비밀번호가 일치하지 않을 때
 public class PasswordNotMatchException extends RuntimeException {
     public PasswordNotMatchException(String message) {
         super(message);

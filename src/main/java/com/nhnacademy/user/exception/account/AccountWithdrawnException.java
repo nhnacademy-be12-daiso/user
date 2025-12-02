@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.exception.account;
 
-// 탈퇴한 계정
+// 해당 계정이 탈퇴 상태일 때
 public class AccountWithdrawnException extends RuntimeException {
     public AccountWithdrawnException(String message) {
         super(message);

@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.exception.point;
 
-// 이미 존재하는 정책
+// 이미 존재하는 정책일 때
 public class PointPolicyAlreadyExistsException extends RuntimeException {
     public PointPolicyAlreadyExistsException(String message) {
         super(message);

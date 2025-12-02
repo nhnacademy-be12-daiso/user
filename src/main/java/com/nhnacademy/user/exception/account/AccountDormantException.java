@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.exception.account;
 
-// 해당 계정이 휴면 상태임을 알려주는 예외
+// 해당 계정이 휴면 상태일 때
 public class AccountDormantException extends RuntimeException {
     public AccountDormantException(String message) {
         super(message);
