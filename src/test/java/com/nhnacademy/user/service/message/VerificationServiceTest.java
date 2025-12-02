@@ -91,12 +91,12 @@ class VerificationServiceTest {
 
         given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.of(mockAccount));
         given(statusHistoryRepository.findTopByAccountOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
-        given(mailService.sendMessage(anyString())).willReturn(code);
+        given(mailService.sendCode(anyString())).willReturn(code);
 
         verificationService.sendCode(userCreatedId);
 
         verify(valueOperations).set(eq("ACTIVE_CODE:" + userCreatedId), anyString(), anyLong(), any());
-        verify(mailService).sendMessage(eq(email));
+        verify(mailService).sendCode(eq(email));
     }
 
     @Test

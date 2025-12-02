@@ -76,7 +76,7 @@ public class AccountController {
     // POST /api/users/find-password
     @Operation(summary = "비밀번호 찾기 (임시 비밀번호 발급)")
     @PostMapping("/find-password")
-    public ResponseEntity<Void> findLoginId(@RequestBody FindPasswordRequest request) {
+    public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequest request) {
         findAccountService.createTemporaryPassword(request);
 
         return ResponseEntity.status(HttpStatus.OK).build();

@@ -72,7 +72,7 @@ public class FindAccountServiceImpl implements FindAccountService {
         account.modifyPassword(passwordEncoder.encode(temporaryPassword));
 
         try {
-            mailService.createTemporaryPassword(user.getEmail(), temporaryPassword);
+            mailService.sendTemporaryPassword(user.getEmail(), temporaryPassword);
 
             log.info("임시 비밀번호 발급 성공 - loginId: {}, email: {}", request.loginId(), request.email());
 

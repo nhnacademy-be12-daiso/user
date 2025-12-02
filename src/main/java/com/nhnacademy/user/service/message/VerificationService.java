@@ -53,7 +53,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         String email = account.getUser().getEmail();
 
         try {
-            String code = mailService.sendMessage(email);
+            String code = mailService.sendCode(email);
 
             // redis 저장 (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
             redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);

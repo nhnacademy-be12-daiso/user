@@ -34,8 +34,8 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String username;    // 발신자 이메일(현재: wlsdud3309@naver.com - 개인 메일)
 
-    public MimeMessage createMessage(String email, String code)
-            throws MessagingException, UnsupportedEncodingException {
+    public MimeMessage createCode(String email, String code)
+            throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일
         MimeMessage message = javaMailSender.createMimeMessage();
 
         message.addRecipients(Message.RecipientType.TO, email);
@@ -65,7 +65,7 @@ public class MailService {
     }
 
     public MimeMessage createTemporaryPassword(String email, String temporaryPassword)
-            throws MessagingException, UnsupportedEncodingException {
+            throws MessagingException, UnsupportedEncodingException {   // 임시 비밀번호 발급 메일
         MimeMessage message = javaMailSender.createMimeMessage();
 
         message.addRecipients(Message.RecipientType.TO, email);
@@ -94,14 +94,22 @@ public class MailService {
         return message;
     }
 
-    public String sendMessage(String email) throws MessagingException, UnsupportedEncodingException {   // 메일 발송
+    public String sendCode(String email)
+            throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일 발송
         String code = createCode();
 
-        MimeMessage message = createMessage(email, code);
+        MimeMessage message = createCode(email, code);
 
         javaMailSender.send(message);
 
         return code;
+    }
+
+    public void sendTemporaryPassword(String email, String temporaryPassword)
+            throws MessagingException, UnsupportedEncodingException {   // 임시 비밀번호 발급 메일 발송
+        MimeMessage message = createTemporaryPassword(email, temporaryPassword);
+
+        javaMailSender.send(message);
     }
 
     public String createCode() {    // 6자리 랜덤 숫자 생성
