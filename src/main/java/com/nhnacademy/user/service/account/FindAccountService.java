@@ -17,8 +17,10 @@ import com.nhnacademy.user.dto.request.FindPasswordRequest;
 
 public interface FindAccountService {
 
+    // 아이디 찾기
     String findLoginId(FindLoginIdRequest request);
 
+    // 비밀번호 찾기 (임시 비밀번호 발급)
     void createTemporaryPassword(FindPasswordRequest request);
 
 }

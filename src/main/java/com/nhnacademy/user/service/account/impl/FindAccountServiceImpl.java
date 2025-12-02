@@ -44,7 +44,7 @@ public class FindAccountServiceImpl implements FindAccountService {
 
     @Override
     @Transactional(readOnly = true)
-    public String findLoginId(FindLoginIdRequest request) {
+    public String findLoginId(FindLoginIdRequest request) { // 이름이랑 이메일로 아이디 찾기
         User user = userRepository.findByUserNameAndEmail(request.userName(), request.email())
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
 
@@ -57,7 +57,7 @@ public class FindAccountServiceImpl implements FindAccountService {
 
     @Override
     @Transactional
-    public void createTemporaryPassword(FindPasswordRequest request) {
+    public void createTemporaryPassword(FindPasswordRequest request) {  // 로그인 아이디랑 이름, 이메일로 비밀번호 찾기 (임시 비밀번호 발급)
         Account account = accountRepository.findById(request.loginId())
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));
 
