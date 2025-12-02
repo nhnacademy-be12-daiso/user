@@ -40,12 +40,13 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -84,7 +85,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(userCreatedId);
         Account account = user.getAccount();
 
-        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
@@ -164,7 +165,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(userCreatedId);
         Account account = user.getAccount();
 
-        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("계정 상태 정보가 누락되었습니다."));
 

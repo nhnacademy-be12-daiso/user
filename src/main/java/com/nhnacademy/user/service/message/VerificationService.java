@@ -19,12 +19,13 @@ import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -43,27 +44,31 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     private static final long LIMIT_TIME = 5 * 60;  // 5분
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void sendCode(Long userCreatedId) {  // 인증 번호 발송
+        log.info("[VerificationService] 휴면 해제 인증코드 발송 시작 - userCreatedId: {}", userCreatedId);
+
         Account account = accountRepository.findByUser_UserCreatedId(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 계정입니다."));
 
         validateDormantAccount(account);
 
         String email = account.getUser().getEmail();
+        log.info("[VerificationService] 사용자 이메일: {}", email);
 
         try {
             String code = mailService.sendCode(email);
+            log.info("[VerificationService] 메일 발송 성공 - code: {}", code);
 
-            // redis 저장 (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
+            // redis 저장: (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
             redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
+            log.info("[VerificationService] Redis 저장 성공 - key: {}{}", PREFIX, userCreatedId);
 
-            log.info("휴면 계정 활성화 인증번호 메일 발송 성공 - userCreatedId: {}, email: {}", userCreatedId, email);
+            log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}", userCreatedId, email);
 
         } catch (Exception e) {
-            log.error("휴면 계정 활성화 인증번호 메일 발송 실패 - userCreatedId: {}, error: {}", userCreatedId, e.getMessage());
-
-            throw new RuntimeException(e);
+            log.error("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 실패 - userCreatedId: {}, error: {}", userCreatedId, e.getMessage(), e);
+            throw new RuntimeException("인증코드 발송에 실패했습니다: " + e.getMessage(), e);
         }
     }
 
@@ -83,7 +88,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
     }
 
     public void validateDormantAccount(Account account) { // 계정의 상태 검증
-        AccountStatusHistory latestHistory = statusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        AccountStatusHistory latestHistory = statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .orElseThrow(() -> new RuntimeException("상태 정보가 없습니다."));
 
         if (!"DORMANT".equals(latestHistory.getStatus().getStatusName())) {

@@ -12,13 +12,6 @@
 
 package com.nhnacademy.user.service.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
@@ -38,11 +31,6 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,8 +43,21 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 @ExtendWith(MockitoExtension.class)
-public class AdminServiceTest {
+class AdminServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -140,7 +141,7 @@ public class AdminServiceTest {
 
         given(userRepository.findByIdWithAccount(userId)).willReturn(Optional.of(mockUser));
 
-        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
                 Optional.of(mockStatusHistory));
         given(mockStatusHistory.getStatus()).willReturn(mockStatus);
         given(mockStatus.getStatusName()).willReturn("ACTIVE");
