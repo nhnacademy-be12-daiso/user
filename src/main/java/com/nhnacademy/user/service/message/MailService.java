@@ -46,8 +46,8 @@ public class MailService {
                     <h1 style='font-size: 22px; font-weight: bold;'>안녕하세요, Daiso 이용자님.</h1>
                     <p>보안 확인을 위해 휴면 계정 활성화 인증번호를 안내드립니다.</p>
                 
-                    <div style='margin: 20px 0; font-size: 18px;'>
-                        <strong style='font-size: 22px;'>%s</strong>
+                    <div style='margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 5px; text-align: center;'>
+                        <strong style='font-size: 24px; color: #3b82f6; letter-spacing: 2px;'>%s</strong>
                     </div>
                 
                     <p>휴면 상태를 해제하고 서비스를 정상적으로 이용하시려면 위 인증번호를 입력해주세요.</p>
