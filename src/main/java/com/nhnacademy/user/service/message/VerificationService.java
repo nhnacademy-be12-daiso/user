@@ -57,7 +57,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         log.info("[VerificationService] 사용자 이메일: {}", email);
 
         try {
-            String code = mailService.sendMessage(email);
+            String code = mailService.sendCode(email);
             log.info("[VerificationService] 메일 발송 성공 - code: {}", code);
 
             // redis 저장: (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)

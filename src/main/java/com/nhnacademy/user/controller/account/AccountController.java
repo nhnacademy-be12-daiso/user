@@ -12,7 +12,10 @@
 
 package com.nhnacademy.user.controller.account;
 
+import com.nhnacademy.user.dto.request.FindLoginIdRequest;
+import com.nhnacademy.user.dto.request.FindPasswordRequest;
 import com.nhnacademy.user.service.account.AccountService;
+import com.nhnacademy.user.service.account.FindAccountService;
 import com.nhnacademy.user.service.message.VerificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +40,8 @@ public class AccountController {
     private final AccountService accountService;
 
     private final VerificationService verificationService;
+
+    private final FindAccountService findAccountService;
 
     // POST /api/users/activate/send-code
     @Operation(summary = "휴면 해제 인증코드 발송")
@@ -54,6 +60,24 @@ public class AccountController {
         verificationService.verifyCode(userCreatedId, code);
 
         accountService.activeUser(userCreatedId);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // POST /api/users/find-id
+    @Operation(summary = "아이디 찾기")
+    @PostMapping("/find-id")
+    public ResponseEntity<String> findLoginId(@RequestBody FindLoginIdRequest request) {
+        String maskedId = findAccountService.findLoginId(request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(maskedId);
+    }
+
+    // POST /api/users/find-password
+    @Operation(summary = "비밀번호 찾기 (임시 비밀번호 발급)")
+    @PostMapping("/find-password")
+    public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequest request) {
+        findAccountService.createTemporaryPassword(request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

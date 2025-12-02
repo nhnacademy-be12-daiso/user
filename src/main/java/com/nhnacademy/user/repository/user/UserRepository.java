@@ -38,4 +38,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdForUpdate(Long userCreatedId);
 
+    // 이름과 이메일로 회원 조회
+    Optional<User> findByUserNameAndEmail(String userName, String email);
+
 }
