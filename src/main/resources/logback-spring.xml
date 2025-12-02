@@ -35,7 +35,7 @@
         </encoder>
     </appender>
 
-    <springProfile name="dev, test">
+    <springProfile name="dev, test, local">
         <logger name="com.nhnacademy.user" level="DEBUG"/>
 
         <logger name="org.hibernate.SQL" level="DEBUG"/>
