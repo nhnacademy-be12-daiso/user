@@ -10,18 +10,19 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.account;
+package com.nhnacademy.user.common;
 
-import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
+public class MaskingUtils { // 아이디 마스킹
 
-import java.util.Optional;
+    public static String maskLoginId(String loginId) {
+        if (loginId == null || loginId.length() < 2) {
+            return loginId;
+        }
 
-public interface AccountStatusHistoryRepository extends JpaRepository<AccountStatusHistory, Long> {
+        int length = loginId.length();
+        int visibleLength = (length > 3) ? length - 3 : 1;
 
-    // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터를 가져옴
-    @EntityGraph(attributePaths = "status")
-    Optional<AccountStatusHistory> findFirstByAccountOrderByChangedAtDesc(Account account);
+        return loginId.substring(0, visibleLength) + "*".repeat(length - visibleLength);
+    }
+
 }

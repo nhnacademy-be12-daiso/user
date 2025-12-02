@@ -12,22 +12,23 @@
 
 package com.nhnacademy.user.repository.account;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
-import java.time.LocalDate;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
@@ -62,7 +63,7 @@ class AccountStatusHistoryRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        Optional<AccountStatusHistory> result = historyRepository.findTopByAccountOrderByChangedAtDesc(account);
+        Optional<AccountStatusHistory> result = historyRepository.findFirstByAccountOrderByChangedAtDesc(account);
 
         assertThat(result).isPresent();
         assertThat(result.get().getStatus().getStatusName()).isEqualTo("DORMANT");

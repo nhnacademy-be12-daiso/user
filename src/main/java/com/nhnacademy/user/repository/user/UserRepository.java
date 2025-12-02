@@ -45,5 +45,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @Query("SELECT u FROM User u WHERE FUNCTION('MONTH', u.birth) = :month")
     List<User> findByBirthMonth(@Param("month") int month);
 
+    // 이름과 이메일로 회원 조회
+    Optional<User> findByUserNameAndEmail(String userName, String email);
 
 }

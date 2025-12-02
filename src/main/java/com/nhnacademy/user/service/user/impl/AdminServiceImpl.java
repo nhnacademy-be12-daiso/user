@@ -121,7 +121,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private Status getStatus(Account account) {
-        return accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        return accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("상태 정보가 누락되었습니다."));
     }

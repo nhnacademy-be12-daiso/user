@@ -10,18 +10,17 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.account;
+package com.nhnacademy.user.service.account;
 
-import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.nhnacademy.user.dto.request.FindLoginIdRequest;
+import com.nhnacademy.user.dto.request.FindPasswordRequest;
 
-import java.util.Optional;
+public interface FindAccountService {
 
-public interface AccountStatusHistoryRepository extends JpaRepository<AccountStatusHistory, Long> {
+    // 아이디 찾기
+    String findLoginId(FindLoginIdRequest request);
 
-    // 해당 유저의 이력 중, 변경일시를 내림차순으로 정렬하여 가장 첫 번째 데이터를 가져옴
-    @EntityGraph(attributePaths = "status")
-    Optional<AccountStatusHistory> findFirstByAccountOrderByChangedAtDesc(Account account);
+    // 비밀번호 찾기 (임시 비밀번호 발급)
+    void createTemporaryPassword(FindPasswordRequest request);
+
 }

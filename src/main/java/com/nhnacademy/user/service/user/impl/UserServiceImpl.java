@@ -46,6 +46,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -83,7 +85,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(userCreatedId);
         Account account = user.getAccount();
 
-        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
@@ -163,7 +165,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(userCreatedId);
         Account account = user.getAccount();
 
-        Status status = accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("계정 상태 정보가 누락되었습니다."));
 
