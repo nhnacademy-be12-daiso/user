@@ -13,8 +13,11 @@
 package com.nhnacademy.user.repository.user;
 
 import com.nhnacademy.user.entity.user.User;
+import feign.Param;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -37,5 +40,10 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")}) // 3초 대기 후 실패
     @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdForUpdate(Long userCreatedId);
+
+    // 생일이 특정 월인 사용자 조회
+    @Query("SELECT u FROM User u WHERE FUNCTION('MONTH', u.birth) = :month")
+    List<User> findByBirthMonth(@Param("month") int month);
+
 
 }
