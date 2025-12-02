@@ -155,10 +155,16 @@
             <version>${querydsl.version}</version>
         </dependency>
 
-        <!-- rabbit MQ 의존성 추가 -->
+        <!-- rabbitMQ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- mail for account recovery -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
     </dependencies>

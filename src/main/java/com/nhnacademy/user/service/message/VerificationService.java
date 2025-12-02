@@ -29,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 처리 서비스 (Dooray Message Sender 기반)
+public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 처리 서비스 (DoorayMessageSender > MailService 기반)
 
     private final StringRedisTemplate redisTemplate;
 
-    private final DoorayMessageSender doorayMessageSender;
+    private final MailService mailService;
 
     private final AccountRepository accountRepository;
 
@@ -50,23 +50,28 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
         validateDormantAccount(account);
 
-        String code = String.valueOf((int) (Math.random() * 900000) + 100000);
+        String email = account.getUser().getEmail();
 
-        // key: ACTIVE_CODE:loginId, value: 123456, TTL: 5분
-        redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
+        try {
+            String code = mailService.sendMessage(email);
 
-        String loginId = account.getLoginId();
+            // redis 저장 (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
+            redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
 
-        doorayMessageSender.send(loginId, "휴면 해제 인증번호 [" + code + "]를 입력해주세요.");
+            log.info("휴면 계정 활성화 인증번호 메일 발송 성공 - userCreatedId: {}, email: {}", userCreatedId, email);
 
-        log.info("휴면 해제 인증 코드 발송 요청 - userCreatedId: {}", userCreatedId);
+        } catch (Exception e) {
+            log.error("휴면 계정 활성화 인증번호 메일 발송 실패 - userCreatedId: {}, error: {}", userCreatedId, e.getMessage());
+
+            throw new RuntimeException(e);
+        }
     }
 
     public void verifyCode(Long userCreatedId, String code) {   // 인증 번호 검증
         String savedCode = redisTemplate.opsForValue().get(PREFIX + userCreatedId);
 
         if (savedCode == null || !savedCode.equals(code)) {
-            log.warn("휴면 해제 인증 실패 - userCreatedId: {}", userCreatedId);
+            log.warn("휴면 계정 인증 실패 - userCreatedId: {}", userCreatedId);
 
             throw new InvalidCodeException("올바르지 않은 코드입니다.");
         }
@@ -74,7 +79,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         // 인증 성공 시 redis에서 삭제 (재사용 방지)
         redisTemplate.delete(PREFIX + userCreatedId);
 
-        log.info("휴면 해제 인증 성공 - userCreatedId: {}", userCreatedId);
+        log.info("휴면 계정 인증 성공 - userCreatedId: {}", userCreatedId);
     }
 
     public void validateDormantAccount(Account account) { // 계정의 상태 검증
