@@ -17,6 +17,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class MailService {
+
+    private static final SecureRandom random = new SecureRandom();
 
     private final JavaMailSender javaMailSender;
 
@@ -72,7 +75,7 @@ public class MailService {
     }
 
     public String createCode() {    // 6자리 랜덤 숫자 생성
-        return String.valueOf((int) (Math.random() * 900000) + 100000);
+        return String.valueOf(100000 + random.nextInt(900000));
     }
 
 }
