@@ -40,7 +40,7 @@ public class MailConfig {
     private String password;
 
     @Bean
-    public JavaMailSender javaMailService() {
+    public JavaMailSender javaMailService() {   // JavaMailSender 빈 등록
         final JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
         javaMailSender.setHost(host);

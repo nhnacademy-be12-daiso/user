@@ -36,7 +36,7 @@ public class MailService {
         MimeMessage message = javaMailSender.createMimeMessage();
 
         message.addRecipients(Message.RecipientType.TO, email);
-        message.setSubject("[Daiso] 휴면 계정 활성화 인증번호 안내");
+        message.setSubject("[Daiso] 휴면 계정 활성화 인증번호 안내");    // 메일 제목
 
         String mailBody = """
                 <div style='margin: 40px; font-family: Arial, sans-serif; line-height: 1.6;'>
@@ -53,7 +53,7 @@ public class MailService {
                     <p style='margin-top: 40px;'>감사합니다.</p>
                     <p><strong>Daiso 드림</strong></p>
                 </div>
-                """.formatted(code);
+                """.formatted(code);    // 메일 내용 HTML
 
         message.setText(mailBody, "utf-8", "html");
         message.setFrom(new InternetAddress(username, "Daiso"));
@@ -61,7 +61,7 @@ public class MailService {
         return message;
     }
 
-    public String sendMessage(String email) throws MessagingException, UnsupportedEncodingException {
+    public String sendMessage(String email) throws MessagingException, UnsupportedEncodingException {   // 메일 발송
         String code = createCode();
 
         MimeMessage message = createMessage(email, code);
@@ -71,7 +71,7 @@ public class MailService {
         return code;
     }
 
-    public String createCode() {
+    public String createCode() {    // 6자리 랜덤 숫자 생성
         return String.valueOf((int) (Math.random() * 900000) + 100000);
     }
 

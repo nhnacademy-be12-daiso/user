@@ -29,6 +29,8 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import jakarta.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +58,7 @@ class VerificationServiceTest {
     AccountStatusHistoryRepository statusHistoryRepository;
 
     @Mock
-    DoorayMessageSender doorayMessageSender;
+    MailService mailService;
 
     @InjectMocks
     VerificationService verificationService;
@@ -75,24 +77,26 @@ class VerificationServiceTest {
         lenient().when(mockUser.getAccount()).thenReturn(mockAccount);
         lenient().when(mockAccount.getUser()).thenReturn(mockUser);
         lenient().when(mockHistory.getStatus()).thenReturn(status);
+        lenient().when(mockUser.getEmail()).thenReturn("test@test.com");
     }
 
     @Test
     @DisplayName("인증 번호 발송 - 성공")
-    void test1() {
+    void test1() throws MessagingException, UnsupportedEncodingException {
         Long userCreatedId = 1L;
-        String loginId = "testuser";
+        String email = "test@test.com";
+        String code = "123456";
 
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
         given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.of(mockAccount));
         given(statusHistoryRepository.findTopByAccountOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
-        given(mockAccount.getLoginId()).willReturn(loginId);
+        given(mailService.sendMessage(anyString())).willReturn(code);
 
         verificationService.sendCode(userCreatedId);
 
         verify(valueOperations).set(eq("ACTIVE_CODE:" + userCreatedId), anyString(), anyLong(), any());
-        verify(doorayMessageSender).send(eq(loginId), anyString());
+        verify(mailService).sendMessage(eq(email));
     }
 
     @Test
