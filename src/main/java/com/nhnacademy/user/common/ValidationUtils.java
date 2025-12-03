@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class ValidationUtils {  // 정규식 패턴 상수 클래스
     // 보안 정책이 바뀌었을 때 해당 클래스의 상수만 수정하면 됨
 
-    public static final String LOGIN_ID_PATTERN = "^[a-z0-9]{3,16}$";
+    public static final String LOGIN_ID_PATTERN = "^(?=.*[a-z])[a-z0-9]{3,16}$";
 
     public static final String PASSWORD_PATTERN =
             "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$";

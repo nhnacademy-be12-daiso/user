@@ -12,8 +12,14 @@
 
 package com.nhnacademy.user.dto.request;
 
-public record FindPasswordRequest(String loginId,
-                                  String userName,
-                                  String email) {
+import com.nhnacademy.user.common.ValidationUtils;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
+public record FindPasswordRequest(
+        @NotBlank(message = "아이디는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN, message = "올바르지 않은 아이디 형식입니다.") String loginId,
+        @NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
+        @NotBlank(message = "이메일은 필수 입력 값입니다.") @Email(message = "올바르지 않은 이메일 형식입니다.") String email) {
     // 비밀번호 찾기 요청 DTO
 }
