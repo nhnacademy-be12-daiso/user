@@ -13,8 +13,10 @@ spring:
           auth: true
           starttls:
             enable: false
+            require: false
           ssl:
             enable: true
+            trust: ${SPRING_MAIL_HOST}
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
