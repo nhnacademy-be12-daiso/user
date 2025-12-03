@@ -15,10 +15,7 @@ package com.nhnacademy.user.service.user.impl;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.InternalAddressResponse;
-import com.nhnacademy.user.dto.response.InternalUserResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
-import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.response.*;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
@@ -40,6 +37,9 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -229,4 +229,16 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 
+    @Override
+    public List<BirthdayUserDto> findByBirthdayMonth(int month) {
+        List<User> users = userRepository.findByBirthMonth(month);
+
+        return users.stream()
+                .map(user -> new BirthdayUserDto(
+                        user.getUserCreatedId(),
+                        user.getUserName(),
+                        user.getBirth()
+                ))
+                .toList();
+    }
 }
