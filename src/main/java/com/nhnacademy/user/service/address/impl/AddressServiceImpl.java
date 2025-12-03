@@ -19,6 +19,7 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
+import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -91,6 +92,11 @@ public class AddressServiceImpl implements AddressService {
         }
 
         Address address = getAddress(addressId, user);
+
+        // 사용자가 직접 기본 배송지 설정 해제를 하지 않고 다른 주소를 기본 배송지로 설정했을 때 자동으로 해제
+        if (address.isDefault() && !request.isDefault()) {
+            throw new DefaultAddressRequiredException("기본 배송지 설정은 해제할 수 없습니다. 다른 배송지를 기본 배송지로 설정하면 자동으로 변경됩니다.");
+        }
 
         address.modifyDetails(
                 request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());

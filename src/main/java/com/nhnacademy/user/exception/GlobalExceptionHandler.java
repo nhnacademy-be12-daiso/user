@@ -19,6 +19,7 @@ import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
+import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
@@ -95,6 +96,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(DefaultAddressRequiredException.class)
+    public ResponseEntity<Map<String, String>> handlerDefaultAddressRequiredException(
+            DefaultAddressRequiredException ex) {
+        // 기본 배송지 설정 해제 불가
+        Map<String, String> errorMap = new HashMap<>();
+
+        errorMap.put("message", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorMap);
     }
 
     // 401 Unauthorized
