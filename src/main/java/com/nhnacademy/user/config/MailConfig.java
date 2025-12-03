@@ -49,6 +49,20 @@ public class MailConfig {
         log.info("[MailConfig] SMTP 포트: {}", port);
         log.info("[MailConfig] 사용자명(이메일): {}", username);
         log.info("[MailConfig] 비밀번호 설정 여부: {}", password != null && !password.isEmpty());
+        log.info("[MailConfig] 비밀번호 길이: {}", password != null ? password.length() : 0);
+
+        // 비밀번호에 공백이나 특수문자가 있는지 확인
+        if (password != null) {
+            boolean hasSpace = password.contains(" ");
+            boolean startsWithQuote = password.startsWith("'") || password.startsWith("\"");
+            boolean endsWithQuote = password.endsWith("'") || password.endsWith("\"");
+            log.info("[MailConfig] 비밀번호 검증 - 공백포함: {}, 따옴표시작: {}, 따옴표끝: {}",
+                    hasSpace, startsWithQuote, endsWithQuote);
+
+            if (startsWithQuote || endsWithQuote) {
+                log.warn("[MailConfig] 경고: 비밀번호에 따옴표가 포함되어 있습니다. .env 파일에서 따옴표를 제거하세요!");
+            }
+        }
 
         final JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
@@ -66,21 +80,40 @@ public class MailConfig {
     private Properties getMailProperties() {
         Properties properties = new Properties();
 
+        // 기본 SMTP 설정
         properties.setProperty("mail.transport.protocol", "smtp");
         properties.setProperty("mail.smtp.auth", "true");
+
+        // SSL 설정
         properties.setProperty("mail.smtp.ssl.enable", "true");
         properties.setProperty("mail.smtp.ssl.trust", host);
         properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
+
+        // SocketFactory 설정
         properties.setProperty("mail.smtp.socketFactory.port", String.valueOf(port));
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+
+        // STARTTLS 비활성화
         properties.setProperty("mail.smtp.starttls.enable", "false");
         properties.setProperty("mail.smtp.starttls.required", "false");
+
+        // 인증 메커니즘 설정 (네이버는 PLAIN 또는 LOGIN 지원)
+        properties.setProperty("mail.smtp.auth.mechanisms", "PLAIN LOGIN");
+
+        // 인코딩 설정
+        properties.setProperty("mail.mime.charset", "UTF-8");
+        properties.setProperty("mail.smtp.ehlo", "true");
+
+        // 타임아웃 설정
+        properties.setProperty("mail.smtp.timeout", "10000");
+        properties.setProperty("mail.smtp.connectiontimeout", "10000");
+        properties.setProperty("mail.smtp.writetimeout", "10000");
+
+        // 디버그 모드
         properties.setProperty("mail.debug", "true");
-        properties.setProperty("mail.smtp.timeout", "5000");
-        properties.setProperty("mail.smtp.connectiontimeout", "5000");
-        
-        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, SocketFactory: SSLSocketFactory, TLS: 1.2");
+
+        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, Auth: PLAIN LOGIN, Port: {}", port);
 
         return properties;
     }
