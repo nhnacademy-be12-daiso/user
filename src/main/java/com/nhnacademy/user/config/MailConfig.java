@@ -69,12 +69,18 @@ public class MailConfig {
         properties.setProperty("mail.transport.protocol", "smtp");
         properties.setProperty("mail.smtp.auth", "true");
         properties.setProperty("mail.smtp.ssl.enable", "true");
-        properties.setProperty("mail.smtp.ssl.trust", host);  // SSL 인증서 신뢰 설정
-        properties.setProperty("mail.smtp.starttls.enable", "false");  // STARTTLS 비활성화 (SSL 사용 시)
+        properties.setProperty("mail.smtp.ssl.trust", host);
+        properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
+        properties.setProperty("mail.smtp.socketFactory.port", String.valueOf(port));
+        properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+        properties.setProperty("mail.smtp.starttls.enable", "false");
         properties.setProperty("mail.smtp.starttls.required", "false");
-        properties.setProperty("mail.debug", "true");  // 디버그 모드 활성화
-
-        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, STARTTLS: false");
+        properties.setProperty("mail.debug", "true");
+        properties.setProperty("mail.smtp.timeout", "5000");
+        properties.setProperty("mail.smtp.connectiontimeout", "5000");
+        
+        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, SocketFactory: SSLSocketFactory, TLS: 1.2");
 
         return properties;
     }
