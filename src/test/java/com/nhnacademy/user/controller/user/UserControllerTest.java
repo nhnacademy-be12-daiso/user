@@ -58,7 +58,7 @@ class UserControllerTest {
     void test1() throws Exception {
         SignupRequest request = new SignupRequest(
                 "test", "password123!", "홍길동",
-                "010-1234-5678", "test@email.com", LocalDate.now());
+                "010-1234-5678", "test@email.com", LocalDate.now().minusDays(1));
 
         doNothing().when(userService).signUp(any());
 
@@ -92,7 +92,7 @@ class UserControllerTest {
     void test3() throws Exception {
         Long userId = 1L;
         UserModifyRequest request = new UserModifyRequest(
-                "개명", "010-9999-9999", "new@test.com", LocalDate.now());
+                "개명", "010-9999-9999", "new@test.com", LocalDate.now().minusDays(1));
 
         doNothing().when(userService).modifyUserInfo(eq(userId), any());
 
