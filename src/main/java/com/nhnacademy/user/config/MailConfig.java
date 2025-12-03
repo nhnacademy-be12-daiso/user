@@ -69,7 +69,12 @@ public class MailConfig {
         properties.setProperty("mail.transport.protocol", "smtp");
         properties.setProperty("mail.smtp.auth", "true");
         properties.setProperty("mail.smtp.ssl.enable", "true");
-        properties.setProperty("mail.smtp.starttls.enable", "true");
+        properties.setProperty("mail.smtp.ssl.trust", host);  // SSL 인증서 신뢰 설정
+        properties.setProperty("mail.smtp.starttls.enable", "false");  // STARTTLS 비활성화 (SSL 사용 시)
+        properties.setProperty("mail.smtp.starttls.required", "false");
+        properties.setProperty("mail.debug", "true");  // 디버그 모드 활성화
+
+        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, STARTTLS: false");
 
         return properties;
     }

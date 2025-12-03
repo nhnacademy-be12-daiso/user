@@ -37,6 +37,12 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String username;    // 발신자 이메일(현재: wlsdud3309@naver.com - 개인 메일)
 
+    @Value("${spring.mail.host}")
+    private String mailHost;
+
+    @Value("${spring.mail.port}")
+    private String mailPort;
+
     public MimeMessage createCode(String email, String code)
             throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -100,6 +106,7 @@ public class MailService {
     public String sendCode(String email)
             throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일 발송
         log.info("[MailService] 인증코드 메일 발송 시작 - email: {}", email);
+        log.info("[MailService] 메일 설정 - host: {}, port: {}, username: {}", mailHost, mailPort, username);
 
         try {
             String code = createCode();
@@ -108,18 +115,22 @@ public class MailService {
             MimeMessage message = createCode(email, code);
             log.info("[MailService] 메시지 생성 완료");
 
+            log.info("[MailService] 메일 발송 시도 중...");
             javaMailSender.send(message);
             log.info("[MailService] 메일 발송 완료 - email: {}", email);
 
             return code;
         } catch (MessagingException e) {
-            log.error("[MailService] MessagingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            log.error("[MailService] MessagingException 발생 - email: {}, message: {}", email, e.getMessage());
+            log.error("[MailService] 상세 에러", e);
             throw e;
         } catch (UnsupportedEncodingException e) {
-            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage());
+            log.error("[MailService] 상세 에러", e);
             throw e;
         } catch (Exception e) {
-            log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage());
+            log.error("[MailService] 상세 에러", e);
             throw new RuntimeException("메일 발송 실패: " + e.getMessage(), e);
         }
     }
