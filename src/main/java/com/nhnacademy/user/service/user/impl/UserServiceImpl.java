@@ -193,6 +193,15 @@ public class UserServiceImpl implements UserService {
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
         User user = getUser(userCreatedId);
 
+        if (!user.getPhoneNumber().equals(request.phoneNumber()) &&
+                userRepository.existsByPhoneNumber(request.phoneNumber())) {
+            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
+        }
+
+        if (!user.getEmail().equals(request.email()) && userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
+        }
+
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
     }
 
