@@ -12,14 +12,17 @@
 
 package com.nhnacademy.user.config;
 
-import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.util.Properties;
 
+
+@Slf4j
 @Configuration
 public class MailConfig {
 
@@ -41,6 +44,12 @@ public class MailConfig {
 
     @Bean
     public JavaMailSender javaMailService() {   // JavaMailSender 빈 등록
+        log.info("[MailConfig] JavaMailSender 빈 생성 시작");
+        log.info("[MailConfig] SMTP 호스트: {}", host);
+        log.info("[MailConfig] SMTP 포트: {}", port);
+        log.info("[MailConfig] 사용자명(이메일): {}", username);
+        log.info("[MailConfig] 비밀번호 설정 여부: {}", password != null && !password.isEmpty());
+
         final JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
         javaMailSender.setHost(host);
@@ -48,6 +57,8 @@ public class MailConfig {
         javaMailSender.setUsername(username);
         javaMailSender.setPassword(password);
         javaMailSender.setJavaMailProperties(getMailProperties());
+
+        log.info("[MailConfig] JavaMailSender 빈 생성 완료");
 
         return javaMailSender;
     }

@@ -16,14 +16,17 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
+
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class MailService {
 
@@ -96,20 +99,51 @@ public class MailService {
 
     public String sendCode(String email)
             throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일 발송
-        String code = createCode();
+        log.info("[MailService] 인증코드 메일 발송 시작 - email: {}", email);
 
-        MimeMessage message = createCode(email, code);
+        try {
+            String code = createCode();
+            log.info("[MailService] 코드 생성 완료 - code: {}", code);
 
-        javaMailSender.send(message);
+            MimeMessage message = createCode(email, code);
+            log.info("[MailService] 메시지 생성 완료");
 
-        return code;
+            javaMailSender.send(message);
+            log.info("[MailService] 메일 발송 완료 - email: {}", email);
+
+            return code;
+        } catch (MessagingException e) {
+            log.error("[MailService] MessagingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw e;
+        } catch (UnsupportedEncodingException e) {
+            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw new RuntimeException("메일 발송 실패: " + e.getMessage(), e);
+        }
     }
 
     public void sendTemporaryPassword(String email, String temporaryPassword)
             throws MessagingException, UnsupportedEncodingException {   // 임시 비밀번호 발급 메일 발송
-        MimeMessage message = createTemporaryPassword(email, temporaryPassword);
+        log.info("[MailService] 임시비밀번호 메일 발송 시작 - email: {}", email);
 
-        javaMailSender.send(message);
+        try {
+            MimeMessage message = createTemporaryPassword(email, temporaryPassword);
+            log.info("[MailService] 메시지 생성 완료");
+
+            javaMailSender.send(message);
+            log.info("[MailService] 메일 발송 완료 - email: {}", email);
+        } catch (MessagingException e) {
+            log.error("[MailService] MessagingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw e;
+        } catch (UnsupportedEncodingException e) {
+            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            throw new RuntimeException("메일 발송 실패: " + e.getMessage(), e);
+        }
     }
 
     public String createCode() {    // 6자리 랜덤 숫자 생성

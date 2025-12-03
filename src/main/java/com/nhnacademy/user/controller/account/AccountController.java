@@ -23,12 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Tag(name = "계정 API")
@@ -47,9 +42,16 @@ public class AccountController {
     @Operation(summary = "휴면 해제 인증코드 발송")
     @PostMapping("/activate/send-code")
     public ResponseEntity<Void> sendVerifyCode(@RequestHeader("X-User-Id") Long userCreatedId) {
-        verificationService.sendCode(userCreatedId);
+        log.info("[AccountController] 휴면 해제 인증코드 발송 요청 - userCreatedId: {}", userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        try {
+            verificationService.sendCode(userCreatedId);
+            log.info("[AccountController] 휴면 해제 인증코드 발송 성공 - userCreatedId: {}", userCreatedId);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (Exception e) {
+            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}", userCreatedId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     // POST /api/users/activate?code={code}
