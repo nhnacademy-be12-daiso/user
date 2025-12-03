@@ -14,9 +14,9 @@ package com.nhnacademy.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record AddressRequest(@NotBlank String addressName,
-                             @NotBlank String roadAddress,
-                             @NotBlank String addressDetail,
+public record AddressRequest(@NotBlank(message = "별칭은 필수 입력 값입니다.") String addressName,
+                             @NotBlank(message = "도로명 주소는 필수 입력 값입니다.") String roadAddress,
+                             @NotBlank(message = "상세 주소는 필수 입력 값입니다.") String addressDetail,
                              boolean isDefault) {
     // 클라이언트로부터 새 배송지 추가 데이터를 받기 위한 요청 DTO
 }

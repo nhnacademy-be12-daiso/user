@@ -23,11 +23,12 @@ import java.time.LocalDate;
 // 비밀번호: 최소 1개의 영문 + 최소 1개의 숫자 + 최소 1개의 특수문자, 8~20자
 // 연락처: 010-xxxx-xxxx 형식
 // 이메일: xxx@yyy.zzz 형식
-public record SignupRequest(@NotBlank @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN) String loginId,
-                            @NotBlank @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN) String password,
-                            @NotBlank String userName,
-                            @NotBlank @Pattern(regexp = ValidationUtils.PHONE_PATTERN) String phoneNumber,
-                            @NotBlank @Email String email,
-                            @NotNull LocalDate birth) {
+public record SignupRequest(
+        @NotBlank(message = "아이디는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN, message = "올바르지 않은 형식의 아이디입니다.") String loginId,
+        @NotBlank(message = "비밀번호는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN, message = "올바르지 않은 형식의 비밀번호입니다.") String password,
+        @NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
+        @NotBlank(message = "연락처는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PHONE_PATTERN, message = "올바르지 않은 형식의 연락처입니다.") String phoneNumber,
+        @NotBlank(message = "이메일은 필수 입력 값입니다.") @Email(message = "올바르지 않은 형식의 이메일입니다.") String email,
+        @NotNull(message = "생일은 필수 입력 값입니다.") LocalDate birth) {
     // 클라이언트로부터 회원가입 요청 데이터를 받기 위한 요청 DTO
 }

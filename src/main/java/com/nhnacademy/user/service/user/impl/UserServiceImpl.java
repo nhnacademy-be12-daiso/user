@@ -15,7 +15,11 @@ package com.nhnacademy.user.service.user.impl;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.*;
+import com.nhnacademy.user.dto.response.BirthdayUserDto;
+import com.nhnacademy.user.dto.response.InternalAddressResponse;
+import com.nhnacademy.user.dto.response.InternalUserResponse;
+import com.nhnacademy.user.dto.response.PointResponse;
+import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
@@ -39,14 +43,11 @@ import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
 import java.math.BigDecimal;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @RequiredArgsConstructor
 @Slf4j

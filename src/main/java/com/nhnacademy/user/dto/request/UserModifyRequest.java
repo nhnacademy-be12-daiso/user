@@ -19,9 +19,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 
-public record UserModifyRequest(@NotBlank String userName,
-                                @NotBlank @Pattern(regexp = ValidationUtils.PHONE_PATTERN) String phoneNumber,
-                                @NotBlank @Email String email,
+public record UserModifyRequest(@NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
+                                @NotBlank(message = "연락처는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PHONE_PATTERN, message = "올바르지 않은 형식의 연락처입니다.") String phoneNumber,
+                                @NotBlank(message = "이메일은 필수 입력 값입니다.") @Email(regexp = "올바르지 않은 형식의 이메일입니다.") String email,
                                 @NotNull LocalDate birth) {
     // 클라이언트로부터 수정할 회원 정보 데이터를 받기 위한 요청 DTO
 }

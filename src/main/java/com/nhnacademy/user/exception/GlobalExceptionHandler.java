@@ -26,6 +26,8 @@ import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,11 +71,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> handlerMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
         // @Valid 유효성 검사 실패
+        // 에러가 발생한 필드명과 메시지를 Map으로 구현
+        Map<String, String> errorMap = new HashMap<>();
+
+        var fieldError = ex.getBindingResult().getFieldError();
+
+        if (fieldError != null) {
+            errorMap.put("field", fieldError.getField());
+            errorMap.put("message", fieldError.getDefaultMessage());
+        }
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(errorMap);
     }
 
     @ExceptionHandler(DefaultAddressDeletionException.class)

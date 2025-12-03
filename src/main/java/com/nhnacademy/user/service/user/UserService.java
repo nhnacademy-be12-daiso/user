@@ -18,7 +18,6 @@ import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.BirthdayUserDto;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
-
 import java.util.List;
 
 public interface UserService {
