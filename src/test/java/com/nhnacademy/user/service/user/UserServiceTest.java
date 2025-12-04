@@ -12,6 +12,15 @@
 
 package com.nhnacademy.user.service.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -35,6 +44,9 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,17 +56,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -111,7 +112,7 @@ class UserServiceTest {
         SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
-        given(accountRepository.existsByLoginId(anyString())).willReturn(false);
+        given(accountRepository.existsById(anyString())).willReturn(false);
         given(userRepository.existsByPhoneNumber(anyString())).willReturn(false);
         given(userRepository.existsByEmail(anyString())).willReturn(false);
 
@@ -166,7 +167,7 @@ class UserServiceTest {
         SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
-        given(accountRepository.existsByLoginId(request.loginId())).willReturn(true);
+        given(accountRepository.existsById(request.loginId())).willReturn(true);
 
         assertThatThrownBy(() -> userService.signUp(request))
                 .isInstanceOf(UserAlreadyExistsException.class)

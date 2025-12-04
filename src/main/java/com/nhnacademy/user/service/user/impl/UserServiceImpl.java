@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
     public void signUp(SignupRequest request) { // 회원가입
-        if (accountRepository.existsByLoginId(request.loginId())) {
+        if (accountRepository.existsById(request.loginId())) {
             throw new UserAlreadyExistsException("이미 존재하는 아이디입니다.");
         }
 

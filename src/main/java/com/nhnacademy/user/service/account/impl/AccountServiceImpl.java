@@ -43,6 +43,12 @@ public class AccountServiceImpl implements AccountService {
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean existsLoginId(String loginId) {
+        return accountRepository.existsById(loginId);
+    }
+
+    @Override
     @Transactional
     public void dormantAccounts() { // 휴면 계정 전환 배치 작업
         LocalDateTime lastLoginAtBefore = LocalDateTime.now().minusDays(90);

@@ -14,6 +14,8 @@ package com.nhnacademy.user.service.account;
 
 public interface AccountService {
 
+    boolean existsLoginId(String loginId);
+
     // 휴면 계정 전환 배치 작업
     void dormantAccounts();
 

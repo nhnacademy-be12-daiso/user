@@ -23,7 +23,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @Tag(name = "계정 API")
@@ -49,7 +55,8 @@ public class AccountController {
             log.info("[AccountController] 휴면 해제 인증코드 발송 성공 - userCreatedId: {}", userCreatedId);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (Exception e) {
-            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}", userCreatedId, e.getMessage(), e);
+            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}", userCreatedId,
+                    e.getMessage(), e);
             throw e;
         }
     }
@@ -82,6 +89,14 @@ public class AccountController {
         findAccountService.createTemporaryPassword(request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(summary = "아이디 중복 확인")
+    @GetMapping("/check-id")
+    public ResponseEntity<Boolean> checkLoginId(@RequestParam String loginId) {
+        boolean isExist = accountService.existsLoginId(loginId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(isExist);
     }
 
 }

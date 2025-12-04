@@ -21,8 +21,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface AccountRepository extends JpaRepository<Account, String> {
 
-    boolean existsByLoginId(String loginId);
-
     // User의 PK로 Account 찾기
     Optional<Account> findByUser_UserCreatedId(Long userUserCreatedId);
 
