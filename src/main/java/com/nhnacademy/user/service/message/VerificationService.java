@@ -19,18 +19,17 @@ import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.TimeUnit;
-
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 처리 서비스 (DoorayMessageSender > MailService 기반)
+public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 처리 서비스 (MailService 기반)
 
     private final StringRedisTemplate redisTemplate;
 
@@ -45,8 +44,8 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
     private static final long LIMIT_TIME = 5 * 60;  // 5분
 
     @Transactional
-    public void sendCode(Long userCreatedId) {  // 인증 번호 발송
-        log.info("[VerificationService] 휴면 해제 인증코드 발송 시작 - userCreatedId: {}", userCreatedId);
+    public void sendCode(Long userCreatedId) {  // 인증번호 발송
+        log.info("[VerificationService] 휴면 해제 인증번호 발송 시작 - userCreatedId: {}", userCreatedId);
 
         try {
             Account account = accountRepository.findByUser_UserCreatedId(userCreatedId)
@@ -68,18 +67,22 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
                 redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
                 log.info("[VerificationService] Redis 저장 성공 - key: {}{}", PREFIX, userCreatedId);
 
-                log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}", userCreatedId, email);
+                log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}", userCreatedId,
+                        email);
 
             } catch (Exception e) {
                 log.error("[VerificationService] 메일 발송 중 에러 발생", e);
                 throw new RuntimeException("인증코드 발송에 실패했습니다: " + e.getMessage(), e);
             }
+
         } catch (UserNotFoundException e) {
             log.error("[VerificationService] 사용자 조회 실패 - userCreatedId: {}", userCreatedId, e);
             throw e;
+
         } catch (NotDormantAccountException e) {
             log.error("[VerificationService] 휴면 상태 검증 실패 - userCreatedId: {}", userCreatedId, e);
             throw e;
+
         } catch (Exception e) {
             log.error("[VerificationService] 예상치 못한 에러 발생 - userCreatedId: {}", userCreatedId, e);
             throw new RuntimeException("인증코드 발송에 실패했습니다: " + e.getMessage(), e);

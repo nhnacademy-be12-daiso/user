@@ -48,7 +48,6 @@ public class PointPolicyController {
     public ResponseEntity<Void> createPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.createPolicy(request);
-
         log.info("관리자 [{}] - 포인트 정책 등록", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -68,7 +67,6 @@ public class PointPolicyController {
                                              @PathVariable Long pointPolicyId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.modifyPolicy(pointPolicyId, request);
-
         log.info("관리자 [{}] - 포인트 정책 수정", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -80,7 +78,6 @@ public class PointPolicyController {
     public ResponseEntity<Void> deletePolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId) {
         pointPolicyService.deletePolicy(pointPolicyId);
-
         log.info("관리자 [{}] - 포인트 정책 삭제", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

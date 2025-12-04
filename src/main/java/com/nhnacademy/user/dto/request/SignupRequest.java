@@ -13,7 +13,6 @@
 package com.nhnacademy.user.dto.request;
 
 import com.nhnacademy.user.common.ValidationUtils;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -29,7 +28,7 @@ public record SignupRequest(
         @NotBlank(message = "비밀번호는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN, message = "올바르지 않은 형식의 비밀번호입니다.") String password,
         @NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
         @NotBlank(message = "연락처는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PHONE_PATTERN, message = "올바르지 않은 형식의 연락처입니다.") String phoneNumber,
-        @NotBlank(message = "이메일은 필수 입력 값입니다.") @Email(message = "올바르지 않은 형식의 이메일입니다.") String email,
+        @NotBlank(message = "이메일은 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.EMAIL_PATTERN, message = "올바르지 않은 이메일 형식입니다.") String email,
         @NotNull(message = "생년월일은 필수 입력 값입니다.") @Past(message = "생년월일은 현재 날짜보다 과거여야 합니다.") LocalDate birth) {
     // 클라이언트로부터 회원가입 요청 데이터를 받기 위한 요청 DTO
 }

@@ -54,9 +54,10 @@ public class AccountController {
             verificationService.sendCode(userCreatedId);
             log.info("[AccountController] 휴면 해제 인증코드 발송 성공 - userCreatedId: {}", userCreatedId);
             return ResponseEntity.status(HttpStatus.OK).build();
+
         } catch (Exception e) {
-            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}", userCreatedId,
-                    e.getMessage(), e);
+            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}",
+                    userCreatedId, e.getMessage(), e);
             throw e;
         }
     }

@@ -30,7 +30,6 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Table(name = "PointPolicies")
 @Getter
-//@NoArgsConstructor  // 테스트용
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointPolicy {  // 포인트 정책 (관리자 전용)
 

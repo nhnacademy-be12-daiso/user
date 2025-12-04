@@ -38,7 +38,7 @@ public class Account {      // 회원 인증 (로그인) 정보
     @Column(name = "login_id", length = 16)
     private String loginId;         // 로그인 아이디: 사용자 입력 (PK)
 
-    @Column                         // DB에는 인코딩 된 값이 들어감
+    @Column(nullable = false)       // DB에는 인코딩 된 값이 들어감
     private String password;        // 로그인 비밀번호: 사용자 입력
 
     @Enumerated(EnumType.STRING)
@@ -46,7 +46,7 @@ public class Account {      // 회원 인증 (로그인) 정보
     private Role role = Role.USER;  // 계정 권한, default = 'USER'
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_created_id", unique = true)
+    @JoinColumn(name = "user_created_id", nullable = false, unique = true)
     private User user;              // Users 테이블 외래키 (FK), 일대일 관계
 
     @CreationTimestamp

@@ -64,6 +64,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(Long userCreatedId) {   // 특정 회원 상세 조회
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         return new UserDetailResponse(userCreatedId,
@@ -84,6 +85,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request) {    // 회원 상태 변경
         User user = getUser(userId);
+
         Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())

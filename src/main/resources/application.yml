@@ -62,10 +62,6 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
 
-dooray:
-  hook:
-    url: ${NHN_DOORAY_URL}
-
 logging:
   level:
     org.springframework.security: DEBUG

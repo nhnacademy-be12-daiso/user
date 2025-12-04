@@ -64,7 +64,6 @@ public class AdminController {
                                                  @PathVariable Long userCreatedId,
                                                  @RequestBody AccountStatusRequest request) {
         adminService.modifyUserStatus(adminId, userCreatedId, request);
-
         log.info("관리자 [{}] - 회원 [{}] 상태({}) 변경", adminId, userCreatedId, request.statusName());
 
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -77,7 +76,6 @@ public class AdminController {
                                                 @PathVariable Long userCreatedId,
                                                 @RequestBody UserGradeRequest request) {
         adminService.modifyUserGrade(adminId, userCreatedId, request);
-
         log.info("관리자 [{}] - 회원 [{}] 등급({}) 변경", adminId, userCreatedId, request.gradeName());
 
         return ResponseEntity.status(HttpStatus.OK).build();

@@ -34,10 +34,10 @@ public class UserBirthdayController {
 
     @Operation(summary = "생일 월로 사용자 조회", description = "특정 월이 생일인 사용자 목록 조회")
     @GetMapping("/birthday")
-    public ResponseEntity<List<BirthdayUserDto>> getBirthdayUsers(
-            @RequestParam int month) {
+    public ResponseEntity<List<BirthdayUserDto>> getBirthdayUsers(@RequestParam int month) {
         // month에 해당하는 생일자 조회
         List<BirthdayUserDto> users = userService.findByBirthdayMonth(month);
+
         return ResponseEntity.ok(users);
     }
 }

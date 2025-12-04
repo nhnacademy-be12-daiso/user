@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final CouponMessageProducer couponMessageProducer; // rabbitMq 방식으로 보낼거라 바꿈.
+    private final CouponMessageProducer couponMessageProducer;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,6 +84,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
@@ -96,8 +97,7 @@ public class UserServiceImpl implements UserService {
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseGet(() -> gradeRepository.findByGradeName("GENERAL")
-                        .orElseThrow(() -> new RuntimeException("시스템 오류: 등급 데이터가 없습니다.")));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 등급입니다."));
 
         BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
@@ -156,7 +156,7 @@ public class UserServiceImpl implements UserService {
             couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
             // 웰컴 쿠폰 발급 요청(비동기 메시지 전송)
         } catch (Exception e) {
-            log.error("웰컴 쿠폰 메시지 전송 실패 (나중에 재발급 배치 필요): {}", e.getMessage());
+            log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", saved.getUserCreatedId(), e.getMessage());
         }
     }
 
@@ -166,6 +166,7 @@ public class UserServiceImpl implements UserService {
         log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
 
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
@@ -211,6 +212,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request) { // 비밀번호 수정
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
@@ -224,6 +226,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void withdrawUser(Long userCreatedId) {    // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         Status status = statusRepository.findByStatusName("WITHDRAWN")
@@ -234,11 +237,6 @@ public class UserServiceImpl implements UserService {
 
         log.info("회원 탈퇴 처리 완료 - userCreatedId: {}", userCreatedId);
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
-    }
-
-    private User getUser(Long userCreatedId) {
-        return userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
 
     @Override
@@ -253,4 +251,10 @@ public class UserServiceImpl implements UserService {
                 ))
                 .toList();
     }
+
+    private User getUser(Long userCreatedId) {
+        return userRepository.findByIdWithAccount(userCreatedId)
+                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
+    }
+
 }

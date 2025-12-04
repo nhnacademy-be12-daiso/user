@@ -99,8 +99,7 @@ public class AddressServiceImpl implements AddressService {
             throw new DefaultAddressRequiredException("기본 배송지 설정은 해제할 수 없습니다. 다른 배송지를 기본 배송지로 설정하면 자동으로 변경됩니다.");
         }
 
-        address.modifyDetails(
-                request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(),
+        address.modifyDetails(request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(),
                 request.isDefault());
     }
 

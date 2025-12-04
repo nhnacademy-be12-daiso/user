@@ -26,4 +26,6 @@ public class ValidationUtils {  // 정규식 패턴 상수 클래스
 
     public static final String PHONE_PATTERN = "^010-\\d{3,4}-\\d{4}$";
 
+    public static final String EMAIL_PATTERN = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
 }
