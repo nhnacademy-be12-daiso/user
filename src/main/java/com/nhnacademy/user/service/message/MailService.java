@@ -16,14 +16,13 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -56,7 +55,7 @@ public class MailService {
                     <p>보안 확인을 위해 휴면 계정 활성화 인증번호를 안내드립니다.</p>
                 
                     <div style='margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 5px; text-align: center;'>
-                        <strong style='font-size: 24px; color: #3b82f6; letter-spacing: 2px;'>%s</strong>
+                        <strong style='font-size: 24px; color: #ff9800; letter-spacing: 2px;'>%s</strong>
                     </div>
                 
                     <p>휴면 상태를 해제하고 서비스를 정상적으로 이용하시려면 위 인증번호를 입력해주세요.</p>
@@ -87,7 +86,7 @@ public class MailService {
                     <p>로그인 후 반드시 비밀번호를 변경해주시기 바랍니다.</p>
                 
                     <div style='margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 5px; text-align: center;'>
-                        <strong style='font-size: 24px; color: #3b82f6; letter-spacing: 2px;'>%s</strong>
+                        <strong style='font-size: 24px; color: #ff9800; letter-spacing: 2px;'>%s</strong>
                     </div>
                 
                     <p>타인에게 비밀번호가 노출되지 않도록 유의해주시기 바랍니다.</p>
@@ -149,7 +148,8 @@ public class MailService {
             log.error("[MailService] MessagingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
             throw e;
         } catch (UnsupportedEncodingException e) {
-            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage(), e);
+            log.error("[MailService] UnsupportedEncodingException 발생 - email: {}, message: {}", email, e.getMessage(),
+                    e);
             throw e;
         } catch (Exception e) {
             log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
