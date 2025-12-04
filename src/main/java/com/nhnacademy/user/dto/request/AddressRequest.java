@@ -15,6 +15,7 @@ package com.nhnacademy.user.dto.request;
 import jakarta.validation.constraints.NotBlank;
 
 public record AddressRequest(@NotBlank(message = "별칭은 필수 입력 값입니다.") String addressName,
+                             @NotBlank(message = "우편 번호는 필수 입력 값입니다.") String zipCode,
                              @NotBlank(message = "도로명 주소는 필수 입력 값입니다.") String roadAddress,
                              @NotBlank(message = "상세 주소는 필수 입력 값입니다.") String addressDetail,
                              boolean isDefault) {

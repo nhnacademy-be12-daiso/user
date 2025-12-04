@@ -103,7 +103,8 @@ public class UserServiceImpl implements UserService {
 
         InternalAddressResponse addressResponse = addressRepository.findFirstByUserAndIsDefaultTrue(user)
                 .map(address -> new InternalAddressResponse(
-                        address.getAddressName(), address.getRoadAddress(), address.getAddressDetail()))
+                        address.getAddressName(), address.getZipCode(), address.getRoadAddress(),
+                        address.getAddressDetail()))
                 .orElse(null);
 
         return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),

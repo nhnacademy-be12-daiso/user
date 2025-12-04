@@ -53,7 +53,7 @@ class AddressControllerTest {
     void test1() throws Exception {
         Long userId = 1L;
         AddressRequest request = new AddressRequest(
-                "집", "광주", "101호", true);
+                "집", "12345", "광주", "101호", true);
 
         doNothing().when(addressService).addAddress(any(), any());
 
@@ -69,7 +69,7 @@ class AddressControllerTest {
     void test2() throws Exception {
         Long userId = 1L;
         List<AddressResponse> list = List.of(new AddressResponse(
-                1L, "집", "광주", "101호", true));
+                1L, "집", "12345", "광주", "101호", true));
 
         given(addressService.getMyAddresses(userId)).willReturn(list);
 
@@ -85,7 +85,7 @@ class AddressControllerTest {
         Long userId = 1L;
         Long addressId = 10L;
         AddressRequest request = new AddressRequest(
-                "회사", "서울", "빌딩", false);
+                "회사", "12345", "서울", "빌딩", false);
 
         doNothing().when(addressService).modifyAddress(eq(userId), eq(addressId), any());
 

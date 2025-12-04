@@ -60,8 +60,8 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.clearAllDefaultsByUser(user);
         }
 
-        Address address = new Address(
-                user, request.addressName(), request.roadAddress(), request.addressDetail(), isDefault);
+        Address address = new Address(user,
+                request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(), isDefault);
 
         addressRepository.save(address);
 
@@ -77,7 +77,8 @@ public class AddressServiceImpl implements AddressService {
 
         return addresses.stream()
                 .map(address -> new AddressResponse(address.getAddressId(), address.getAddressName(),
-                        address.getRoadAddress(), address.getAddressDetail(), address.isDefault()))
+                        address.getZipCode(), address.getRoadAddress(), address.getAddressDetail(),
+                        address.isDefault()))
                 .collect(Collectors.toList());
     }
 
@@ -99,7 +100,8 @@ public class AddressServiceImpl implements AddressService {
         }
 
         address.modifyDetails(
-                request.addressName(), request.roadAddress(), request.addressDetail(), request.isDefault());
+                request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(),
+                request.isDefault());
     }
 
     @Override

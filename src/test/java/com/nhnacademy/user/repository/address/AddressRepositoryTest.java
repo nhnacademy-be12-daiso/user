@@ -46,7 +46,8 @@ public class AddressRepositoryTest {
                 "test@test.com", LocalDate.of(2003, 11, 7));
         userRepository.save(user);
 
-        Address address = new Address(user, "조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
+        Address address = new Address(user,
+                "조선대학교", "61452", "광주광역시 동구 조선대길 146", "1층", true);
         addressRepository.save(address);
 
         Address found = addressRepository.findById(address.getAddressId()).orElse(null);
@@ -64,10 +65,10 @@ public class AddressRepositoryTest {
         User user = new User("테스트", "010-0000-0000", "t@t.com", LocalDate.now());
         userRepository.save(user);
 
-        Address addr1 = new Address(user, "집", "주소1", "상세1", true); // 기본
+        Address addr1 = new Address(user, "집", "12345", "주소1", "상세1", true); // 기본
         addressRepository.save(addr1);
 
-        Address addr2 = new Address(user, "회사", "주소2", "상세2", true); // 기본 (원래 이러면 안되지만 테스트니까)
+        Address addr2 = new Address(user, "회사", "09876", "주소2", "상세2", true); // 기본 (원래 이러면 안되지만 테스트니까)
         addressRepository.save(addr2);
 
         addressRepository.clearAllDefaultsByUser(user);
@@ -88,8 +89,8 @@ public class AddressRepositoryTest {
         User user = new User("카운트", "010-9999-9999", "c@c.com", LocalDate.now());
         userRepository.save(user);
 
-        addressRepository.save(new Address(user, "1", "1", "1", false));
-        addressRepository.save(new Address(user, "2", "2", "2", false));
+        addressRepository.save(new Address(user, "1", "12345", "1", "1", false));
+        addressRepository.save(new Address(user, "2", "09876", "2", "2", false));
 
         long count = addressRepository.countByUser(user);
 
@@ -102,10 +103,10 @@ public class AddressRepositoryTest {
         User user = new User("배송지테스트", "010-1111-1111", "addr@test.com", LocalDate.now());
         userRepository.save(user);
 
-        Address addr1 = new Address(user, "일반", "주소1", "상세1", false);
+        Address addr1 = new Address(user, "일반", "12345", "주소1", "상세1", false);
         addressRepository.save(addr1);
 
-        Address addr2 = new Address(user, "기본", "주소2", "상세2", true);
+        Address addr2 = new Address(user, "기본", "09876", "주소2", "상세2", true);
         addressRepository.save(addr2);
 
         Address result = addressRepository.findFirstByUserAndIsDefaultTrue(user).orElse(null);
@@ -121,7 +122,7 @@ public class AddressRepositoryTest {
         User user = new User("배송지없음", "010-2222-2222", "noaddr@test.com", LocalDate.now());
         userRepository.save(user);
 
-        Address addr1 = new Address(user, "일반", "주소1", "상세1", false);
+        Address addr1 = new Address(user, "일반", "12345", "주소1", "상세1", false);
         addressRepository.save(addr1);
 
         Address result = addressRepository.findFirstByUserAndIsDefaultTrue(user).orElse(null);
