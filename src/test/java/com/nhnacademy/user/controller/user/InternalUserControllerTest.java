@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ class InternalUserControllerTest {
     void test2() throws Exception {
         Long userId = 1L;
         InternalUserResponse response = new InternalUserResponse(
-                userId, "name", "phone", "email", "GOLD", null, null);
+                userId, "name", "phone", "email", "GOLD", BigDecimal.valueOf(2.50), null, null);
         given(userService.getInternalUserInfo(userId)).willReturn(response);
 
         mockMvc.perform(get("/api/internal/users/{userCreatedId}/info", userId))

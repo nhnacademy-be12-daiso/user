@@ -94,9 +94,10 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("탈퇴한 계정입니다.");
         }
 
-        String grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(history -> history.getGrade().getGradeName())
-                .orElse("GENERAL");
+        Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
+                .map(UserGradeHistory::getGrade)
+                .orElseGet(() -> gradeRepository.findByGradeName("GENERAL")
+                        .orElseThrow(() -> new RuntimeException("시스템 오류: 등급 데이터가 없습니다.")));
 
         BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
@@ -105,8 +106,8 @@ public class UserServiceImpl implements UserService {
                         address.getAddressName(), address.getRoadAddress(), address.getAddressDetail()))
                 .orElse(null);
 
-        return new InternalUserResponse(userCreatedId,
-                user.getUserName(), user.getPhoneNumber(), user.getEmail(), grade, point, addressResponse);
+        return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),
+                grade.getGradeName(), grade.getPointRate(), point, addressResponse);
     }
 
     @Override
