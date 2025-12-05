@@ -291,8 +291,9 @@ public class UserServiceImpl implements UserService {
         User newUser = new User(userName, request.getMobile(), request.getEmail(), null);
         userRepository.save(newUser);
 
-        // For Payco (OAuth) users, set password to null to disable password-based login
-        Account newAccount = new Account(loginId, null, Role.USER, newUser);
+        // Payco (OAuth) 사용자용 더미 비밀번호 생성 (로그인 불가능한 랜덤 값)
+        String dummyPassword = passwordEncoder.encode("PAYCO_" + java.util.UUID.randomUUID());
+        Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser);
         accountRepository.save(newAccount);
 
         Grade grade = gradeRepository.findByGradeName("GENERAL")
