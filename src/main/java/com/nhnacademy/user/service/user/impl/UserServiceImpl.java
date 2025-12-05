@@ -12,13 +12,14 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
+import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.BirthdayUserDto;
-import com.nhnacademy.user.dto.response.InternalAddressResponse;
-import com.nhnacademy.user.dto.response.InternalUserResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
+import com.nhnacademy.user.dto.response.LoginResponse;
+import com.nhnacademy.user.dto.response.UserInfoResponse;
+import com.nhnacademy.user.dto.response.UserListResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
@@ -41,13 +42,15 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -74,6 +77,8 @@ public class UserServiceImpl implements UserService {
 
     private final CouponMessageProducer couponMessageProducer;
 
+    private static final String WITHDRAWN_STATUS = "WITHDRAWN";
+
     @Override
     @Transactional(readOnly = true)
     public boolean existsUser(Long userCreatedId) { // 회원 유효성 검증
@@ -91,7 +96,7 @@ public class UserServiceImpl implements UserService {
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
-        if ("WITHDRAWN".equals(status.getStatusName())) {
+        if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
             throw new UserNotFoundException("탈퇴한 계정입니다.");
         }
 
@@ -173,7 +178,7 @@ public class UserServiceImpl implements UserService {
                 .map(AccountStatusHistory::getStatus)
                 .orElseThrow(() -> new RuntimeException("계정 상태 정보가 누락되었습니다."));
 
-        if ("WITHDRAWN".equals(status.getStatusName())) {
+        if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
             throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
@@ -229,7 +234,7 @@ public class UserServiceImpl implements UserService {
 
         Account account = user.getAccount();
 
-        Status status = statusRepository.findByStatusName("WITHDRAWN")
+        Status status = statusRepository.findByStatusName(WITHDRAWN_STATUS)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
 
         // 계정 상태를 WITHDRAWN으로 변경
@@ -252,9 +257,75 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request) {
+        String loginId = "PAYCO_" + request.getPaycoIdNo();
+
+        Optional<Account> existingAccount = accountRepository.findById(loginId);
+
+        if (existingAccount.isPresent()) {
+            Account account = existingAccount.get();
+            Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
+                    .map(AccountStatusHistory::getStatus)
+                    .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+            if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
+                throw new UserNotFoundException("탈퇴한 계정입니다.");
+            }
+            log.info("[Payco] 기존 회원 로그인 - loginId: {}", loginId);
+            return new PaycoLoginResponse(
+                    account.getUser().getUserCreatedId(),
+                    account.getLoginId(),
+                    account.getRole().name(),
+                    false
+            );
+        }
+
+        String userName = request.getName() != null ? request.getName() : "Payco User";
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("이미 가입된 이메일입니다.");
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getMobile())) {
+            throw new UserAlreadyExistsException("이미 가입된 휴대폰 번호입니다.");
+        }
+
+        User newUser = new User(userName, request.getMobile(), request.getEmail(), null);
+        userRepository.save(newUser);
+
+        // For Payco (OAuth) users, set password to null to disable password-based login
+        Account newAccount = new Account(loginId, null, Role.USER, newUser);
+        accountRepository.save(newAccount);
+
+        Grade grade = gradeRepository.findByGradeName("GENERAL")
+                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 등급 데이터가 없습니다."));
+        userGradeHistoryRepository.save(new UserGradeHistory(newUser, grade, "Payco 회원가입"));
+
+        Status status = statusRepository.findByStatusName("ACTIVE")
+                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
+        accountStatusHistoryRepository.save(new AccountStatusHistory(newAccount, status));
+
+        pointService.earnPointByPolicy(newUser.getUserCreatedId(), "REGISTER");
+
+        log.info("[Payco] 신규 회원 가입 - userCreatedId: {}, loginId: {}", newUser.getUserCreatedId(), loginId);
+
+        try {
+            couponMessageProducer.sendWelcomeCouponMessage(newUser.getUserCreatedId());
+        } catch (Exception e) {
+            log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", newUser.getUserCreatedId(), e.getMessage());
+        }
+
+        return new PaycoLoginResponse(
+                newUser.getUserCreatedId(),
+                newAccount.getLoginId(),
+                newAccount.getRole().name(),
+                true
+        );
+    }
+
     private User getUser(Long userCreatedId) {
         return userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
-
 }
