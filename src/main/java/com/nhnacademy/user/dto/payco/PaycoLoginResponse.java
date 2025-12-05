@@ -7,9 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PaycoLoginResponse {
     private Long userCreatedId;
-
     private String loginId;
     private String role;
-
     private boolean isNewUser;
+    private boolean needsProfileCompletion;  // 프로필 완성 필요 여부
 }

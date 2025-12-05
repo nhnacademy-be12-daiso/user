@@ -269,26 +269,27 @@ public class UserServiceImpl implements UserService {
             if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
                 throw new UserNotFoundException("탈퇴한 계정입니다.");
             }
-            log.info("[Payco] 기존 회원 로그인 - loginId: {}", loginId);
+
+            // 프로필 완성 필요 여부 체크 (더미 데이터인 경우)
+            User user = account.getUser();
+            boolean needsProfileCompletion = isProfileIncomplete(user);
+
+            log.info("[Payco] 기존 회원 로그인 - loginId: {}, needsProfileCompletion: {}", loginId, needsProfileCompletion);
             return new PaycoLoginResponse(
                     account.getUser().getUserCreatedId(),
                     account.getLoginId(),
                     account.getRole().name(),
-                    false
+                    false,
+                    needsProfileCompletion
             );
         }
 
-        String userName = request.getName() != null ? request.getName() : "Payco User";
+        // Payco에서 idNo만 제공받으므로 기본값 사용
+        String userName = "Payco User";
+        String dummyEmail = "payco_" + request.getPaycoIdNo() + "@payco.user";
+        String dummyPhone = "010-0000-0000";
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("이미 가입된 이메일입니다.");
-        }
-
-        if (userRepository.existsByPhoneNumber(request.getMobile())) {
-            throw new UserAlreadyExistsException("이미 가입된 휴대폰 번호입니다.");
-        }
-
-        User newUser = new User(userName, request.getMobile(), request.getEmail(), null);
+        User newUser = new User(userName, dummyPhone, dummyEmail, null);
         userRepository.save(newUser);
 
         // Payco (OAuth) 사용자용 더미 비밀번호 생성 (로그인 불가능한 랜덤 값)
@@ -318,8 +319,18 @@ public class UserServiceImpl implements UserService {
                 newUser.getUserCreatedId(),
                 newAccount.getLoginId(),
                 newAccount.getRole().name(),
-                true
+                true,
+                true  // 신규 회원은 프로필 완성 필요
         );
+    }
+
+    /**
+     * Payco 사용자의 프로필이 더미 데이터인지 확인
+     */
+    private boolean isProfileIncomplete(User user) {
+        return "Payco User".equals(user.getUserName()) ||
+                "010-0000-0000".equals(user.getPhoneNumber()) ||
+                (user.getEmail() != null && user.getEmail().endsWith("@payco.user"));
     }
 
     private User getUser(Long userCreatedId) {
