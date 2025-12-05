@@ -48,7 +48,8 @@ public class UserController {
     @PostMapping("/payco/login")
     public ResponseEntity<PaycoLoginResponse> paycoLogin(@Valid @RequestBody PaycoSignUpRequest request) {
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        HttpStatus status = response.isNewUser() ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(response);
     }
 
     // POST /api/users/signup
