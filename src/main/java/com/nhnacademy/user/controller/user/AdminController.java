@@ -18,6 +18,7 @@ import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,22 +45,24 @@ public class AdminController {
     private final AdminService adminService;
 
     // GET /api/admin/users
-    @Operation(summary = "전체 회원 목록 조회")
     @GetMapping
+    @Operation(summary = "전체 회원 목록 조회")
     public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllUsers(pageable));
     }
 
     // GET /api/admin/users/{userCreatedId}
-    @Operation(summary = "특정 회원 상세 조회")
     @GetMapping("/{userCreatedId}")
+    @Operation(summary = "특정 회원 상세 조회")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable Long userCreatedId) {
         return ResponseEntity.status(HttpStatus.OK).body(adminService.getUserDetail(userCreatedId));
     }
 
     // PUT /api/admin/users/{userCreatedId}/status
-    @Operation(summary = "회원 상태 변경")
     @PutMapping("/{userCreatedId}/status")
+    @Operation(summary = "회원 상태 변경")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> modifyUserStatus(@RequestHeader("X-User-Id") Long adminId,
                                                  @PathVariable Long userCreatedId,
                                                  @RequestBody AccountStatusRequest request) {
@@ -70,8 +73,9 @@ public class AdminController {
     }
 
     // PUT /api/admin/users/{userCreatedId}/grade
-    @Operation(summary = "회원 등급 변경")
     @PutMapping("/{userCreatedId}/grade")
+    @Operation(summary = "회원 등급 변경")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> modifyUserGrade(@RequestHeader("X-User-Id") Long adminId,
                                                 @PathVariable Long userCreatedId,
                                                 @RequestBody UserGradeRequest request) {

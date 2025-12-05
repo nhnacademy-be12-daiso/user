@@ -15,6 +15,11 @@ package com.nhnacademy.user.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,14 +30,39 @@ public class SwaggerConfig {    // Swagger(OpenAPI) 설정을 위한 클래스
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .components(new Components())
-                .info(apiInfo());
+                .info(new Info()
+                        .title("회원 API")
+                        .description("회원 서비스 API 문서입니다.")
+                        .version("v1.0.0"))
+                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()));
     }
 
-    private Info apiInfo() {
-        return new Info()
-                .title("회원 API")
-                .description("회원 서비스 API 문서입니다.")
-                .version("1.0.0");
+    private SecurityScheme createAPIKeyScheme() {
+        return new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .bearerFormat("JWT")
+                .scheme("bearer");
+    }
+
+    @Bean
+    public GlobalOpenApiCustomizer globalOpenApiCustomizer() {
+        return openApi -> {
+            openApi.getPaths().values()
+                    .forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
+                        ApiResponses response = operation.getResponses();
+
+                        // 401 Unauthorized
+                        response.addApiResponse("401", new ApiResponse().description("인증 실패(토큰 없음/만료)"));
+
+                        // 403 Forbidden
+                        response.addApiResponse("403", new ApiResponse().description("접근 권한 없음"));
+
+                        // 500 Server Error
+                        response.addApiResponse("500", new ApiResponse().description("서버 내부 오류"));
+                    }));
+        };
     }
 
 }
