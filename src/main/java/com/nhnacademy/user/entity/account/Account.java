@@ -13,20 +13,13 @@
 package com.nhnacademy.user.entity.account;
 
 import com.nhnacademy.user.entity.user.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Accounts")
@@ -35,8 +28,8 @@ import org.hibernate.annotations.CreationTimestamp;
 public class Account {      // 회원 인증 (로그인) 정보
 
     @Id
-    @Column(name = "login_id", length = 16)
-    private String loginId;         // 로그인 아이디: 사용자 입력 (PK)
+    @Column(name = "login_id", length = 50)
+    private String loginId;         // 로그인 아이디: 사용자 입력 (PK), Payco: "PAYCO_" + idNo
 
     @Column(nullable = false)       // DB에는 인코딩 된 값이 들어감
     private String password;        // 로그인 비밀번호: 사용자 입력

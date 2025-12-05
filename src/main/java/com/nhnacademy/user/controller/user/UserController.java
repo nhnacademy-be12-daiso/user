@@ -12,6 +12,8 @@
 
 package com.nhnacademy.user.controller.user;
 
+import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
+import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -24,14 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Tag(name = "유저 API")
@@ -41,6 +36,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    @PostMapping("/payco/login")
+    public ResponseEntity<PaycoLoginResponse> paycoLogin(@RequestBody PaycoSignUpRequest request) {
+        PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
     // POST /api/users/signup
     @Operation(summary = "회원가입")

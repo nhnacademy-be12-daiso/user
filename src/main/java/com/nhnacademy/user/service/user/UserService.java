@@ -12,12 +12,15 @@
 
 package com.nhnacademy.user.service.user;
 
+import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
+import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.BirthdayUserDto;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+
 import java.util.List;
 
 public interface UserService {
@@ -45,4 +48,5 @@ public interface UserService {
 
     List<BirthdayUserDto> findByBirthdayMonth(int month);
 
+    PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request);
 }
