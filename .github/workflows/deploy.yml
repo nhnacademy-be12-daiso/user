@@ -53,7 +53,21 @@ jobs:
             cd ~/infra
 
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-            docker compose pull team3-user-1
+            
+            # Docker pull with retry (최대 3회 재시도, 대기 30초)
+            for attempt in {1..3}; do
+              echo "Pulling team3-user image (attempt $attempt)..."
+              if docker compose pull team3-user-1 team3-user-2; then
+                echo "Pull succeeded"
+                break
+              fi
+              if [ $attempt -eq 3 ]; then
+                echo "Pull failed after 3 attempts"
+                exit 1
+              fi
+              echo "Pull failed, retrying in 30 seconds..."
+              sleep 30
+            done
             
             docker compose --env-file .env up -d --no-deps --force-recreate team3-user-1
             
