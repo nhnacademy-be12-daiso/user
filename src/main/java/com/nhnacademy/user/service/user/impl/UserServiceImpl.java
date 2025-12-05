@@ -284,10 +284,12 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        // Payco에서 idNo만 제공받으므로 기본값 사용
+        // Payco에서 idNo만 제공받으므로 고유한 기본값 사용
         String userName = "Payco User";
-        String dummyEmail = "payco_" + request.getPaycoIdNo() + "@payco.user";
-        String dummyPhone = "010-0000-0000";
+        String uniqueId = request.getPaycoIdNo();
+        String dummyEmail = "payco_" + uniqueId + "@payco.user";
+        // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
+        String dummyPhone = "010-PAYCO-" + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
 
         User newUser = new User(userName, dummyPhone, dummyEmail, null);
         userRepository.save(newUser);
@@ -329,7 +331,7 @@ public class UserServiceImpl implements UserService {
      */
     private boolean isProfileIncomplete(User user) {
         return "Payco User".equals(user.getUserName()) ||
-                "010-0000-0000".equals(user.getPhoneNumber()) ||
+                (user.getPhoneNumber() != null && user.getPhoneNumber().startsWith("010-PAYCO-")) ||
                 (user.getEmail() != null && user.getEmail().endsWith("@payco.user"));
     }
 
