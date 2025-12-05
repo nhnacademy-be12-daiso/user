@@ -18,6 +18,7 @@ public class PaycoSignUpRequest {
     @Email(message = "올바른 이메일 형식이 아닙니다")
     private String email;
 
+    @NotBlank(message = "휴대폰 번호는 필수입니다")
     @Size(max = 30, message = "휴대폰 번호는 30자 이내여야 합니다")
     private String mobile;
 
