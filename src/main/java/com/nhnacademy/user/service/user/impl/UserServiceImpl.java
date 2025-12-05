@@ -103,14 +103,14 @@ public class UserServiceImpl implements UserService {
 
         BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
-        InternalAddressResponse addressResponse = addressRepository.findFirstByUserAndIsDefaultTrue(user)
+        List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()
                 .map(address -> new InternalAddressResponse(
                         address.getAddressName(), address.getZipCode(), address.getRoadAddress(),
                         address.getAddressDetail()))
-                .orElse(null);
+                .toList();
 
         return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),
-                grade.getGradeName(), grade.getPointRate(), point, addressResponse);
+                grade.getGradeName(), grade.getPointRate(), point, addresses);
     }
 
     @Override
