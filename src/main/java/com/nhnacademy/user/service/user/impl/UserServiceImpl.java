@@ -49,8 +49,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.UUID.randomUUID;
-
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -265,6 +263,12 @@ public class UserServiceImpl implements UserService {
 
         if (existingAccount.isPresent()) {
             Account account = existingAccount.get();
+            Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
+                    .map(AccountStatusHistory::getStatus)
+                    .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+            if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
+                throw new UserNotFoundException("탈퇴한 계정입니다.");
+            }
             log.info("[Payco] 기존 회원 로그인 - loginId: {}", loginId);
             return new PaycoLoginResponse(
                     account.getUser().getUserCreatedId(),
@@ -275,10 +279,19 @@ public class UserServiceImpl implements UserService {
         }
 
         String userName = request.getName() != null ? request.getName() : "Payco User";
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("이미 가입된 이메일입니다.");
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getMobile())) {
+            throw new UserAlreadyExistsException("이미 가입된 휴대폰 번호입니다.");
+        }
+
         User newUser = new User(userName, request.getMobile(), request.getEmail(), null);
         userRepository.save(newUser);
 
-        String dummyPassword = passwordEncoder.encode(randomUUID().toString());
+        String dummyPassword = passwordEncoder.encode(java.util.UUID.randomUUID().toString());
         Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser);
         accountRepository.save(newAccount);
 

@@ -37,8 +37,9 @@ public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "Payco 로그인/회원가입")
     @PostMapping("/payco/login")
-    public ResponseEntity<PaycoLoginResponse> paycoLogin(@RequestBody PaycoSignUpRequest request) {
+    public ResponseEntity<PaycoLoginResponse> paycoLogin(@Valid @RequestBody PaycoSignUpRequest request) {
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
