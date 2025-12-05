@@ -14,6 +14,7 @@ public class PaycoSignUpRequest {
     @NotBlank(message = "Payco 회원 번호는 필수입니다")
     private String paycoIdNo;
 
+    @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이 아닙니다")
     private String email;
 
