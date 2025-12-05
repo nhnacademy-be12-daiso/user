@@ -67,8 +67,8 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
                 redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
                 log.info("[VerificationService] Redis 저장 성공 - key: {}{}", PREFIX, userCreatedId);
 
-                log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}", userCreatedId,
-                        email);
+                log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}",
+                        userCreatedId, email);
 
             } catch (Exception e) {
                 log.error("[VerificationService] 메일 발송 중 에러 발생", e);
