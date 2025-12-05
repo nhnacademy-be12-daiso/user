@@ -13,6 +13,7 @@
 package com.nhnacademy.user.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record InternalUserResponse(Long userCreatedId,
                                    String userName,
@@ -21,7 +22,6 @@ public record InternalUserResponse(Long userCreatedId,
                                    String gradeName,
                                    BigDecimal pointRate,
                                    BigDecimal point,
-                                   InternalAddressResponse address) {
+                                   List<InternalAddressResponse> addresses) {
     // 주문 서비스가 결제 화면을 그릴 때 원하는 정보만 담기 위해 필요한 DTO
-    // 현재는 기본 배송지 하나만 세팅됨, 추후에 예를 들어 배송지 변경 버튼을 누르면 전체 주소 목록을 팝업에 띄워줘야함
 }

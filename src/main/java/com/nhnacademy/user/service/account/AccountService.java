@@ -16,9 +16,6 @@ public interface AccountService {
 
     boolean existsLoginId(String loginId);
 
-    // 휴면 계정 전환 배치 작업
-    void dormantAccounts();
-
     // 휴면 계정 복구
     void activeUser(Long userCreatedId);
 

@@ -22,8 +22,6 @@ import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.account.AccountService;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,25 +44,6 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(readOnly = true)
     public boolean existsLoginId(String loginId) {
         return accountRepository.existsById(loginId);
-    }
-
-    @Override
-    @Transactional
-    public void dormantAccounts() { // 휴면 계정 전환 배치 작업
-        LocalDateTime lastLoginAtBefore = LocalDateTime.now().minusDays(90);
-
-        log.info("휴면 계정 전환 배치 시작 - 기준일: {}", lastLoginAtBefore);
-
-        // 휴면 대상자 조회
-        List<Account> dormantAccounts = accountRepository.findDormantAccounts(lastLoginAtBefore);
-
-        Status status = getStatus("DORMANT");
-
-        for (Account dormantAccount : dormantAccounts) {
-            accountStatusHistoryRepository.save(new AccountStatusHistory(dormantAccount, status));
-        }
-
-        log.info("휴면 계정 전환 배치 완료 - 총 {}명 전환", dormantAccounts.size());
     }
 
     @Override
