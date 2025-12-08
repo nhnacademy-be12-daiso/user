@@ -57,7 +57,6 @@ public class FindAccountServiceImpl implements FindAccountService {
     }
 
     @Override
-    @Transactional
     public void createTemporaryPassword(FindPasswordRequest request) {  // 로그인 아이디랑 이름, 이메일로 비밀번호 찾기 (임시 비밀번호 발급)
         Account account = accountRepository.findById(request.loginId())
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 계정입니다."));

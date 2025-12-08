@@ -14,6 +14,7 @@ package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.AdminService;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "관리자 API")
@@ -47,8 +49,11 @@ public class AdminController {
     // GET /api/admin/users
     @GetMapping
     @Operation(summary = "전체 회원 목록 조회")
-    public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllUsers(pageable));
+    public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable,
+                                                          @RequestParam(required = false) String keyword) {
+        UserSearchCriteria criteria = new UserSearchCriteria(keyword);
+
+        return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllUsers(pageable, criteria));
     }
 
     // GET /api/admin/users/{userCreatedId}

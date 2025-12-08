@@ -17,7 +17,7 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.BirthdayUserDto;
+import com.nhnacademy.user.dto.response.BirthdayUserResponse;
 import com.nhnacademy.user.dto.response.InternalAddressResponse;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
@@ -247,11 +247,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<BirthdayUserDto> findByBirthdayMonth(int month) {
+    @Transactional(readOnly = true)
+    public List<BirthdayUserResponse> findByBirthdayMonth(int month) {
         List<User> users = userRepository.findByBirthMonth(month);
 
         return users.stream()
-                .map(user -> new BirthdayUserDto(
+                .map(user -> new BirthdayUserResponse(
                         user.getUserCreatedId(),
                         user.getUserName(),
                         user.getBirth()

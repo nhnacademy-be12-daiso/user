@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -58,8 +59,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAllUsers(Pageable pageable) {  // 전체 회원 목록 조회(페이징)
-        return userRepository.findAllUser(pageable);
+    public Page<UserResponse> getAllUsers(Pageable pageable, UserSearchCriteria criteria) {  // 전체 회원 목록 조회(페이징)
+        return userRepository.findAllUser(pageable, criteria);
     }
 
     @Override

@@ -10,16 +10,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user.querydsl;
+package com.nhnacademy.user.dto.request;
 
-import com.nhnacademy.user.dto.request.UserSearchCriteria;
-import com.nhnacademy.user.dto.response.UserResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-public interface UserQuerydslRepository {
-
-    // 관리자 전용: N+1 없이 모든 정보를 한 번에 조회
-    Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria);
-
+public record UserSearchCriteria(String keyword) {
+    // 관리자 전용 페이지(회원 관리) 검색
+    // keyword: 검색어 (이름, 이메일, 아이디 통합 검색에 사용됨)
 }

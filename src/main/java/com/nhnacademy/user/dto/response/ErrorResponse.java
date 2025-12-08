@@ -16,4 +16,7 @@ public record ErrorResponse(String title,
                             int status,
                             String message) {
     // 클라이언트에게 JSON 형태로 에러를 보여주기 위한 DTO
+    // title: BadRequest, NotFound 등 에러 제목
+    // status: HTTP 상태 코드
+    // message: 상세 에러 메시지
 }

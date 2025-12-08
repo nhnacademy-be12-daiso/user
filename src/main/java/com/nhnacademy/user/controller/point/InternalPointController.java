@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/internal/points")
 public class InternalPointController {
+    // Gateway 혹은 다른 MSA 서비스(Order Service 등)에서
+    // 회원의 존재 여부를 확인하거나 주문 시 필요한 정보를 조회할 때 호출됩니다.
+    // 일반 사용자는 호출할 수 없도록 Gateway에서 막혀야 합니다.
 
     private final PointService pointService;
 

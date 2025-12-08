@@ -53,7 +53,7 @@ public class RandomPasswordUtils {  // 랜덤 비밀번호 생성 클래스
             characterList.add(c);
         }
 
-        Collections.shuffle(characterList);
+        Collections.shuffle(characterList, random);
 
         StringBuilder result = new StringBuilder();
 

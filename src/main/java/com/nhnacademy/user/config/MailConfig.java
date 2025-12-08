@@ -12,14 +12,13 @@
 
 package com.nhnacademy.user.config;
 
+import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-
-import java.util.Properties;
 
 
 @Slf4j
@@ -51,7 +50,7 @@ public class MailConfig {
         log.info("[MailConfig] 비밀번호 설정 여부: {}", password != null && !password.isEmpty());
         log.info("[MailConfig] 비밀번호 길이: {}", password != null ? password.length() : 0);
 
-        // 비밀번호에 공백이나 특수문자가 있는지 확인
+        // 비밀번호에 공백이나 따옴표가 있는지 확인
         if (password != null) {
             boolean hasSpace = password.contains(" ");
             boolean startsWithQuote = password.startsWith("'") || password.startsWith("\"");
