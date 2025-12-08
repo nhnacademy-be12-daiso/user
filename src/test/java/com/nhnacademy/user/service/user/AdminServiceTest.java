@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
@@ -117,16 +118,16 @@ class AdminServiceTest {
 
         Page<UserResponse> responsePage = new PageImpl<>(List.of(userResponse), pageable, 1);
 
-        given(userRepository.findAllUser(pageable, any())).willReturn(responsePage);
+        given(userRepository.findAllUser(pageable, new UserSearchCriteria("test"))).willReturn(responsePage);
 
-        Page<UserResponse> result = adminService.getAllUsers(pageable, any());
+        Page<UserResponse> result = adminService.getAllUsers(pageable, new UserSearchCriteria("test"));
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
         assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
         assertThat(result.getContent().get(0).point()).isEqualTo(BigDecimal.valueOf(1000));
 
-        verify(userRepository).findAllUser(pageable, any());
+        verify(userRepository).findAllUser(pageable, new UserSearchCriteria("test"));
     }
 
     @Test

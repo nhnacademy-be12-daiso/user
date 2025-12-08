@@ -264,7 +264,6 @@ class UserServiceTest {
                 .willReturn(Optional.of(gradeHistory));
 
         given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
-        given(addressRepository.findFirstByUserAndIsDefaultTrue(testUser)).willReturn(Optional.empty());
 
         var response = userService.getInternalUserInfo(testUserId);
 
