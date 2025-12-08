@@ -13,10 +13,10 @@
 package com.nhnacademy.user.repository.user;
 
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import feign.Param;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
-
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

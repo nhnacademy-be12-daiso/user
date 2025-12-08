@@ -18,6 +18,7 @@ import com.nhnacademy.user.dto.request.FindLoginIdRequest;
 import com.nhnacademy.user.dto.request.FindPasswordRequest;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -79,7 +80,7 @@ public class FindAccountServiceImpl implements FindAccountService {
         } catch (Exception e) {
             log.info("임시 비밀번호 발급 메일 전송 실패 - loginId: {}", request.loginId());
 
-            throw new RuntimeException("메일 발송 중 오류가 발생했습니다. 다시 시도해주세요.", e);
+            throw new MailSendException("메일 발송 중 오류가 발생했습니다. 다시 시도해주세요.");
         }
     }
 

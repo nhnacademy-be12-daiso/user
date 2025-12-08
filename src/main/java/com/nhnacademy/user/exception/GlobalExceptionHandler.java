@@ -16,14 +16,17 @@ import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.account.AccountDormantException;
 import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.account.NotDormantAccountException;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
@@ -154,6 +157,22 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
     }
 
+    @ExceptionHandler(StateNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerStateNotFoundException(StateNotFoundException ex) {
+        // 찾을 수 없는 상태 정보
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(GradeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerGradeNotFoundException(GradeNotFoundException ex) {
+        // 찾을 수 없는 등급 정보
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+    }
+
     // 409 Conflict
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handlerUserAlreadyExistsException(UserAlreadyExistsException ex) {
@@ -179,6 +198,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.LOCKED)
                 .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));
+    }
+
+    // 500 Internal Server Error
+    @ExceptionHandler(MailSendException.class)
+    public ResponseEntity<ErrorResponse> handlerMailSendException(MailSendException ex) {
+        // 메일 발송 중 오류
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
     }
 
 }

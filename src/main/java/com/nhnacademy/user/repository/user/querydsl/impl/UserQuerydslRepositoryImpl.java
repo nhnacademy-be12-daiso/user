@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.repository.user.querydsl.impl;
 
 import static com.nhnacademy.user.entity.account.QAccount.account;
 import static com.nhnacademy.user.entity.account.QAccountStatusHistory.accountStatusHistory;
@@ -24,6 +24,7 @@ import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;
+import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;

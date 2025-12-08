@@ -22,6 +22,8 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
@@ -89,7 +91,7 @@ public class AdminServiceImpl implements AdminService {
         Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, newStatus));
 
@@ -102,7 +104,7 @@ public class AdminServiceImpl implements AdminService {
         User user = getUser(userId);
 
         Grade newGrade = gradeRepository.findByGradeName(request.gradeName())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 등급입니다."));
+                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
 
         String reason = String.format("관리자[%d] 수동 등급 변경", adminId);
 
@@ -119,13 +121,13 @@ public class AdminServiceImpl implements AdminService {
     private Grade getGrade(User user) {
         return userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new RuntimeException("등급 정보가 누락되었습니다."));
+                .orElseThrow(() -> new GradeNotFoundException("등급 정보가 누락되었습니다."));
     }
 
     private Status getStatus(Account account) {
         return accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new RuntimeException("상태 정보가 누락되었습니다."));
+                .orElseThrow(() -> new StateNotFoundException("상태 정보가 누락되었습니다."));
     }
 
 }

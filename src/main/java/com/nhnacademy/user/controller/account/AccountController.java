@@ -60,6 +60,7 @@ public class AccountController {
         try {
             verificationService.sendCode(userCreatedId);
             log.info("[AccountController] 휴면 해제 인증코드 발송 성공 - userCreatedId: {}", userCreatedId);
+
             return ResponseEntity.status(HttpStatus.OK).build();
 
         } catch (Exception e) {

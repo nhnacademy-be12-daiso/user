@@ -16,6 +16,7 @@ import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
@@ -63,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
 
     private Status getStatus(String statusName) {
         return statusRepository.findByStatusName(statusName)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
     }
 
 }

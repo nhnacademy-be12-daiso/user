@@ -17,7 +17,11 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.*;
+import com.nhnacademy.user.dto.response.BirthdayUserDto;
+import com.nhnacademy.user.dto.response.InternalAddressResponse;
+import com.nhnacademy.user.dto.response.InternalUserResponse;
+import com.nhnacademy.user.dto.response.PointResponse;
+import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
@@ -26,6 +30,8 @@ import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.account.AccountWithdrawnException;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
@@ -39,15 +45,14 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -91,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
             throw new UserNotFoundException("탈퇴한 계정입니다.");
@@ -99,7 +104,7 @@ public class UserServiceImpl implements UserService {
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 등급입니다."));
+                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
 
         BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
@@ -140,12 +145,12 @@ public class UserServiceImpl implements UserService {
 
         // 초기 등급(GENERAL) 저장
         Grade grade = gradeRepository.findByGradeName("GENERAL")
-                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 등급 데이터가 없습니다."));
+                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
         userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
 
         // 초기 상태(ACTIVE) 저장
         Status status = statusRepository.findByStatusName("ACTIVE")
-                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
+                .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
         // 회원가입 축하 포인트 지급
@@ -173,7 +178,7 @@ public class UserServiceImpl implements UserService {
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new RuntimeException("계정 상태 정보가 누락되었습니다."));
+                .orElseThrow(() -> new StateNotFoundException("계정 상태 정보가 누락되었습니다."));
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
             throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
@@ -181,7 +186,7 @@ public class UserServiceImpl implements UserService {
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new RuntimeException("회원 등급 정보가 누락되었습니다."));
+                .orElseThrow(() -> new GradeNotFoundException("회원 등급 정보가 누락되었습니다."));
 
         PointResponse pointResponse = pointService.getCurrentPoint(userCreatedId);
 
@@ -232,7 +237,7 @@ public class UserServiceImpl implements UserService {
         Account account = user.getAccount();
 
         Status status = statusRepository.findByStatusName(WITHDRAWN_STATUS)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
         // 계정 상태를 WITHDRAWN으로 변경
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
@@ -265,7 +270,7 @@ public class UserServiceImpl implements UserService {
             Account account = existingAccount.get();
             Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                     .map(AccountStatusHistory::getStatus)
-                    .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                    .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
             if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
                 throw new UserNotFoundException("탈퇴한 계정입니다.");
             }
@@ -297,11 +302,11 @@ public class UserServiceImpl implements UserService {
         accountRepository.save(newAccount);
 
         Grade grade = gradeRepository.findByGradeName("GENERAL")
-                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 등급 데이터가 없습니다."));
+                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
         userGradeHistoryRepository.save(new UserGradeHistory(newUser, grade, "Payco 회원가입"));
 
         Status status = statusRepository.findByStatusName("ACTIVE")
-                .orElseThrow(() -> new RuntimeException("시스템 오류: 초기 상태 데이터가 없습니다."));
+                .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
         accountStatusHistoryRepository.save(new AccountStatusHistory(newAccount, status));
 
         pointService.earnPointByPolicy(newUser.getUserCreatedId(), "REGISTER");
@@ -310,6 +315,7 @@ public class UserServiceImpl implements UserService {
 
         try {
             couponMessageProducer.sendWelcomeCouponMessage(newUser.getUserCreatedId());
+
         } catch (Exception e) {
             log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", newUser.getUserCreatedId(), e.getMessage());
         }

@@ -51,6 +51,7 @@ public class UserController {
     public ResponseEntity<PaycoLoginResponse> paycoLogin(@Valid @RequestBody PaycoSignUpRequest request) {
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
         HttpStatus status = response.isNewUser() ? HttpStatus.CREATED : HttpStatus.OK;
+
         return ResponseEntity.status(status).body(response);
     }
 
