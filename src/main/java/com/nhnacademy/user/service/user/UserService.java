@@ -17,10 +17,9 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.BirthdayUserDto;
+import com.nhnacademy.user.dto.response.BirthdayUserResponse;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
-
 import java.util.List;
 
 public interface UserService {
@@ -46,7 +45,7 @@ public interface UserService {
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
     void withdrawUser(Long userCreatedId);
 
-    List<BirthdayUserDto> findByBirthdayMonth(int month);
+    List<BirthdayUserResponse> findByBirthdayMonth(int month);
 
     PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request);
 }

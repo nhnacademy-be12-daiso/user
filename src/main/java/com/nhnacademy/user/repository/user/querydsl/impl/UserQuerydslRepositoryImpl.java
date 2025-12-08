@@ -25,6 +25,7 @@ import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;
+import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
@@ -135,22 +136,28 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
 
     private OrderSpecifier[] getOrderSpecifier(Sort sort) {
         if (sort.isEmpty()) {
-            return new OrderSpecifier[] {user.userCreatedId.desc()}; // 기본 정렬: 최신순
+            return new OrderSpecifier[] {user.userCreatedId.desc()};
         }
 
         return sort.stream().map(order -> {
             Order direction = order.isAscending() ? Order.ASC : Order.DESC;
             String prop = order.getProperty();
 
-            // 정렬 기준이 되는 QClass 경로 설정
-            PathBuilder<?> pathBuilder = new PathBuilder<>(user.getType(), user.getMetadata());
-
-            // 예외적으로 다른 테이블(Account) 정렬이 필요한 경우 처리
+            // 1. Account 테이블 정렬 (가입일)
             if ("joinedAt".equals(prop)) {
-                pathBuilder = new PathBuilder<>(account.getType(), account.getMetadata());
+                return new OrderSpecifier<>(direction, account.joinedAt);
             }
 
-            return new OrderSpecifier(direction, pathBuilder.get(prop));
+            // 2. User 테이블 정렬
+            PathBuilder<User> pathBuilder = new PathBuilder<>(user.getType(), user.getMetadata());
+
+            try {
+                return new OrderSpecifier(direction, pathBuilder.get(prop));
+
+            } catch (IllegalArgumentException e) {
+                // 이상한 필드명(해킹 시도 등)이 들어오면 기본 정렬로 무시하거나 예외 처리
+                return new OrderSpecifier<>(Order.DESC, user.userCreatedId);
+            }
         }).toArray(OrderSpecifier[]::new);
     }
 

@@ -10,9 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.dto.response;
 
-public record UserSearchCriteria(String keyword) {
-    // 관리자 전용 페이지(회원 관리) 검색
-    // keyword: 검색어 (이름, 이메일, 아이디 통합 검색에 사용됨)
+import java.time.LocalDate;
+
+public record BirthdayUserResponse(Long userCreatedId,
+                                   String username,
+                                   LocalDate birth) {
+    // 생일 월 기준으로 조회되는 사용자의 정보 (내부/스케줄러용)
 }

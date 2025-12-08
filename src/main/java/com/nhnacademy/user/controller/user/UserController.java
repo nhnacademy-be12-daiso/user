@@ -17,6 +17,7 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
+import com.nhnacademy.user.dto.response.BirthdayUserResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -46,13 +49,24 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Payco 로그인/회원가입")
+    // POST /api/users/payco/login
     @PostMapping("/payco/login")
+    @Operation(summary = "Payco 로그인/회원가입")
     public ResponseEntity<PaycoLoginResponse> paycoLogin(@Valid @RequestBody PaycoSignUpRequest request) {
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
         HttpStatus status = response.isNewUser() ? HttpStatus.CREATED : HttpStatus.OK;
 
         return ResponseEntity.status(status).body(response);
+    }
+
+    // GET /api/users/birthday
+    @GetMapping("/birthday")
+    @Operation(summary = "생일 월로 사용자 조회", description = "특정 월이 생일인 사용자 목록 조회")
+    public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(@RequestParam int month) {
+        // month에 해당하는 생일자 조회
+        List<BirthdayUserResponse> users = userService.findByBirthdayMonth(month);
+
+        return ResponseEntity.ok(users);
     }
 
     // POST /api/users/signup
