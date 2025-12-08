@@ -20,13 +20,18 @@ import static com.nhnacademy.user.entity.user.QGrade.grade;
 import static com.nhnacademy.user.entity.user.QUser.user;
 import static com.nhnacademy.user.entity.user.QUserGradeHistory.userGradeHistory;
 
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.math.BigDecimal;
@@ -35,7 +40,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 @RequiredArgsConstructor
 @Repository
@@ -44,7 +51,7 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<UserResponse> findAllUser(Pageable pageable) {
+    public Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria) {
         // querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
         // 서브쿼리 전용 별칭 선언
         QUserGradeHistory subGradeHistory = new QUserGradeHistory("subGradeHistory");
@@ -95,17 +102,51 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                 ))
                 .from(user)
                 .join(user.account, account)
+                .where(containsKeyword(criteria.keyword()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .orderBy(getOrderSpecifier(pageable.getSort()))
                 .fetch();
 
         // 카운트 쿼리
         Long count = jpaQueryFactory
                 .select(user.count())
                 .from(user)
+                .join(user.account, account)
+                .where(containsKeyword(criteria.keyword()))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, count != null ? count : 0);
+    }
+
+    private BooleanExpression containsKeyword(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return null; // 조건이 없으면 무시 (전체 조회)
+        }
+        return user.userName.contains(keyword)
+                .or(user.email.contains(keyword))
+                .or(account.loginId.contains(keyword));
+    }
+
+    private OrderSpecifier[] getOrderSpecifier(Sort sort) {
+        if (sort.isEmpty()) {
+            return new OrderSpecifier[] {user.userCreatedId.desc()}; // 기본 정렬: 최신순
+        }
+
+        return sort.stream().map(order -> {
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+            String prop = order.getProperty();
+
+            // 정렬 기준이 되는 QClass 경로 설정
+            PathBuilder<?> pathBuilder = new PathBuilder<>(user.getType(), user.getMetadata());
+
+            // 예외적으로 다른 테이블(Account) 정렬이 필요한 경우 처리
+            if ("joinedAt".equals(prop)) {
+                pathBuilder = new PathBuilder<>(account.getType(), account.getMetadata());
+            }
+
+            return new OrderSpecifier(direction, pathBuilder.get(prop));
+        }).toArray(OrderSpecifier[]::new);
     }
 
 }

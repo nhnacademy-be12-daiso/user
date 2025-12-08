@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,7 @@ import org.springframework.data.domain.Pageable;
 public interface AdminService {
 
     // 전체 회원 목록 조회(페이징)
-    Page<UserResponse> getAllUsers(Pageable pageable);
+    Page<UserResponse> getAllUsers(Pageable pageable, UserSearchCriteria criteria);
 
     // 특정 회원 상세 조회
     UserDetailResponse getUserDetail(Long userCreatedId);

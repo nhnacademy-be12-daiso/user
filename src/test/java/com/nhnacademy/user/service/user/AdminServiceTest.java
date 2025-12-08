@@ -117,16 +117,16 @@ class AdminServiceTest {
 
         Page<UserResponse> responsePage = new PageImpl<>(List.of(userResponse), pageable, 1);
 
-        given(userRepository.findAllUser(pageable)).willReturn(responsePage);
+        given(userRepository.findAllUser(pageable, any())).willReturn(responsePage);
 
-        Page<UserResponse> result = adminService.getAllUsers(pageable);
+        Page<UserResponse> result = adminService.getAllUsers(pageable, any());
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
         assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
         assertThat(result.getContent().get(0).point()).isEqualTo(BigDecimal.valueOf(1000));
 
-        verify(userRepository).findAllUser(pageable);
+        verify(userRepository).findAllUser(pageable, any());
     }
 
     @Test

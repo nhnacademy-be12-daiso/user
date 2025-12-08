@@ -61,7 +61,7 @@ public class AdminControllerTest {
                 "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now());
 
         Page<UserResponse> page = new PageImpl<>(List.of(response));
-        given(adminService.getAllUsers(any())).willReturn(page);
+        given(adminService.getAllUsers(any(), any())).willReturn(page);
 
         mockMvc.perform(get("/api/admin/users")
                         .param("page", "0")
