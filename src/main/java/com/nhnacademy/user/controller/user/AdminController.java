@@ -50,7 +50,9 @@ public class AdminController {
     @GetMapping
     @Operation(summary = "전체 회원 목록 조회")
     public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable,
-                                                          @RequestParam(required = false) UserSearchCriteria criteria) {
+                                                          @RequestParam(required = false) String keyword) {
+        UserSearchCriteria criteria = new UserSearchCriteria(keyword);
+
         return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllUsers(pageable, criteria));
     }
 

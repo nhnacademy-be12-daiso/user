@@ -26,10 +26,10 @@ import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
@@ -119,13 +119,18 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
         return new PageImpl<>(content, pageable, count != null ? count : 0);
     }
 
-    private BooleanExpression containsKeyword(String keyword) {
+    private BooleanBuilder containsKeyword(String keyword) {
+        BooleanBuilder builder = new BooleanBuilder();
+
         if (!StringUtils.hasText(keyword)) {
-            return null; // 조건이 없으면 무시 (전체 조회)
+            return builder;
         }
-        return user.userName.contains(keyword)
+
+        builder.or(user.userName.contains(keyword))
                 .or(user.email.contains(keyword))
                 .or(account.loginId.contains(keyword));
+
+        return builder;
     }
 
     private OrderSpecifier[] getOrderSpecifier(Sort sort) {
