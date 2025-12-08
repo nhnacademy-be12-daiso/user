@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.repository.user.querydsl;
 
 import com.nhnacademy.user.dto.response.UserResponse;
 import org.springframework.data.domain.Page;

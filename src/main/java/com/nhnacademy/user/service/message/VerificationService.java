@@ -15,7 +15,9 @@ package com.nhnacademy.user.service.message;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.exception.account.NotDormantAccountException;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
@@ -72,7 +74,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
             } catch (Exception e) {
                 log.error("[VerificationService] 메일 발송 중 에러 발생", e);
-                throw new RuntimeException("인증코드 발송에 실패했습니다: " + e.getMessage(), e);
+                throw new MailSendException("인증코드 발송에 실패했습니다: " + e.getMessage());
             }
 
         } catch (UserNotFoundException e) {
@@ -85,10 +87,11 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
         } catch (Exception e) {
             log.error("[VerificationService] 예상치 못한 에러 발생 - userCreatedId: {}", userCreatedId, e);
-            throw new RuntimeException("인증코드 발송에 실패했습니다: " + e.getMessage(), e);
+            throw new MailSendException("인증코드 발송에 실패했습니다: " + e.getMessage());
         }
     }
 
+    @Transactional
     public void verifyCode(Long userCreatedId, String code) {   // 인증 번호 검증
         String savedCode = redisTemplate.opsForValue().get(PREFIX + userCreatedId);
 
@@ -106,7 +109,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     public void validateDormantAccount(Account account) { // 계정의 상태 검증
         AccountStatusHistory latestHistory = statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .orElseThrow(() -> new RuntimeException("상태 정보가 없습니다."));
+                .orElseThrow(() -> new StateNotFoundException("상태 정보가 없습니다."));
 
         if (!"DORMANT".equals(latestHistory.getStatus().getStatusName())) {
             throw new NotDormantAccountException("휴면 상태의 계정이 아닙니다.");

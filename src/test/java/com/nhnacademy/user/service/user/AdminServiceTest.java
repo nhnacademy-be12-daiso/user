@@ -12,6 +12,13 @@
 
 package com.nhnacademy.user.service.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
@@ -24,6 +31,7 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
@@ -31,6 +39,11 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,19 +55,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class AdminServiceTest {
@@ -201,7 +201,7 @@ class AdminServiceTest {
         given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.modifyUserStatus(adminId, targetUserId, request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(StateNotFoundException.class)
                 .hasMessageContaining("존재하지 않는 상태");
     }
 

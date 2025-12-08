@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.service.message;
 
+import com.nhnacademy.user.exception.message.MailSendException;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -35,12 +36,6 @@ public class MailService {
 
     @Value("${spring.mail.username}")
     private String username;    // 발신자 이메일(현재: wlsdud3309@naver.com - 개인 메일)
-
-    @Value("${spring.mail.host}")
-    private String mailHost;
-
-    @Value("${spring.mail.port}")
-    private String mailPort;
 
     public MimeMessage createCode(String email, String code)
             throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일
@@ -128,7 +123,7 @@ public class MailService {
 
         } catch (Exception e) {
             log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
-            throw new RuntimeException("메일 발송 실패: " + e.getMessage(), e);
+            throw new MailSendException("메일 발송 실패: " + e.getMessage());
         }
     }
 
@@ -154,7 +149,7 @@ public class MailService {
 
         } catch (Exception e) {
             log.error("[MailService] 예상치 못한 예외 발생 - email: {}, message: {}", email, e.getMessage(), e);
-            throw new RuntimeException("메일 발송 실패: " + e.getMessage(), e);
+            throw new MailSendException("메일 발송 실패: " + e.getMessage());
         }
     }
 

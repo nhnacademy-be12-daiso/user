@@ -26,6 +26,7 @@ import com.nhnacademy.user.dto.request.FindPasswordRequest;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -158,10 +159,10 @@ public class FindAccountServiceTest {
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
         given(passwordEncoder.encode(anyString())).willReturn("newEncodedPw");
 
-        doThrow(new RuntimeException("Mail Error")).when(mailService).sendTemporaryPassword(anyString(), anyString());
+        doThrow(new MailSendException("Mail Error")).when(mailService).sendTemporaryPassword(anyString(), anyString());
 
         assertThatThrownBy(() -> findAccountService.createTemporaryPassword(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(MailSendException.class)
                 .hasMessageContaining("메일 발송 중 오류");
     }
 
