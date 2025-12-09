@@ -37,7 +37,7 @@ class InternalUserControllerTest {
     private InternalUserService internalUserService;
 
     @Test
-    @DisplayName("회원 존재 여부 확인")
+    @DisplayName("[내부] 회원 유효성 검증")
     void test1() throws Exception {
         Long userId = 1L;
         given(internalUserService.existsUser(userId)).willReturn(true);
@@ -48,7 +48,7 @@ class InternalUserControllerTest {
     }
 
     @Test
-    @DisplayName("내부용 회원 정보 조회")
+    @DisplayName("[내부] 주문/결제용 회원 정보 조회")
     void test2() throws Exception {
         Long userId = 1L;
         InternalUserResponse response = new InternalUserResponse(

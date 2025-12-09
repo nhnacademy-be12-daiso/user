@@ -43,7 +43,7 @@ class InternalPointControllerTest {
     private PointService pointService;
 
     @Test
-    @DisplayName("포인트 변동 처리")
+    @DisplayName("[내부] 포인트 적립/사용 처리")
     void test1() throws Exception {
         PointRequest request = new PointRequest(1L, BigDecimal.TEN, Type.EARN, "적립");
 

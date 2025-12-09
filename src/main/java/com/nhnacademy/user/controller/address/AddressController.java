@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-@Tag(name = "주소 API")
+@Tag(name = "배송지 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users/me/addresses")
@@ -54,7 +54,6 @@ public class AddressController {
                                              @Valid @RequestBody AddressRequest request) {
         Long addressId = addressService.addAddress(userCreatedId, request);
 
-        // 생성된 리소스의 URI 생성 (/api/users/me/addresses/{id}
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(addressId)
@@ -65,7 +64,7 @@ public class AddressController {
 
     // GET /api/users/me/addresses
     @GetMapping
-    @Operation(summary = "내 주소 목록 조회")
+    @Operation(summary = "내 배송지 목록 조회")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader("X-User-Id") Long userCreatedId) {
         List<AddressResponse> addresses = addressService.getMyAddresses(userCreatedId);
@@ -75,7 +74,7 @@ public class AddressController {
 
     // PUT /api/users/me/addresses/{addressId}
     @PutMapping("/{addressId}")
-    @Operation(summary = "주소 수정")
+    @Operation(summary = "배송지 수정")
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "기본 배송지 설정 해제"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
@@ -91,7 +90,7 @@ public class AddressController {
 
     // DELETE /api/users/me/addresses/{addressId}
     @DeleteMapping("/{addressId}")
-    @Operation(summary = "주소 삭제")
+    @Operation(summary = "배송지 삭제")
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "기본 배송지 삭제"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),

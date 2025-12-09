@@ -54,7 +54,7 @@ class UserControllerTest {
     private UserService userService;
 
     @Test
-    @DisplayName("회원가입 성공")
+    @DisplayName("회원가입")
     void test1() throws Exception {
         SignupRequest request = new SignupRequest(
                 "test", "password123!", "홍길동",
@@ -70,7 +70,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("내 정보 조회 성공")
+    @DisplayName("내 정보 조회")
     void test2() throws Exception {
         Long userId = 1L;
         UserResponse response = new UserResponse(
@@ -88,7 +88,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("내 정보 수정 성공")
+    @DisplayName("내 정보 수정")
     void test3() throws Exception {
         Long userId = 1L;
         UserModifyRequest request = new UserModifyRequest(
@@ -105,7 +105,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("비밀번호 수정 성공")
+    @DisplayName("비밀번호 변경")
     void test4() throws Exception {
         Long userId = 1L;
         PasswordModifyRequest request = new PasswordModifyRequest(
@@ -122,7 +122,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴 성공")
+    @DisplayName("회원 탈퇴")
     void test5() throws Exception {
         Long userId = 1L;
         doNothing().when(userService).withdrawUser(userId);

@@ -49,13 +49,14 @@ class AddressControllerTest {
     private AddressService addressService;
 
     @Test
-    @DisplayName("배송지 추가 성공")
+    @DisplayName("새 배송지 추가")
     void test1() throws Exception {
         Long userId = 1L;
         AddressRequest request = new AddressRequest(
                 "집", "12345", "광주", "101호", true);
 
-        doNothing().when(addressService).addAddress(any(), any());
+        given(addressService.addAddress(eq(userId), any(AddressRequest.class)))
+                .willReturn(100L);
 
         mockMvc.perform(post("/api/users/me/addresses")
                         .header("X-User-Id", userId)
@@ -64,8 +65,9 @@ class AddressControllerTest {
                 .andExpect(status().isCreated());
     }
 
+
     @Test
-    @DisplayName("배송지 목록 조회")
+    @DisplayName("내 배송지 목록 조회")
     void test2() throws Exception {
         Long userId = 1L;
         List<AddressResponse> list = List.of(new AddressResponse(

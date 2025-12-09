@@ -107,11 +107,11 @@ public class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("회원 등급 변경 (VIP)")
+    @DisplayName("회원 등급 변경 (PLATINUM)")
     void test4() throws Exception {
         Long adminId = 999L;
         Long targetId = 1L;
-        UserGradeRequest request = new UserGradeRequest("VIP");
+        UserGradeRequest request = new UserGradeRequest("PLATINUM");
 
         doNothing().when(adminService).modifyUserGrade(eq(adminId), eq(targetId), any());
 

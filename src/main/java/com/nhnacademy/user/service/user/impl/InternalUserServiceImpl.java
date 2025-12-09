@@ -64,7 +64,6 @@ public class InternalUserServiceImpl implements InternalUserService {
     public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
         User user = userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
-        ;
 
         Account account = user.getAccount();
 

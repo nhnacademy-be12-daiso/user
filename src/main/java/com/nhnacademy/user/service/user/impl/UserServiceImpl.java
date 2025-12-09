@@ -80,6 +80,10 @@ public class UserServiceImpl implements UserService {
 
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
 
+    private static final String PAYCO_PHONE_NUMBER_PREFIX = "010-PAYCO-";
+
+    private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
+
     private static final String CACHE_NAME = "users";
 
 
@@ -181,25 +185,15 @@ public class UserServiceImpl implements UserService {
         String currentPhone = user.getPhoneNumber();
         String currentEmail = user.getEmail();
 
-        // Payco 더미 데이터인 경우 중복 검사 스킵 (더미 데이터에서 실제 데이터로 변경하는 경우)
-        boolean isPhoneNumberDummy = currentPhone != null && currentPhone.startsWith("010-PAYCO-");
-        boolean isEmailDummy = currentEmail != null && currentEmail.endsWith("@payco.user");
-
         // 전화번호 중복 검사 - 현재 전화번호와 다르고, 더미가 아닌 경우만 검사
-        boolean phoneChanged = !request.phoneNumber().equals(currentPhone);
-        if (phoneChanged) {
+        if (!request.phoneNumber().equals(currentPhone) && userRepository.existsByPhoneNumber(request.phoneNumber())) {
             // 더미 데이터이거나, 실제 데이터가 변경된 경우 중복 검사
-            if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
-                throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
-            }
+            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
         // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
-        boolean emailChanged = !request.email().equals(currentEmail);
-        if (emailChanged) {
-            if (userRepository.existsByEmail(request.email())) {
-                throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
-            }
+        if (!request.email().equals(currentEmail) && userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
@@ -286,9 +280,9 @@ public class UserServiceImpl implements UserService {
         // Payco에서 idNo만 제공받으므로 고유한 기본값 사용
         String userName = "Payco User";
         String uniqueId = request.paycoIdNo();
-        String dummyEmail = "payco_" + uniqueId + "@payco.user";
+        String dummyEmail = "payco_" + uniqueId + PAYCO_EMAIL_SUFFIX;
         // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
-        String dummyPhone = "010-PAYCO-" + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
+        String dummyPhone = PAYCO_PHONE_NUMBER_PREFIX + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
 
         User newUser = new User(userName, dummyPhone, dummyEmail, null);
         userRepository.save(newUser);
@@ -331,8 +325,8 @@ public class UserServiceImpl implements UserService {
      */
     private boolean isProfileIncomplete(User user) {
         return "Payco User".equals(user.getUserName()) ||
-                (user.getPhoneNumber() != null && user.getPhoneNumber().startsWith("010-PAYCO-")) ||
-                (user.getEmail() != null && user.getEmail().endsWith("@payco.user"));
+                (user.getPhoneNumber() != null && user.getPhoneNumber().startsWith(PAYCO_PHONE_NUMBER_PREFIX)) ||
+                (user.getEmail() != null && user.getEmail().endsWith(PAYCO_EMAIL_SUFFIX));
     }
 
     private User getUser(Long userCreatedId) {

@@ -19,16 +19,21 @@ import static org.mockito.BDDMockito.given;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
+import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
+import com.nhnacademy.user.entity.address.Address;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
+import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.InternalUserServiceImpl;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,9 +41,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class InternalUserServiceTest {
+class InternalUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -48,6 +54,9 @@ public class InternalUserServiceTest {
 
     @Mock
     private AccountStatusHistoryRepository accountStatusHistoryRepository;
+
+    @Mock
+    private AddressRepository addressRepository;
 
     @Mock
     private PointService pointService;
@@ -62,23 +71,33 @@ public class InternalUserServiceTest {
     @Test
     @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
     void test1() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+        testUser = new User("양진영", "010-1234-5678", "test@test.com", LocalDate.now());
+        testAccount = new Account("test", "test123!@#", Role.USER, testUser);
+
+        ReflectionTestUtils.setField(testUser, "userCreatedId", testUserId);
+        ReflectionTestUtils.setField(testUser, "account", testAccount);
+
+        given(userRepository.findByIdWithAccount(testUserId))
+                .willReturn(Optional.of(testUser));
 
         Status status = new Status("ACTIVE");
-
         AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
 
         given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
         Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
-
         UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "reason");
 
         given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
                 .willReturn(Optional.of(gradeHistory));
 
-        given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+        given(pointService.getCurrentPoint(any()))
+                .willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+
+        Address address = new Address(testUser, "집", "12345", "주소", "상세", true);
+        given(addressRepository.findAllByUser(testUser))
+                .willReturn(List.of(address));
 
         var response = internalUserService.getInternalUserInfo(testUserId);
 
@@ -86,6 +105,7 @@ public class InternalUserServiceTest {
         assertThat(response.userCreatedId()).isEqualTo(testUserId);
         assertThat(response.gradeName()).isEqualTo("GOLD");
         assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
+        assertThat(response.addresses()).hasSize(1);
     }
 
 }
