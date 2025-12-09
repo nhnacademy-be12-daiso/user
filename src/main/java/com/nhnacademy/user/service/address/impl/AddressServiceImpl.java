@@ -42,7 +42,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public void addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
+    public Long addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
         User user = getUser(userCreatedId);
 
         long addressCount = addressRepository.countByUser(user);
@@ -63,9 +63,11 @@ public class AddressServiceImpl implements AddressService {
         Address address = new Address(user,
                 request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(), isDefault);
 
-        addressRepository.save(address);
+        Address saved = addressRepository.save(address);
 
         log.info("배송지 추가 - userCreatedId: {}", userCreatedId);
+
+        return saved.getAddressId();
     }
 
     @Override

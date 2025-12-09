@@ -89,13 +89,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "탈퇴한 계정"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
     })
-    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
-        log.info("========================================");
-        log.info("[UserController] 받은 X-User-Id: {}", userCreatedId);
-        log.info("[UserController] 내 정보 조회 요청");
-        log.info("========================================");
-
-        // 사용자 정보 조회
+    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) { // 사용자 정보 조회
         UserResponse userInfo = userService.getUserInfo(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).body(userInfo);
@@ -109,8 +103,7 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
     })
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                             @Valid @RequestBody UserModifyRequest request) {
-        // 사용자 정보 수정
+                                             @Valid @RequestBody UserModifyRequest request) { // 사용자 정보 수정
         userService.modifyUserInfo(userCreatedId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -124,8 +117,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                                 @Valid @RequestBody PasswordModifyRequest request) {
-        // 사용자 비밀번호 수정
+                                                 @Valid @RequestBody PasswordModifyRequest request) { // 사용자 비밀번호 수정
         userService.modifyUserPassword(userCreatedId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();

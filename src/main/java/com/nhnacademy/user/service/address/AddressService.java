@@ -19,7 +19,7 @@ import java.util.List;
 public interface AddressService {
 
     // 새 배송지 추가
-    void addAddress(Long userCreatedId, AddressRequest request);
+    Long addAddress(Long userCreatedId, AddressRequest request);
 
     // 모든 주소 목록 조회
     List<AddressResponse> getMyAddresses(Long userCreatedId);
