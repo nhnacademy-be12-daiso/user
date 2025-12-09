@@ -16,7 +16,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)    // 인스턴스화 방지
-public class ValidationUtils {  // 정규식 패턴 상수 클래스
+public final class ValidationUtils {  // 정규식 패턴 상수 클래스
     // 보안 정책이 바뀌었을 때 해당 클래스의 상수만 수정하면 됨
 
     // 소문자 1개 이상, 3~16자
