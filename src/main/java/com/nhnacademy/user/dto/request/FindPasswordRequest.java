@@ -16,8 +16,9 @@ import com.nhnacademy.user.common.ValidationUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-// 새로운 비밀번호: 최소 1개의 영문 + 최소 1개의 숫자 + 최소 1개의 특수문자, 8~20자
-public record PasswordModifyRequest(@NotBlank(message = "현재 비밀번호는 필수 입력 값입니다.") String currentPassword,
-                                    @NotBlank(message = "새로운 비밀번호는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN, message = "올바르지 않은 비밀번호 형식입니다.") String newPassword) {
-    // 클라이언트로부터 변경할 비밀번호 데이터를 받기 위한 요청 DTO
+public record FindPasswordRequest(
+        @NotBlank(message = "아이디는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN, message = "올바르지 않은 아이디 형식입니다.") String loginId,
+        @NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
+        @NotBlank(message = "이메일은 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.EMAIL_PATTERN, message = "올바르지 않은 이메일 형식입니다.") String email) {
+    // 비밀번호 찾기 요청 DTO
 }

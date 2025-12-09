@@ -10,16 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.message;
+package com.nhnacademy.user.exception.message;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-@FeignClient(name = "dooray-client", url = "${dooray.hook.url}")
-public interface DoorayClient { // 해당 url로 훅 메시지를 보내는 feign client
-
-    @PostMapping
-    void send(@RequestBody DoorayPayload payload);
-
+// 메일 발송 중 오류가 났을 때
+public class MailSendException extends RuntimeException {
+    public MailSendException(String message) {
+        super(message);
+    }
 }

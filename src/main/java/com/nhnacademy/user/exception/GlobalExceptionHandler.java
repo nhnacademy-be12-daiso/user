@@ -16,16 +16,22 @@ import com.nhnacademy.user.dto.response.ErrorResponse;
 import com.nhnacademy.user.exception.account.AccountDormantException;
 import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.account.NotDormantAccountException;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
+import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,11 +75,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> handlerMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
         // @Valid 유효성 검사 실패
+        // 에러가 발생한 필드명과 메시지를 Map으로 구현
+        Map<String, String> errorMap = new HashMap<>();
+
+        var fieldError = ex.getBindingResult().getFieldError();
+
+        if (fieldError != null) {
+            errorMap.put("field", fieldError.getField());
+            errorMap.put("message", fieldError.getDefaultMessage());
+        }
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(errorMap);
     }
 
     @ExceptionHandler(DefaultAddressDeletionException.class)
@@ -82,6 +99,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(DefaultAddressRequiredException.class)
+    public ResponseEntity<Map<String, String>> handlerDefaultAddressRequiredException(
+            DefaultAddressRequiredException ex) {
+        // 기본 배송지 설정 해제 불가
+        Map<String, String> errorMap = new HashMap<>();
+
+        errorMap.put("message", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorMap);
     }
 
     // 401 Unauthorized
@@ -127,6 +157,22 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
     }
 
+    @ExceptionHandler(StateNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerStateNotFoundException(StateNotFoundException ex) {
+        // 찾을 수 없는 상태 정보
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(GradeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerGradeNotFoundException(GradeNotFoundException ex) {
+        // 찾을 수 없는 등급 정보
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+    }
+
     // 409 Conflict
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handlerUserAlreadyExistsException(UserAlreadyExistsException ex) {
@@ -152,6 +198,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.LOCKED)
                 .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));
+    }
+
+    // 500 Internal Server Error
+    @ExceptionHandler(MailSendException.class)
+    public ResponseEntity<ErrorResponse> handlerMailSendException(MailSendException ex) {
+        // 메일 발송 중 오류
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
     }
 
 }

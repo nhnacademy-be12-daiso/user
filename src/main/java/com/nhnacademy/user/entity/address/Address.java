@@ -44,6 +44,9 @@ public class Address {      // 회원 배송지 주소
     @Column(name = "address_name", nullable = false, length = 50)
     private String addressName;     // 주소 별칭
 
+    @Column(name = "zip_code", nullable = false, length = 5)
+    private String zipCode;         // 우편 번호
+
     @Column(name = "road_address", nullable = false, length = 50)
     private String roadAddress;     // 도로명 주소
 
@@ -53,17 +56,20 @@ public class Address {      // 회원 배송지 주소
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;      // 기본 배송지 여부
 
-    public Address(User user, String addressName, String roadAddress, String addressDetail, boolean isDefault) {
+    public Address(User user, String addressName, String zipCode, String roadAddress, String addressDetail,
+                   boolean isDefault) {
         this.user = user;
         this.addressName = addressName;
+        this.zipCode = zipCode;
         this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;
     }
 
-    public void modifyDetails(
-            String addressName, String roadAddress, String addressDetail, boolean isDefault) {    // 주소 변경하는 메소드
+    public void modifyDetails(String addressName, String zipCode, String roadAddress, String addressDetail,
+                              boolean isDefault) {    // 주소 변경하는 메소드
         this.addressName = addressName;
+        this.zipCode = zipCode;
         this.roadAddress = roadAddress;
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;

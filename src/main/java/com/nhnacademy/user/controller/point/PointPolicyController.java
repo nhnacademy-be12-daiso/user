@@ -16,6 +16,7 @@ import com.nhnacademy.user.dto.request.PointPolicyRequest;
 import com.nhnacademy.user.dto.response.PointPolicyResponse;
 import com.nhnacademy.user.service.point.PointPolicyService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -43,44 +44,44 @@ public class PointPolicyController {
     private final PointPolicyService pointPolicyService;
 
     // POST /api/admin/points/policies
-    @Operation(summary = "포인트 정책 등록")
     @PostMapping
+    @Operation(summary = "포인트 정책 등록")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 포인트 정책")
     public ResponseEntity<Void> createPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.createPolicy(request);
-
         log.info("관리자 [{}] - 포인트 정책 등록", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // GET /api/admin/points/policies
-    @Operation(summary = "포인트 정책 전체 조회")
     @GetMapping
+    @Operation(summary = "포인트 정책 전체 조회")
     public ResponseEntity<List<PointPolicyResponse>> getPolicies() {
         return ResponseEntity.status(HttpStatus.OK).body(pointPolicyService.getPolicies());
     }
 
     // PUT /api/admin/points/policies
-    @Operation(summary = "포인트 정책 수정")
     @PutMapping("/{pointPolicyId}")
+    @Operation(summary = "포인트 정책 수정")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> modifyPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.modifyPolicy(pointPolicyId, request);
-
         log.info("관리자 [{}] - 포인트 정책 수정", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     // DELETE /api/admin/points/policies
-    @Operation(summary = "포인트 정책 삭제")
     @DeleteMapping("/{pointPolicyId}")
+    @Operation(summary = "포인트 정책 삭제")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> deletePolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId) {
         pointPolicyService.deletePolicy(pointPolicyId);
-
         log.info("관리자 [{}] - 포인트 정책 삭제", userCreatedId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

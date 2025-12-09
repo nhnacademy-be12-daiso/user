@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
@@ -31,6 +32,7 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
@@ -56,7 +58,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
-public class AdminServiceTest {
+class AdminServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -116,16 +118,16 @@ public class AdminServiceTest {
 
         Page<UserResponse> responsePage = new PageImpl<>(List.of(userResponse), pageable, 1);
 
-        given(userRepository.findAllUser(pageable)).willReturn(responsePage);
+        given(userRepository.findAllUser(pageable, new UserSearchCriteria("test"))).willReturn(responsePage);
 
-        Page<UserResponse> result = adminService.getAllUsers(pageable);
+        Page<UserResponse> result = adminService.getAllUsers(pageable, new UserSearchCriteria("test"));
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
         assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
         assertThat(result.getContent().get(0).point()).isEqualTo(BigDecimal.valueOf(1000));
 
-        verify(userRepository).findAllUser(pageable);
+        verify(userRepository).findAllUser(pageable, new UserSearchCriteria("test"));
     }
 
     @Test
@@ -140,7 +142,7 @@ public class AdminServiceTest {
 
         given(userRepository.findByIdWithAccount(userId)).willReturn(Optional.of(mockUser));
 
-        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
                 Optional.of(mockStatusHistory));
         given(mockStatusHistory.getStatus()).willReturn(mockStatus);
         given(mockStatus.getStatusName()).willReturn("ACTIVE");
@@ -200,7 +202,7 @@ public class AdminServiceTest {
         given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminService.modifyUserStatus(adminId, targetUserId, request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(StateNotFoundException.class)
                 .hasMessageContaining("존재하지 않는 상태");
     }
 

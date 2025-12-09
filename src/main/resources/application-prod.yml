@@ -12,8 +12,8 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true
-            require: true
+            enable: false
+            require: false
           ssl:
             enable: true
             trust: ${SPRING_MAIL_HOST}
@@ -26,13 +26,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # 개발용
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: true     # SQL 로그 보기
     properties:
       hibernate:
-        format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
   rabbitmq:
@@ -40,6 +37,13 @@ spring:
     port: ${SPRING_RABBITMQ_PORT}
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+      database: ${USER_SPRING_DATA_REDIS_DATABASE}
 
 rabbitmq:
   exchange:
@@ -57,10 +61,6 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-
-dooray:
-  hook:
-    url: ${NHN_DOORAY_URL}
 
 logging:
   level:

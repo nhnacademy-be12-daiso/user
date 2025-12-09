@@ -65,7 +65,7 @@ public class AddressServiceTest {
         testUser = new User("테스트", "010-1234-5678", "test@nhn.com", LocalDate.now());
         ReflectionTestUtils.setField(testUser, "userCreatedId", testUserId);
 
-        testRequest = new AddressRequest("조선대학교", "광주광역시 동구 조선대길 146", "1층", true);
+        testRequest = new AddressRequest("조선대학교", "61452", "광주광역시 동구 조선대길 146", "1층", true);
 
         lenient().when(userRepository.findByIdWithAccount(testUserId)).thenReturn(Optional.of(testUser));
     }
@@ -98,7 +98,7 @@ public class AddressServiceTest {
     void test3() {
         given(userRepository.findByIdWithAccount(999L)).willReturn(Optional.empty());
 
-        AddressRequest request = new AddressRequest("테스트", "주소", "상세", false);
+        AddressRequest request = new AddressRequest("테스트", "12345", "주소", "상세", false);
 
         assertThatThrownBy(() -> addressService.addAddress(999L, request))
                 .isInstanceOf(UserNotFoundException.class);
@@ -107,8 +107,8 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 목록 조회 성공")
     void test4() {
-        Address addr1 = new Address(testUser, "집", "광주", "1층", true);
-        Address addr2 = new Address(testUser, "회사", "판교", "1층", false);
+        Address addr1 = new Address(testUser, "집", "12345", "광주", "1층", true);
+        Address addr2 = new Address(testUser, "회사", "09876", "판교", "1층", false);
 
         ReflectionTestUtils.setField(addr1, "addressId", 1L);
         ReflectionTestUtils.setField(addr2, "addressId", 2L);
@@ -127,8 +127,8 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 수정 성공")
     void test5() {
-        Address originalAddress = new Address(testUser, "옛날 별칭", "옛날 주소", "1층", false);
-        AddressRequest modifyRequest = new AddressRequest("새 별칭", "새로운 주소", "1층", true);
+        Address originalAddress = new Address(testUser, "옛날 별칭", "12345", "옛날 주소", "1층", false);
+        AddressRequest modifyRequest = new AddressRequest("새 별칭", "09876", "새로운 주소", "1층", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(originalAddress));
@@ -156,7 +156,7 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 삭제 성공")
     void test7() {
-        Address address = new Address(testUser, "집", "광주", "1층", false);
+        Address address = new Address(testUser, "집", "12345", "광주", "1층", false);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(address));
@@ -181,7 +181,7 @@ public class AddressServiceTest {
     @Test
     @DisplayName("주소 삭제 실패 - 기본 배송지는 삭제 불가")
     void test9() {
-        Address address = new Address(testUser, "집", "광주", "1층", true);
+        Address address = new Address(testUser, "집", "12345", "광주", "1층", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
                 .willReturn(Optional.of(address));

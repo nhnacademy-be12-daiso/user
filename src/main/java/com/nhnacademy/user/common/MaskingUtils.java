@@ -10,13 +10,19 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.common;
 
-public interface AccountService {
+public class MaskingUtils { // 아이디 마스킹
 
-    boolean existsLoginId(String loginId);
+    public static String maskLoginId(String loginId) {
+        if (loginId == null || loginId.length() < 2) {
+            return loginId;
+        }
 
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
+        int length = loginId.length();
+        int visibleLength = (length > 3) ? length - 3 : 1;
+
+        return loginId.substring(0, visibleLength) + "*".repeat(length - visibleLength);
+    }
 
 }

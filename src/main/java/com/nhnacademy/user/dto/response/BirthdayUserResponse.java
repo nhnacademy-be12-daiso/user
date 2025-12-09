@@ -10,15 +10,12 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user;
+package com.nhnacademy.user.dto.response;
 
-import com.nhnacademy.user.dto.response.UserResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.time.LocalDate;
 
-public interface UserQuerydslRepository {
-
-    // 관리자 전용: N+1 없이 모든 정보를 한 번에 조회
-    Page<UserResponse> findAllUser(Pageable pageable);
-
+public record BirthdayUserResponse(Long userCreatedId,
+                                   String username,
+                                   LocalDate birth) {
+    // 생일 월 기준으로 조회되는 사용자의 정보 (내부/스케줄러용)
 }

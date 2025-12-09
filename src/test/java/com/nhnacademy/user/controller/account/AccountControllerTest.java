@@ -12,19 +12,27 @@
 
 package com.nhnacademy.user.controller.account;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.user.dto.request.FindLoginIdRequest;
+import com.nhnacademy.user.dto.request.FindPasswordRequest;
 import com.nhnacademy.user.service.account.AccountService;
+import com.nhnacademy.user.service.account.FindAccountService;
 import com.nhnacademy.user.service.message.VerificationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -34,15 +42,21 @@ public class AccountControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockitoBean
     private VerificationService verificationService;
 
     @MockitoBean
     private AccountService accountService;
 
+    @MockitoBean
+    private FindAccountService findAccountService;
+
     @Test
     @DisplayName("휴면 해제 인증코드 발송")
-    void test6() throws Exception {
+    void test1() throws Exception {
         Long userId = 1L;
         doNothing().when(verificationService).sendCode(userId);
 
@@ -54,7 +68,7 @@ public class AccountControllerTest {
 
     @Test
     @DisplayName("휴면 계정 활성화")
-    void test7() throws Exception {
+    void test2() throws Exception {
         Long userId = 1L;
         String code = "123456";
 
@@ -64,6 +78,36 @@ public class AccountControllerTest {
         mockMvc.perform(post("/api/users/activate")
                         .header("X-User-Id", userId)
                         .param("code", code))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("아이디 찾기 API")
+    void test3() throws Exception {
+        FindLoginIdRequest request = new FindLoginIdRequest("홍길동", "test@test.com");
+        String maskedId = "test***";
+
+        given(findAccountService.findLoginId(any(FindLoginIdRequest.class))).willReturn(maskedId);
+
+        mockMvc.perform(post("/api/users/find-id")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(maskedId))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("비밀번호 찾기(임시 비번) API")
+    void test4() throws Exception {
+        FindPasswordRequest request = new FindPasswordRequest("testId", "홍길동", "test@test.com");
+
+        doNothing().when(findAccountService).createTemporaryPassword(any(FindPasswordRequest.class));
+
+        mockMvc.perform(post("/api/users/find-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andDo(print());
     }

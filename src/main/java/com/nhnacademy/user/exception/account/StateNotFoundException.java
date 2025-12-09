@@ -10,13 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.exception.account;
 
-public interface AccountService {
-
-    boolean existsLoginId(String loginId);
-
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
-
+// 상태 정보가 DB에 없을 때
+public class StateNotFoundException extends RuntimeException {
+    public StateNotFoundException(String message) {
+        super(message);
+    }
 }

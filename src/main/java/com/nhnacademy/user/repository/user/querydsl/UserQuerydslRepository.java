@@ -10,13 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.repository.user.querydsl;
 
-public interface AccountService {
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
+import com.nhnacademy.user.dto.response.UserResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-    boolean existsLoginId(String loginId);
+public interface UserQuerydslRepository {
 
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
+    // 관리자 전용: N+1 없이 모든 정보를 한 번에 조회
+    Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria);
 
 }

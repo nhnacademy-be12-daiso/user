@@ -10,13 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.exception.user;
 
-public interface AccountService {
-
-    boolean existsLoginId(String loginId);
-
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
-
+// 등급 정보를 찾을 수 없을 때
+public class GradeNotFoundException extends RuntimeException {
+    public GradeNotFoundException(String message) {
+        super(message);
+    }
 }

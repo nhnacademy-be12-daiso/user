@@ -58,7 +58,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -112,7 +112,7 @@ public class UserServiceTest {
         SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
-        given(accountRepository.existsByLoginId(anyString())).willReturn(false);
+        given(accountRepository.existsById(anyString())).willReturn(false);
         given(userRepository.existsByPhoneNumber(anyString())).willReturn(false);
         given(userRepository.existsByEmail(anyString())).willReturn(false);
 
@@ -167,7 +167,7 @@ public class UserServiceTest {
         SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
                 "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
 
-        given(accountRepository.existsByLoginId(request.loginId())).willReturn(true);
+        given(accountRepository.existsById(request.loginId())).willReturn(true);
 
         assertThatThrownBy(() -> userService.signUp(request))
                 .isInstanceOf(UserAlreadyExistsException.class)
@@ -188,7 +188,7 @@ public class UserServiceTest {
 
         Status status = new Status("ACTIVE");
         AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
-        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(testAccount))
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
         given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
@@ -253,7 +253,7 @@ public class UserServiceTest {
 
         AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
 
-        given(accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(testAccount))
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
         Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
@@ -264,7 +264,6 @@ public class UserServiceTest {
                 .willReturn(Optional.of(gradeHistory));
 
         given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
-        given(addressRepository.findFirstByUserAndIsDefaultTrue(testUser)).willReturn(Optional.empty());
 
         var response = userService.getInternalUserInfo(testUserId);
 

@@ -10,13 +10,11 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.exception.address;
 
-public interface AccountService {
-
-    boolean existsLoginId(String loginId);
-
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
-
+// 기본 배송지 설정을 해제할 때
+public class DefaultAddressRequiredException extends RuntimeException {
+    public DefaultAddressRequiredException(String message) {
+        super(message);
+    }
 }

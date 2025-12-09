@@ -10,13 +10,13 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.account;
+package com.nhnacademy.user.dto.request;
 
-public interface AccountService {
+import com.nhnacademy.user.common.ValidationUtils;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
-    boolean existsLoginId(String loginId);
-
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
-
+public record FindLoginIdRequest(@NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
+                                 @NotBlank(message = "이메일은 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.EMAIL_PATTERN, message = "올바르지 않은 이메일 형식입니다.") String email) {
+    // 아이디 찾기 요청 DTO
 }

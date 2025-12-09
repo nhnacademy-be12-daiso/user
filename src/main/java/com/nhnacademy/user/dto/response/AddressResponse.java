@@ -14,6 +14,7 @@ package com.nhnacademy.user.dto.response;
 
 public record AddressResponse(Long addressId,
                               String addressName,
+                              String zipCode,
                               String roadAddress,
                               String addressDetail,
                               boolean isDefault) {

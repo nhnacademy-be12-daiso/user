@@ -14,6 +14,7 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
+import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -22,6 +23,8 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
@@ -56,14 +59,15 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAllUsers(Pageable pageable) {  // 전체 회원 목록 조회(페이징)
-        return userRepository.findAllUser(pageable);
+    public Page<UserResponse> getAllUsers(Pageable pageable, UserSearchCriteria criteria) {  // 전체 회원 목록 조회(페이징)
+        return userRepository.findAllUser(pageable, criteria);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(Long userCreatedId) {   // 특정 회원 상세 조회
         User user = getUser(userCreatedId);
+
         Account account = user.getAccount();
 
         return new UserDetailResponse(userCreatedId,
@@ -84,10 +88,11 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request) {    // 회원 상태 변경
         User user = getUser(userId);
+
         Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, newStatus));
 
@@ -100,7 +105,7 @@ public class AdminServiceImpl implements AdminService {
         User user = getUser(userId);
 
         Grade newGrade = gradeRepository.findByGradeName(request.gradeName())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 등급입니다."));
+                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
 
         String reason = String.format("관리자[%d] 수동 등급 변경", adminId);
 
@@ -117,13 +122,13 @@ public class AdminServiceImpl implements AdminService {
     private Grade getGrade(User user) {
         return userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new RuntimeException("등급 정보가 누락되었습니다."));
+                .orElseThrow(() -> new GradeNotFoundException("등급 정보가 누락되었습니다."));
     }
 
     private Status getStatus(Account account) {
-        return accountStatusHistoryRepository.findTopByAccountOrderByChangedAtDesc(account)
+        return accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new RuntimeException("상태 정보가 누락되었습니다."));
+                .orElseThrow(() -> new StateNotFoundException("상태 정보가 누락되었습니다."));
     }
 
 }

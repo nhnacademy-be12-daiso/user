@@ -10,9 +10,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.message;
+package com.nhnacademy.user.dto.request;
 
-public record DoorayPayload(String botName,
-                            String text) {
-    // 원하는 봇 이름과 내용을 보내기 위한 DTO
+public record UserSearchCriteria(String keyword) {
+    // 관리자 전용 페이지(회원 관리) 검색
+    // keyword: 검색어 (이름, 이메일, 아이디 통합 검색에 사용됨)
 }

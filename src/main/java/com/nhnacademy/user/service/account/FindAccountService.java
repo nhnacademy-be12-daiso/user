@@ -12,11 +12,15 @@
 
 package com.nhnacademy.user.service.account;
 
-public interface AccountService {
+import com.nhnacademy.user.dto.request.FindLoginIdRequest;
+import com.nhnacademy.user.dto.request.FindPasswordRequest;
 
-    boolean existsLoginId(String loginId);
+public interface FindAccountService {
 
-    // 휴면 계정 복구
-    void activeUser(Long userCreatedId);
+    // 아이디 찾기
+    String findLoginId(FindLoginIdRequest request);
+
+    // 비밀번호 찾기 (임시 비밀번호 발급)
+    void createTemporaryPassword(FindPasswordRequest request);
 
 }
