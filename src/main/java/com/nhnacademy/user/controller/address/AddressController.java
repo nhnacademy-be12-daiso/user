@@ -54,7 +54,6 @@ public class AddressController {
                                              @Valid @RequestBody AddressRequest request) {
         Long addressId = addressService.addAddress(userCreatedId, request);
 
-        // 생성된 리소스의 URI 생성 (/api/users/me/addresses/{id}
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(addressId)

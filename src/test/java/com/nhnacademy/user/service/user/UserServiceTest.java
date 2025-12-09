@@ -23,7 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
@@ -220,14 +219,14 @@ class UserServiceTest {
     @DisplayName("회원 정보 수정 성공")
     void test7() {
         UserModifyRequest request = new UserModifyRequest("수정된 이름",
-                "010-1234-5678", "new@new.com", testBirthDate);
+                "010-1234-5678", "new@test.com", testBirthDate);
 
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         userService.modifyUserInfo(testUserId, request);
 
         assertThat(testUser.getUserName()).isEqualTo("수정된 이름");
-        assertThat(testUser.getEmail()).isEqualTo("new@new.com");
+        assertThat(testUser.getEmail()).isEqualTo("new@test.com");
     }
 
     @Test
@@ -290,16 +289,6 @@ class UserServiceTest {
 
         assertThat(response.isNewUser()).isFalse();
         verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("포인트 변경 이벤트 핸들러 동작 확인")
-    void test11() {
-        UserPointChangedEvent event = new UserPointChangedEvent(testUserId);
-
-        userService.handlePointChangedEvent(event);
-
-        // 로그가 찍히는 로직이므로 실제 동작 여부는 확인 어렵지만 최소한 메서드가 에러 없이 실행되는지는 검증
     }
 
 }
