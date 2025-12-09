@@ -13,7 +13,7 @@
 package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.response.InternalUserResponse;
-import com.nhnacademy.user.service.user.UserService;
+import com.nhnacademy.user.service.user.InternalUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/internal/users")
 public class InternalUserController {
 
-    private final UserService userService;
+    private final InternalUserService internalUserService;
 
     // GET /api/internal/users/{userCreatedId}/exists
     @Operation(summary = "[내부] 회원 유효성 검증")
     @GetMapping("/{userCreatedId}/exists")
     public ResponseEntity<Boolean> existsUser(@PathVariable("userCreatedId") Long userCreatedId) {
-        boolean exists = userService.existsUser(userCreatedId);
+        boolean exists = internalUserService.existsUser(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).body(exists);
     }
@@ -45,7 +45,7 @@ public class InternalUserController {
     @Operation(summary = "[내부] 주문/결제용 회원 정보 조회")
     @GetMapping("/{userCreatedId}/info")
     public ResponseEntity<InternalUserResponse> getUserInfoForOrder(@PathVariable("userCreatedId") Long userCreatedId) {
-        InternalUserResponse response = userService.getInternalUserInfo(userCreatedId);
+        InternalUserResponse response = internalUserService.getInternalUserInfo(userCreatedId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

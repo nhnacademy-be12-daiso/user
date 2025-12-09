@@ -38,7 +38,6 @@ import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
-import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -65,9 +64,6 @@ class UserServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
-
-    @Mock
-    private AddressRepository addressRepository;
 
     @Mock
     private GradeRepository gradeRepository;
@@ -242,35 +238,6 @@ class UserServiceTest {
         userService.modifyUserPassword(testUserId, request);
 
         verify(mockAccount).modifyPassword("encodedNew");
-    }
-
-    @Test
-    @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
-    void test9() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
-
-        Status status = new Status("ACTIVE");
-
-        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
-
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
-                .willReturn(Optional.of(statusHistory));
-
-        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
-
-        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "reason");
-
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
-                .willReturn(Optional.of(gradeHistory));
-
-        given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
-
-        var response = userService.getInternalUserInfo(testUserId);
-
-        assertThat(response).isNotNull();
-        assertThat(response.userCreatedId()).isEqualTo(testUserId);
-        assertThat(response.gradeName()).isEqualTo("GOLD");
-        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
     }
 
 }

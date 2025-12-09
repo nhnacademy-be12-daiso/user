@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.nhnacademy.user.dto.response.InternalUserResponse;
-import com.nhnacademy.user.service.user.UserService;
+import com.nhnacademy.user.service.user.InternalUserService;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,13 +34,13 @@ class InternalUserControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private UserService userService;
+    private InternalUserService internalUserService;
 
     @Test
     @DisplayName("회원 존재 여부 확인")
     void test1() throws Exception {
         Long userId = 1L;
-        given(userService.existsUser(userId)).willReturn(true);
+        given(internalUserService.existsUser(userId)).willReturn(true);
 
         mockMvc.perform(get("/api/internal/users/{userCreatedId}/exists", userId))
                 .andExpect(status().isOk())
@@ -53,7 +53,7 @@ class InternalUserControllerTest {
         Long userId = 1L;
         InternalUserResponse response = new InternalUserResponse(
                 userId, "name", "phone", "email", "GOLD", BigDecimal.valueOf(2.50), null, null);
-        given(userService.getInternalUserInfo(userId)).willReturn(response);
+        given(internalUserService.getInternalUserInfo(userId)).willReturn(response);
 
         mockMvc.perform(get("/api/internal/users/{userCreatedId}/info", userId))
                 .andExpect(status().isOk());
