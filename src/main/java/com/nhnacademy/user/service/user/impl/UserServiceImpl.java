@@ -198,6 +198,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
+        log.info("[회원정보수정] 시작 - userCreatedId: {}", userCreatedId);
+
         User user = getUser(userCreatedId);
 
         String currentPhone = user.getPhoneNumber();
@@ -207,27 +209,26 @@ public class UserServiceImpl implements UserService {
         boolean isPhoneNumberDummy = currentPhone != null && currentPhone.startsWith("010-PAYCO-");
         boolean isEmailDummy = currentEmail != null && currentEmail.endsWith("@payco.user");
 
-        // 전화번호 중복 검사 (null-safe)
-        if (!isPhoneNumberDummy && currentPhone != null && !currentPhone.equals(request.phoneNumber()) &&
-                userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
+        // 전화번호 중복 검사 - 현재 전화번호와 다르고, 더미가 아닌 경우만 검사
+        boolean phoneChanged = !request.phoneNumber().equals(currentPhone);
+        if (phoneChanged) {
+            // 더미 데이터이거나, 실제 데이터가 변경된 경우 중복 검사
+            if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
+                throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
+            }
         }
 
-        if (isPhoneNumberDummy && userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
-        }
-
-        // 이메일 중복 검사 (null-safe)
-        if (!isEmailDummy && currentEmail != null && !currentEmail.equals(request.email()) &&
-                userRepository.existsByEmail(request.email())) {
-            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
-        }
-
-        if (isEmailDummy && userRepository.existsByEmail(request.email())) {
-            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
+        // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
+        boolean emailChanged = !request.email().equals(currentEmail);
+        if (emailChanged) {
+            if (userRepository.existsByEmail(request.email())) {
+                throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
+            }
         }
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
+
+        log.info("[회원정보수정] 완료 - userCreatedId: {}", userCreatedId);
     }
 
     @Override
