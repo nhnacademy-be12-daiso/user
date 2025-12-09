@@ -17,9 +17,7 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.BirthdayUserResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
-import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.response.*;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
@@ -42,13 +40,15 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -158,31 +158,37 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
+        log.info("[회원정보수정] 시작 - userCreatedId: {}", userCreatedId);
+
         User user = getUser(userCreatedId);
 
+        String currentPhone = user.getPhoneNumber();
+        String currentEmail = user.getEmail();
+
         // Payco 더미 데이터인 경우 중복 검사 스킵 (더미 데이터에서 실제 데이터로 변경하는 경우)
-        boolean isPhoneNumberDummy = user.getPhoneNumber() != null && user.getPhoneNumber().startsWith("010-PAYCO-");
-        boolean isEmailDummy = user.getEmail() != null && user.getEmail().endsWith("@payco.user");
+        boolean isPhoneNumberDummy = currentPhone != null && currentPhone.startsWith("010-PAYCO-");
+        boolean isEmailDummy = currentEmail != null && currentEmail.endsWith("@payco.user");
 
-        if (!isPhoneNumberDummy && !user.getPhoneNumber().equals(request.phoneNumber()) &&
-                userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
+        // 전화번호 중복 검사 - 현재 전화번호와 다르고, 더미가 아닌 경우만 검사
+        boolean phoneChanged = !request.phoneNumber().equals(currentPhone);
+        if (phoneChanged) {
+            // 더미 데이터이거나, 실제 데이터가 변경된 경우 중복 검사
+            if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
+                throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
+            }
         }
 
-        if (isPhoneNumberDummy && userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
-        }
-
-        if (!isEmailDummy && !user.getEmail().equals(request.email()) &&
-                userRepository.existsByEmail(request.email())) {
-            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
-        }
-
-        if (isEmailDummy && userRepository.existsByEmail(request.email())) {
-            throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
+        // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
+        boolean emailChanged = !request.email().equals(currentEmail);
+        if (emailChanged) {
+            if (userRepository.existsByEmail(request.email())) {
+                throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
+            }
         }
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
+
+        log.info("[회원정보수정] 완료 - userCreatedId: {}", userCreatedId);
     }
 
     @Override
