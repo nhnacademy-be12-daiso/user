@@ -16,11 +16,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
+import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -35,6 +40,7 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
@@ -82,6 +88,9 @@ class UserServiceTest {
 
     @Mock
     private PointService pointService;
+
+    @Mock
+    CouponMessageProducer couponMessageProducer;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -238,6 +247,59 @@ class UserServiceTest {
         userService.modifyUserPassword(testUserId, request);
 
         verify(mockAccount).modifyPassword("encodedNew");
+    }
+
+    @Test
+    @DisplayName("Payco 신규 회원가입")
+    void test9() {
+        PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
+        String expectedLoginId = "PAYCO_PAYCO_12345";
+
+        given(accountRepository.findById(expectedLoginId)).willReturn(Optional.empty());
+
+        given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(mock(Grade.class)));
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(mock(Status.class)));
+
+        PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
+
+        assertThat(response.isNewUser()).isTrue();
+        verify(userRepository).save(any(User.class));
+        verify(accountRepository).save(any(Account.class));
+        verify(pointService).earnPointByPolicy(any(), eq("REGISTER"));
+        verify(couponMessageProducer).sendWelcomeCouponMessage(any());
+    }
+
+    @Test
+    @DisplayName("Payco 기존 회원 로그인")
+    void test10() {
+        PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
+        String expectedLoginId = "PAYCO_PAYCO_12345";
+
+        Account existingAccount = mock(Account.class);
+        User existingUser = mock(User.class);
+        Status activeStatus = new Status("ACTIVE");
+        AccountStatusHistory history = new AccountStatusHistory(existingAccount, activeStatus);
+
+        given(accountRepository.findById(expectedLoginId)).willReturn(Optional.of(existingAccount));
+        given(existingAccount.getUser()).willReturn(existingUser);
+        given(existingAccount.getRole()).willReturn(Role.USER);
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(existingAccount))
+                .willReturn(Optional.of(history));
+
+        PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
+
+        assertThat(response.isNewUser()).isFalse();
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("포인트 변경 이벤트 핸들러 동작 확인")
+    void test11() {
+        UserPointChangedEvent event = new UserPointChangedEvent(testUserId);
+
+        userService.handlePointChangedEvent(event);
+
+        // 로그가 찍히는 로직이므로 실제 동작 여부는 확인 어렵지만 최소한 메서드가 에러 없이 실행되는지는 검증
     }
 
 }

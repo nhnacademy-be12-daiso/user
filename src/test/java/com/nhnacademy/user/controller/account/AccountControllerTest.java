@@ -101,7 +101,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("비밀번호 찾기(임시 비번)")
+    @DisplayName("비밀번호 찾기 (임시 비밀번호 발급)")
     void test4() throws Exception {
         FindPasswordRequest request = new FindPasswordRequest("testId", "홍길동", "test@test.com");
 

@@ -65,7 +65,7 @@ class PointPolicyControllerTest {
     }
 
     @Test
-    @DisplayName("포인트 정책 조회")
+    @DisplayName("포인트 정책 전체 조회")
     void test2() throws Exception {
         List<PointPolicyResponse> list = List.of(
                 new PointPolicyResponse(

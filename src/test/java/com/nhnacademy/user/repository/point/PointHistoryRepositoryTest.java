@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
@@ -62,6 +64,26 @@ class PointHistoryRepositoryTest {
         BigDecimal balance = pointHistoryRepository.getPointByUser(user);
 
         assertThat(balance).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("포인트 내역 페이징 조회 및 최신순 정렬 확인")
+    void test3() {
+        User user = new User("페이징유저", "010-5555-6666", "page@test.com", LocalDate.now());
+        userRepository.save(user);
+
+        for (int i = 1; i <= 15; i++) {
+            pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(i), Type.EARN, "적립 " + i));
+        }
+
+        Page<PointHistory> page = pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(
+                user, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(10);
+        assertThat(page.getTotalElements()).isEqualTo(15);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+
+        assertThat(page.getContent().get(0).getDescription()).isEqualTo("적립 15");
     }
 
 }

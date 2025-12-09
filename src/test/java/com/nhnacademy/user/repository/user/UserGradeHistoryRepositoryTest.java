@@ -65,4 +65,28 @@ class UserGradeHistoryRepositoryTest {
         assertThat(result.get().getReason()).isEqualTo("승급");
     }
 
+    @Test
+    @DisplayName("여러 이력 중 가장 최신 이력 1건만 조회되는지 확인")
+    void test2() {
+        User user = new User("historyUser", "010-9999-0000", "his@test.com", LocalDate.now());
+        entityManager.persist(user);
+
+        Grade g1 = new Grade("GENERAL", BigDecimal.ZERO);
+        Grade g2 = new Grade("GOLD", BigDecimal.valueOf(0.03));
+        entityManager.persist(g1);
+        entityManager.persist(g2);
+
+        historyRepository.save(new UserGradeHistory(user, g1, "가입"));
+
+        entityManager.flush();
+
+        historyRepository.save(new UserGradeHistory(user, g2, "승급"));
+
+        Optional<UserGradeHistory> result = historyRepository.findTopByUserOrderByChangedAtDesc(user);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getGrade().getGradeName()).isEqualTo("GOLD");
+        assertThat(result.get().getReason()).isEqualTo("승급");
+    }
+
 }

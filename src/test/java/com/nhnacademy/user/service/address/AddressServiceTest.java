@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -74,12 +75,15 @@ public class AddressServiceTest {
     @DisplayName("주소 등록 성공 (기본 배송지 설정)")
     void test1() {
         given(addressRepository.countByUser(testUser)).willReturn(5L);
+        given(addressRepository.save(any(Address.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         addressService.addAddress(testUserId, testRequest);
 
         verify(addressRepository).clearAllDefaultsByUser(testUser);
         verify(addressRepository).save(any(Address.class));
     }
+
 
     @Test
     @DisplayName("주소 등록 실패 - 주소 10개 초과")
@@ -191,6 +195,20 @@ public class AddressServiceTest {
                 .hasMessage("기본 배송지는 삭제할 수 없습니다.");
 
         verify(addressRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("주소가 0개일 때 추가하면 자동으로 기본 배송지 설정")
+    void test10() {
+        given(addressRepository.countByUser(testUser)).willReturn(0L);
+        given(addressRepository.save(any(Address.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        AddressRequest request = new AddressRequest("집", "123", "주소", "상세", false);
+
+        addressService.addAddress(testUserId, request);
+
+        verify(addressRepository).save(argThat(addr -> addr.isDefault() == true));
     }
 
 }
