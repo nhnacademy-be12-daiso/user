@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request) {
-        String loginId = "PAYCO_" + request.getPaycoIdNo();
+        String loginId = "PAYCO_" + request.paycoIdNo();
 
         Optional<Account> existingAccount = accountRepository.findById(loginId);
 
@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService {
 
         // Payco에서 idNo만 제공받으므로 고유한 기본값 사용
         String userName = "Payco User";
-        String uniqueId = request.getPaycoIdNo();
+        String uniqueId = request.paycoIdNo();
         String dummyEmail = "payco_" + uniqueId + "@payco.user";
         // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
         String dummyPhone = "010-PAYCO-" + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
