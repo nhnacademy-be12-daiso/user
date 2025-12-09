@@ -43,7 +43,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     private static final String PREFIX = "ACTIVE_CODE:";
 
-    private static final long LIMIT_TIME = 5 * 60;  // 5분
+    private static final long LIMIT_TIME = (long) 5 * 60;  // 5분
 
     @Transactional
     public void sendCode(Long userCreatedId) {  // 인증번호 발송
