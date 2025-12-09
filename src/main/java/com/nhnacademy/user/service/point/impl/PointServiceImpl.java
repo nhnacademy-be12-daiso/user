@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.service.point.impl;
 
+import com.nhnacademy.user.dto.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
@@ -30,6 +31,7 @@ import com.nhnacademy.user.service.point.PointService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ public class PointServiceImpl implements PointService {
     private final PointHistoryRepository pointHistoryRepository;
 
     private final PointPolicyRepository pointPolicyRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -91,6 +95,9 @@ public class PointServiceImpl implements PointService {
 
         log.info("정책 기반 포인트 적립 - userCreatedId: {}, type: {}, method: {}, amount: {}",
                 userCreatedId, policyType, pointPolicy.getMethod(), calculatedAmount);
+
+        // 포인트가 변동되었다고 알려줌
+        eventPublisher.publishEvent(new UserPointChangedEvent(userCreatedId));
     }
 
     @Override
@@ -122,6 +129,9 @@ public class PointServiceImpl implements PointService {
 
         log.info("포인트 변동 처리 - userCreatedId: {}, type: {}, amount: {}, description: {}",
                 request.userCreatedId(), request.type(), request.amount(), request.description());
+
+        // 포인트가 변동되었다고 알려줌
+        eventPublisher.publishEvent(new UserPointChangedEvent(request.userCreatedId()));
     }
 
     @Override

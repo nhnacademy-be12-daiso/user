@@ -20,9 +20,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Tag(name = "주소 API")
 @RestController
@@ -51,9 +52,15 @@ public class AddressController {
     })
     public ResponseEntity<Void> addMyAddress(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody AddressRequest request) {
-        addressService.addAddress(userCreatedId, request);
+        Long addressId = addressService.addAddress(userCreatedId, request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        // 생성된 리소스의 URI 생성 (/api/users/me/addresses/{id}
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(addressId)
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     // GET /api/users/me/addresses
@@ -63,7 +70,7 @@ public class AddressController {
     public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader("X-User-Id") Long userCreatedId) {
         List<AddressResponse> addresses = addressService.getMyAddresses(userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(addresses);
+        return ResponseEntity.ok().body(addresses);
     }
 
     // PUT /api/users/me/addresses/{addressId}
@@ -79,7 +86,7 @@ public class AddressController {
                                               @Valid @RequestBody AddressRequest request) {
         addressService.modifyAddress(userCreatedId, addressId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // DELETE /api/users/me/addresses/{addressId}
@@ -94,7 +101,7 @@ public class AddressController {
                                               @PathVariable Long addressId) {
         addressService.deleteAddress(userCreatedId, addressId);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 
 }

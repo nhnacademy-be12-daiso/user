@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.dto.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
@@ -46,9 +47,13 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -74,6 +79,15 @@ public class UserServiceImpl implements UserService {
     private final CouponMessageProducer couponMessageProducer;
 
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
+
+    private static final String CACHE_NAME = "users";
+
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#event.userCreatedId")
+    public void handlePointChangedEvent(UserPointChangedEvent event) {
+        log.info("포인트 변경 감지: 회원 캐시(userInfo) 삭제 완료: {}", event.userCreatedId());
+    }
 
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
@@ -126,6 +140,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result == null")
     public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
         log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
 
@@ -157,6 +172,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
         log.info("[회원정보수정] 시작 - userCreatedId: {}", userCreatedId);
 
@@ -193,6 +209,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")
     public void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request) { // 비밀번호 수정
         User user = getUser(userCreatedId);
 
@@ -239,7 +256,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request) {
-        String loginId = "PAYCO_" + request.getPaycoIdNo();
+        String loginId = "PAYCO_" + request.paycoIdNo();
 
         Optional<Account> existingAccount = accountRepository.findById(loginId);
 
@@ -268,7 +285,7 @@ public class UserServiceImpl implements UserService {
 
         // Payco에서 idNo만 제공받으므로 고유한 기본값 사용
         String userName = "Payco User";
-        String uniqueId = request.getPaycoIdNo();
+        String uniqueId = request.paycoIdNo();
         String dummyEmail = "payco_" + uniqueId + "@payco.user";
         // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
         String dummyPhone = "010-PAYCO-" + uniqueId.substring(0, Math.min(uniqueId.length(), 4));

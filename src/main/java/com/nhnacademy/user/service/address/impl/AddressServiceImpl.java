@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +42,12 @@ public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
 
+    private static final String CACHE_NAME = "addresses";
+
     @Override
     @Transactional
-    public void addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 추가 시 기존 캐시 삭제
+    public Long addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
         User user = getUser(userCreatedId);
 
         long addressCount = addressRepository.countByUser(user);
@@ -63,19 +68,20 @@ public class AddressServiceImpl implements AddressService {
         Address address = new Address(user,
                 request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(), isDefault);
 
-        addressRepository.save(address);
+        Address saved = addressRepository.save(address);
 
         log.info("배송지 추가 - userCreatedId: {}", userCreatedId);
+
+        return saved.getAddressId();
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result.isEmpty()")   // 배송지 조회 시 캐시 적용
     public List<AddressResponse> getMyAddresses(Long userCreatedId) {   // 모든 주소 목록 조회
         User user = getUser(userCreatedId);
 
-        List<Address> addresses = addressRepository.findAllByUser(user);
-
-        return addresses.stream()
+        return addressRepository.findAllByUser(user).stream()
                 .map(address -> new AddressResponse(address.getAddressId(), address.getAddressName(),
                         address.getZipCode(), address.getRoadAddress(), address.getAddressDetail(),
                         address.isDefault()))
@@ -84,6 +90,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 수정 시 기존 캐시 삭제
     public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
         User user = getUser(userCreatedId);
 
@@ -105,6 +112,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 삭제 시 기존 캐시 삭제
     public void deleteAddress(Long userCreatedId, Long addressId) { // 특정 주소 삭제
         User user = getUser(userCreatedId);
 

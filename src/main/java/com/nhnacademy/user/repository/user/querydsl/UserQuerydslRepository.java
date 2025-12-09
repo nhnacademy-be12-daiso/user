@@ -12,8 +12,8 @@
 
 package com.nhnacademy.user.repository.user.querydsl;
 
-import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.search.UserSearchCriteria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
