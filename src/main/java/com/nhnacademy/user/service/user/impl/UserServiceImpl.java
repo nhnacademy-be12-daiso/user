@@ -200,11 +200,15 @@ public class UserServiceImpl implements UserService {
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
         User user = getUser(userCreatedId);
 
-        // Payco 더미 데이터인 경우 중복 검사 스킵 (더미 데이터에서 실제 데이터로 변경하는 경우)
-        boolean isPhoneNumberDummy = user.getPhoneNumber() != null && user.getPhoneNumber().startsWith("010-PAYCO-");
-        boolean isEmailDummy = user.getEmail() != null && user.getEmail().endsWith("@payco.user");
+        String currentPhone = user.getPhoneNumber();
+        String currentEmail = user.getEmail();
 
-        if (!isPhoneNumberDummy && !user.getPhoneNumber().equals(request.phoneNumber()) &&
+        // Payco 더미 데이터인 경우 중복 검사 스킵 (더미 데이터에서 실제 데이터로 변경하는 경우)
+        boolean isPhoneNumberDummy = currentPhone != null && currentPhone.startsWith("010-PAYCO-");
+        boolean isEmailDummy = currentEmail != null && currentEmail.endsWith("@payco.user");
+
+        // 전화번호 중복 검사 (null-safe)
+        if (!isPhoneNumberDummy && currentPhone != null && !currentPhone.equals(request.phoneNumber()) &&
                 userRepository.existsByPhoneNumber(request.phoneNumber())) {
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
@@ -213,7 +217,9 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
-        if (!isEmailDummy && !user.getEmail().equals(request.email()) && userRepository.existsByEmail(request.email())) {
+        // 이메일 중복 검사 (null-safe)
+        if (!isEmailDummy && currentEmail != null && !currentEmail.equals(request.email()) &&
+                userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
