@@ -43,35 +43,14 @@ public class MailConfig {
 
     @Bean
     public JavaMailSender javaMailService() {   // JavaMailSender 빈 등록
-        log.info("[MailConfig] JavaMailSender 빈 생성 시작");
-        log.info("[MailConfig] SMTP 호스트: {}", host);
-        log.info("[MailConfig] SMTP 포트: {}", port);
-        log.info("[MailConfig] 사용자명(이메일): {}", username);
-        log.info("[MailConfig] 비밀번호 설정 여부: {}", password != null && !password.isEmpty());
-        log.info("[MailConfig] 비밀번호 길이: {}", password != null ? password.length() : 0);
-
-        // 비밀번호에 공백이나 따옴표가 있는지 확인
-        if (password != null) {
-            boolean hasSpace = password.contains(" ");
-            boolean startsWithQuote = password.startsWith("'") || password.startsWith("\"");
-            boolean endsWithQuote = password.endsWith("'") || password.endsWith("\"");
-            log.info("[MailConfig] 비밀번호 검증 - 공백포함: {}, 따옴표시작: {}, 따옴표끝: {}",
-                    hasSpace, startsWithQuote, endsWithQuote);
-
-            if (startsWithQuote || endsWithQuote) {
-                log.warn("[MailConfig] 경고: 비밀번호에 따옴표가 포함되어 있습니다. .env 파일에서 따옴표를 제거하세요!");
-            }
-        }
-
-        final JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+        JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
         javaMailSender.setHost(host);
         javaMailSender.setPort(port);
         javaMailSender.setUsername(username);
         javaMailSender.setPassword(password);
-        javaMailSender.setJavaMailProperties(getMailProperties());
 
-        log.info("[MailConfig] JavaMailSender 빈 생성 완료");
+        javaMailSender.setJavaMailProperties(getMailProperties());
 
         return javaMailSender;
     }
