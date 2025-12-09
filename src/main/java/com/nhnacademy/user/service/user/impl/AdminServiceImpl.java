@@ -14,9 +14,9 @@ package com.nhnacademy.user.service.user.impl;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.search.UserSearchCriteria;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Status;

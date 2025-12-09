@@ -14,9 +14,9 @@ package com.nhnacademy.user.controller.user;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.search.UserSearchCriteria;
 import com.nhnacademy.user.service.user.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

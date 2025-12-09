@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.dto.search;
 
 public record UserSearchCriteria(String keyword) {
     // 관리자 전용 페이지(회원 관리) 검색

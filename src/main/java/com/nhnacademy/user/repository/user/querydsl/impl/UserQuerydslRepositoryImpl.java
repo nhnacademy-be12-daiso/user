@@ -20,8 +20,8 @@ import static com.nhnacademy.user.entity.user.QGrade.grade;
 import static com.nhnacademy.user.entity.user.QUser.user;
 import static com.nhnacademy.user.entity.user.QUserGradeHistory.userGradeHistory;
 
-import com.nhnacademy.user.dto.request.UserSearchCriteria;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.dto.search.UserSearchCriteria;
 import com.nhnacademy.user.entity.account.QAccountStatusHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.QUserGradeHistory;

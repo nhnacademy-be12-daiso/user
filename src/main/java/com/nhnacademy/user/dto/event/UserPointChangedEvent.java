@@ -10,16 +10,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.repository.user.querydsl;
+package com.nhnacademy.user.dto.event;
 
-import com.nhnacademy.user.dto.response.UserResponse;
-import com.nhnacademy.user.dto.search.UserSearchCriteria;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-public interface UserQuerydslRepository {
-
-    // 관리자 전용: N+1 없이 모든 정보를 한 번에 조회
-    Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria);
-
+public record UserPointChangedEvent(Long userCreatedId) {
+    // 마이페이지 캐싱용: 포인트가 변경되었다는 사실만 전달하는 이벤트 객체
 }
