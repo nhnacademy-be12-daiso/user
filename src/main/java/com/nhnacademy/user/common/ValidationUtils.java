@@ -19,13 +19,18 @@ import lombok.NoArgsConstructor;
 public class ValidationUtils {  // 정규식 패턴 상수 클래스
     // 보안 정책이 바뀌었을 때 해당 클래스의 상수만 수정하면 됨
 
+    // 소문자 1개 이상, 3~16자
+    // 소문자, 숫자, 언더바 허용
     public static final String LOGIN_ID_PATTERN = "^(?=.*[a-z])[a-z0-9_]{3,16}$";
 
+    // 영문 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 8~20자
     public static final String PASSWORD_PATTERN =
             "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$";
 
+    // 010-XXXX-XXXX
     public static final String PHONE_PATTERN = "^010-\\d{3,4}-\\d{4}$";
 
+    // example@example.com (.co.kr처럼 점이 여러 개여도 괜찮음)
     public static final String EMAIL_PATTERN = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
 }
