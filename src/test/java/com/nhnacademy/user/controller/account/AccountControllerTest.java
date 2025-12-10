@@ -17,6 +17,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -46,10 +47,10 @@ public class AccountControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private VerificationService verificationService;
+    private AccountService accountService;
 
     @MockitoBean
-    private AccountService accountService;
+    private VerificationService verificationService;
 
     @MockitoBean
     private FindAccountService findAccountService;
@@ -58,6 +59,7 @@ public class AccountControllerTest {
     @DisplayName("휴면 해제 인증코드 발송")
     void test1() throws Exception {
         Long userId = 1L;
+
         doNothing().when(verificationService).sendCode(userId);
 
         mockMvc.perform(post("/api/users/activate/send-code")
@@ -67,7 +69,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("휴면 계정 활성화")
+    @DisplayName("휴면 계정 활성화 (인증코드 필수)")
     void test2() throws Exception {
         Long userId = 1L;
         String code = "123456";
@@ -83,7 +85,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("아이디 찾기 API")
+    @DisplayName("아이디 찾기")
     void test3() throws Exception {
         FindLoginIdRequest request = new FindLoginIdRequest("홍길동", "test@test.com");
         String maskedId = "test***";
@@ -99,7 +101,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("비밀번호 찾기(임시 비번) API")
+    @DisplayName("비밀번호 찾기 (임시 비밀번호 발급)")
     void test4() throws Exception {
         FindPasswordRequest request = new FindPasswordRequest("testId", "홍길동", "test@test.com");
 
@@ -109,6 +111,19 @@ public class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("아이디 중복 확인")
+    void test5() throws Exception {
+        String loginId = "test1";
+
+        mockMvc.perform(get("/api/users/check-id")
+                        .param("loginId", loginId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"))
                 .andDo(print());
     }
 

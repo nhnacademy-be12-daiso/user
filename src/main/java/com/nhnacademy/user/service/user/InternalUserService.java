@@ -10,9 +10,16 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.request;
+package com.nhnacademy.user.service.user;
 
-public record UserSearchCriteria(String keyword) {
-    // 관리자 전용 페이지(회원 관리) 검색
-    // keyword: 검색어 (이름, 이메일, 아이디 통합 검색에 사용됨)
+import com.nhnacademy.user.dto.response.InternalUserResponse;
+
+public interface InternalUserService {
+
+    // 회원 유효성 검증
+    boolean existsUser(Long userCreatedId);
+
+    // 주문/결제용 회원 정보 조회
+    InternalUserResponse getInternalUserInfo(Long userCreatedId);
+
 }

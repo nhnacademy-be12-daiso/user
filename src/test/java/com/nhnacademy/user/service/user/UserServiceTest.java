@@ -16,11 +16,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
+import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
@@ -35,10 +39,10 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
-import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -67,9 +71,6 @@ class UserServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
-    private AddressRepository addressRepository;
-
-    @Mock
     private GradeRepository gradeRepository;
 
     @Mock
@@ -86,6 +87,9 @@ class UserServiceTest {
 
     @Mock
     private PointService pointService;
+
+    @Mock
+    CouponMessageProducer couponMessageProducer;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -215,14 +219,14 @@ class UserServiceTest {
     @DisplayName("회원 정보 수정 성공")
     void test7() {
         UserModifyRequest request = new UserModifyRequest("수정된 이름",
-                "010-1234-5678", "new@new.com", testBirthDate);
+                "010-1234-5678", "new@test.com", testBirthDate);
 
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
         userService.modifyUserInfo(testUserId, request);
 
         assertThat(testUser.getUserName()).isEqualTo("수정된 이름");
-        assertThat(testUser.getEmail()).isEqualTo("new@new.com");
+        assertThat(testUser.getEmail()).isEqualTo("new@test.com");
     }
 
     @Test
@@ -245,32 +249,46 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
+    @DisplayName("Payco 신규 회원가입")
     void test9() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+        PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
+        String expectedLoginId = "PAYCO_PAYCO_12345";
 
-        Status status = new Status("ACTIVE");
+        given(accountRepository.findById(expectedLoginId)).willReturn(Optional.empty());
 
-        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
+        given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(mock(Grade.class)));
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(mock(Status.class)));
 
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
-                .willReturn(Optional.of(statusHistory));
+        PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
 
-        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
+        assertThat(response.isNewUser()).isTrue();
+        verify(userRepository).save(any(User.class));
+        verify(accountRepository).save(any(Account.class));
+        verify(pointService).earnPointByPolicy(any(), eq("REGISTER"));
+        verify(couponMessageProducer).sendWelcomeCouponMessage(any());
+    }
 
-        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "reason");
+    @Test
+    @DisplayName("Payco 기존 회원 로그인")
+    void test10() {
+        PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
+        String expectedLoginId = "PAYCO_PAYCO_12345";
 
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
-                .willReturn(Optional.of(gradeHistory));
+        Account existingAccount = mock(Account.class);
+        User existingUser = mock(User.class);
+        Status activeStatus = new Status("ACTIVE");
+        AccountStatusHistory history = new AccountStatusHistory(existingAccount, activeStatus);
 
-        given(pointService.getCurrentPoint(any())).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+        given(accountRepository.findById(expectedLoginId)).willReturn(Optional.of(existingAccount));
+        given(existingAccount.getUser()).willReturn(existingUser);
+        given(existingAccount.getRole()).willReturn(Role.USER);
+        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(existingAccount))
+                .willReturn(Optional.of(history));
 
-        var response = userService.getInternalUserInfo(testUserId);
+        PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
 
-        assertThat(response).isNotNull();
-        assertThat(response.userCreatedId()).isEqualTo(testUserId);
-        assertThat(response.gradeName()).isEqualTo("GOLD");
-        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
+        assertThat(response.isNewUser()).isFalse();
+        verify(userRepository, never()).save(any());
     }
 
 }

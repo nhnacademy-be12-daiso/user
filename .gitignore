@@ -34,8 +34,11 @@ build/
 
 ### Spring Boot Preferences ###
 /src/main/resources/application-dev.yml
-/src/main/resources/application-test.yml
+/src/test/resources/application-test.yml
 
 ### Logs ###
 ./logs/
 *.log
+
+### SonarQube ###
+/sonarqube/README.md

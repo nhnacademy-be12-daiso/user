@@ -12,14 +12,13 @@
 
 package com.nhnacademy.user.service.user.impl;
 
+import com.nhnacademy.user.dto.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.BirthdayUserResponse;
-import com.nhnacademy.user.dto.response.InternalAddressResponse;
-import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -39,20 +38,22 @@ import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
-import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -62,8 +63,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     private final AccountRepository accountRepository;
-
-    private final AddressRepository addressRepository;
 
     private final GradeRepository gradeRepository;
 
@@ -81,41 +80,17 @@ public class UserServiceImpl implements UserService {
 
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
 
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsUser(Long userCreatedId) { // 회원 유효성 검증
-        return userRepository.existsById(userCreatedId);
-    }
+    private static final String PAYCO_PHONE_NUMBER_PREFIX = "010-PAYCO-";
 
-    @Override
-    @Transactional(readOnly = true)
-    public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
-        User user = getUser(userCreatedId);
+    private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
 
-        Account account = user.getAccount();
+    private static final String CACHE_NAME = "users";
 
-        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
-        if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
-            throw new UserNotFoundException("탈퇴한 계정입니다.");
-        }
-
-        Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
-
-        BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
-
-        List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()
-                .map(address -> new InternalAddressResponse(
-                        address.getAddressName(), address.getZipCode(), address.getRoadAddress(),
-                        address.getAddressDetail()))
-                .toList();
-
-        return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),
-                grade.getGradeName(), grade.getPointRate(), point, addresses);
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#event.userCreatedId")
+    public void handlePointChangedEvent(UserPointChangedEvent event) {
+        log.info("포인트 변경 감지: 회원 캐시(userInfo) 삭제 완료: {}", event.userCreatedId());
     }
 
     @Override
@@ -169,6 +144,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result == null")
     public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
         log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
 
@@ -200,23 +176,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
+        log.info("[회원정보수정] 시작 - userCreatedId: {}", userCreatedId);
+
         User user = getUser(userCreatedId);
 
-        if (!user.getPhoneNumber().equals(request.phoneNumber()) &&
-                userRepository.existsByPhoneNumber(request.phoneNumber())) {
+        String currentPhone = user.getPhoneNumber();
+        String currentEmail = user.getEmail();
+
+        // 전화번호 중복 검사 - 현재 전화번호와 다르고, 더미가 아닌 경우만 검사
+        if (!request.phoneNumber().equals(currentPhone) && userRepository.existsByPhoneNumber(request.phoneNumber())) {
+            // 더미 데이터이거나, 실제 데이터가 변경된 경우 중복 검사
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
-        if (!user.getEmail().equals(request.email()) && userRepository.existsByEmail(request.email())) {
+        // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
+        if (!request.email().equals(currentEmail) && userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
+
+        log.info("[회원정보수정] 완료 - userCreatedId: {}", userCreatedId);
     }
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")
     public void modifyUserPassword(Long userCreatedId, PasswordModifyRequest request) { // 비밀번호 수정
         User user = getUser(userCreatedId);
 
@@ -263,7 +250,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request) {
-        String loginId = "PAYCO_" + request.getPaycoIdNo();
+        String loginId = "PAYCO_" + request.paycoIdNo();
 
         Optional<Account> existingAccount = accountRepository.findById(loginId);
 
@@ -292,10 +279,10 @@ public class UserServiceImpl implements UserService {
 
         // Payco에서 idNo만 제공받으므로 고유한 기본값 사용
         String userName = "Payco User";
-        String uniqueId = request.getPaycoIdNo();
-        String dummyEmail = "payco_" + uniqueId + "@payco.user";
+        String uniqueId = request.paycoIdNo();
+        String dummyEmail = "payco_" + uniqueId + PAYCO_EMAIL_SUFFIX;
         // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
-        String dummyPhone = "010-PAYCO-" + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
+        String dummyPhone = PAYCO_PHONE_NUMBER_PREFIX + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
 
         User newUser = new User(userName, dummyPhone, dummyEmail, null);
         userRepository.save(newUser);
@@ -338,12 +325,13 @@ public class UserServiceImpl implements UserService {
      */
     private boolean isProfileIncomplete(User user) {
         return "Payco User".equals(user.getUserName()) ||
-                (user.getPhoneNumber() != null && user.getPhoneNumber().startsWith("010-PAYCO-")) ||
-                (user.getEmail() != null && user.getEmail().endsWith("@payco.user"));
+                (user.getPhoneNumber() != null && user.getPhoneNumber().startsWith(PAYCO_PHONE_NUMBER_PREFIX)) ||
+                (user.getEmail() != null && user.getEmail().endsWith(PAYCO_EMAIL_SUFFIX));
     }
 
     private User getUser(Long userCreatedId) {
         return userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
     }
+
 }

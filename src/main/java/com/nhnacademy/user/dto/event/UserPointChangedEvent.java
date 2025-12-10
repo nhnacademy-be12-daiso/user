@@ -10,24 +10,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.address;
+package com.nhnacademy.user.dto.event;
 
-import com.nhnacademy.user.dto.request.AddressRequest;
-import com.nhnacademy.user.dto.response.AddressResponse;
-import java.util.List;
-
-public interface AddressService {
-
-    // 새 배송지 추가
-    Long addAddress(Long userCreatedId, AddressRequest request);
-
-    // 모든 주소 목록 조회
-    List<AddressResponse> getMyAddresses(Long userCreatedId);
-
-    // 특정 주소 정보 수정
-    void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request);
-
-    // 특정 주소 삭제
-    void deleteAddress(Long userCreatedId, Long addressId);
-
+public record UserPointChangedEvent(Long userCreatedId) {
+    // 마이페이지 캐싱용: 포인트가 변경되었다는 사실만 전달하는 이벤트 객체
 }

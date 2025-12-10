@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,19 +54,9 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<Void> sendVerifyCode(@RequestHeader("X-User-Id") Long userCreatedId) {
-        log.info("[AccountController] 휴면 해제 인증코드 발송 요청 - userCreatedId: {}", userCreatedId);
+        verificationService.sendCode(userCreatedId);
 
-        try {
-            verificationService.sendCode(userCreatedId);
-            log.info("[AccountController] 휴면 해제 인증코드 발송 성공 - userCreatedId: {}", userCreatedId);
-
-            return ResponseEntity.status(HttpStatus.OK).build();
-
-        } catch (Exception e) {
-            log.error("[AccountController] 휴면 해제 인증코드 발송 실패 - userCreatedId: {}, error: {}",
-                    userCreatedId, e.getMessage(), e);
-            throw e;
-        }
+        return ResponseEntity.ok().build();
     }
 
     // POST /api/users/activate?code={code}
@@ -83,7 +72,7 @@ public class AccountController {
 
         accountService.activeUser(userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // POST /api/users/find-id
@@ -93,7 +82,7 @@ public class AccountController {
     public ResponseEntity<String> findLoginId(@RequestBody FindLoginIdRequest request) {
         String maskedId = findAccountService.findLoginId(request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(maskedId);
+        return ResponseEntity.ok().body(maskedId);
     }
 
     // POST /api/users/find-password
@@ -103,7 +92,7 @@ public class AccountController {
     public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequest request) {
         findAccountService.createTemporaryPassword(request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/check-id")
@@ -111,7 +100,7 @@ public class AccountController {
     public ResponseEntity<Boolean> checkLoginId(@RequestParam String loginId) {
         boolean isExist = accountService.existsLoginId(loginId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(isExist);
+        return ResponseEntity.ok().body(isExist);
     }
 
 }

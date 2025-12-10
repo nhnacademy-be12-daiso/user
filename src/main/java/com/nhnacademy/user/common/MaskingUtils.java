@@ -12,7 +12,11 @@
 
 package com.nhnacademy.user.common;
 
-public class MaskingUtils { // 아이디 마스킹
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)    // 인스턴스화 방지
+public final class MaskingUtils { // 아이디 마스킹
 
     public static String maskLoginId(String loginId) {
         if (loginId == null || loginId.length() < 2) {

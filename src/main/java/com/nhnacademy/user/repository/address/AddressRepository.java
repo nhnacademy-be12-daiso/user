@@ -25,7 +25,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     // 주소가 여러 개인 회원이 새 기본 주소를 추가했을 때 일어나는 N+1 문제를 해결하기 위한 쿼리 메소드
     // Modifying은 메모리(영속성 컨텍스트)를 강제로 비워버림 > 기존에 조회해뒀던 엔티티들이 다 죽은 객체가 됨!!
     // 항상 벌크 연산을 먼저 하고, 그 다음에 엔티티를 조회해서 수정해야 함!!
-    @Modifying(clearAutomatically = true)   // 영속성 컨텍스트 클리어
+    @Modifying(clearAutomatically = true)   // 영속성 컨텍스트 클리어 > 1차 캐시에 저장된 인스턴스가 없기 때문에 DB 조회
     @Query("UPDATE Address a SET a.isDefault = false WHERE a.user = :user")
     void clearAllDefaultsByUser(User user);
 

@@ -13,12 +13,22 @@
 package com.nhnacademy.user.service.point;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.point.Method;
+import com.nhnacademy.user.entity.point.PointPolicy;
+import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -33,6 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +57,9 @@ class PointServiceTest {
 
     @Mock
     PointPolicyRepository pointPolicyRepository;
+
+    @Mock
+    ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     PointServiceImpl pointService;
@@ -73,23 +87,36 @@ class PointServiceTest {
         assertThat(response.currentPoint()).isEqualTo(BigDecimal.valueOf(1000));
     }
 
-//    @Test
-//    @DisplayName("정책으로 포인트 적립")
-//    void test2() {
-//        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
-//
-//        PointPolicy policy = new PointPolicy();
-//        ReflectionTestUtils.setField(policy, "policyName", "회원가입");
-//        ReflectionTestUtils.setField(policy, "policyType", "REGISTER");
-//        ReflectionTestUtils.setField(policy, "method", Method.AMOUNT);
-//        ReflectionTestUtils.setField(policy, "earnPoint", BigDecimal.valueOf(5000));
-//
-//        given(pointPolicyRepository.findByPolicyType("REGISTER"))
-//                .willReturn(Optional.of(policy));
-//
-//        pointService.earnPointByPolicy(testUserId, "REGISTER");
-//
-//        verify(pointHistoryRepository).save(any());
-//    }
+    @Test
+    @DisplayName("정책으로 포인트 적립 및 이벤트 발행 확인")
+    void test2() {
+        // given
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
+
+        PointPolicy policy = new PointPolicy("회원가입", "REGISTER", Method.AMOUNT, BigDecimal.valueOf(5000));
+        given(pointPolicyRepository.findByPolicyType("REGISTER")).willReturn(Optional.of(policy));
+
+        // when
+        pointService.earnPointByPolicy(testUserId, "REGISTER");
+
+        // then
+        verify(pointHistoryRepository).save(any());
+        verify(eventPublisher).publishEvent(any(UserPointChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("포인트 사용 실패 - 잔액 부족")
+    void test3() {
+        given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(100));
+
+        PointRequest request = new PointRequest(testUserId, BigDecimal.valueOf(1000), Type.USE, "사용");
+
+        assertThatThrownBy(() -> pointService.processPoint(request))
+                .isInstanceOf(PointNotEnoughException.class)
+                .hasMessageContaining("포인트 잔액이 부족합니다");
+
+        verify(eventPublisher, never()).publishEvent(any());
+    }
 
 }

@@ -10,24 +10,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.service.address;
+package com.nhnacademy.user.dto.search;
 
-import com.nhnacademy.user.dto.request.AddressRequest;
-import com.nhnacademy.user.dto.response.AddressResponse;
-import java.util.List;
-
-public interface AddressService {
-
-    // 새 배송지 추가
-    Long addAddress(Long userCreatedId, AddressRequest request);
-
-    // 모든 주소 목록 조회
-    List<AddressResponse> getMyAddresses(Long userCreatedId);
-
-    // 특정 주소 정보 수정
-    void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request);
-
-    // 특정 주소 삭제
-    void deleteAddress(Long userCreatedId, Long addressId);
-
+public record UserSearchCriteria(String keyword) {
+    // 관리자 전용 페이지(회원 관리) 검색
+    // keyword: 검색어 (이름, 이메일, 아이디 통합 검색에 사용됨)
 }
