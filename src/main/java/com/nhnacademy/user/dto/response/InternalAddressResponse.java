@@ -15,6 +15,7 @@ package com.nhnacademy.user.dto.response;
 public record InternalAddressResponse(String addressName,
                                       String zipCode,
                                       String roadAddress,
-                                      String addressDetail) {
+                                      String addressDetail,
+                                      boolean isDefault) {
     // 배송지 정보를 담기 위해 필요한 DTO
 }
