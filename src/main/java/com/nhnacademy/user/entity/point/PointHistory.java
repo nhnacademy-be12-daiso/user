@@ -24,7 +24,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -49,8 +48,8 @@ public class PointHistory { // 포인트 사용 내역
     @JoinColumn(name = "user_created_id", nullable = false)
     private User user;                  // Users 테이블 외래키 (FK)
 
-    @Column(nullable = false, precision = 10, scale = 2)    // 99999999.99원까지
-    private BigDecimal amount;          // 포인트 사용 금액
+    @Column(nullable = false)
+    private Long amount;          // 포인트 사용 금액
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -63,7 +62,7 @@ public class PointHistory { // 포인트 사용 내역
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;    // 포인트 사용 날짜
 
-    public PointHistory(User user, BigDecimal amount, Type type, String description) {
+    public PointHistory(User user, Long amount, Type type, String description) {
         this.user = user;
         this.amount = amount;
         this.type = type;

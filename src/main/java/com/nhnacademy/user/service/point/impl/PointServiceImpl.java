@@ -55,10 +55,10 @@ public class PointServiceImpl implements PointService {
     public PointResponse getCurrentPoint(Long userCreatedId) {  // 현재 내 포인트 잔액 조회
         User user = getUser(userCreatedId);
 
-        BigDecimal point = pointHistoryRepository.getPointByUser(user);
+        Long point = pointHistoryRepository.getPointByUser(user);
 
         if (point == null) {
-            point = BigDecimal.ZERO;
+            point = 0L;
         }
 
         return new PointResponse(point);
@@ -77,16 +77,17 @@ public class PointServiceImpl implements PointService {
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다"));
 
-        BigDecimal calculatedAmount;
+        long calculatedAmount;
 
         if (pointPolicy.getMethod() == Method.AMOUNT) {
-            calculatedAmount = pointPolicy.getEarnPoint();  // 정책에 설정된 값 그대로 사용
+            calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용(소수점 버림)
+
         } else {
             if (targetAmount == null || targetAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("정률(RATIO) 정책은 기준 금액이 필수입니다.");
             }
 
-            calculatedAmount = targetAmount.multiply(pointPolicy.getEarnPoint());
+            calculatedAmount = targetAmount.multiply(pointPolicy.getEarnPoint()).longValue();
         }
 
         PointHistory pointHistory = new PointHistory(user, calculatedAmount, Type.EARN, pointPolicy.getPolicyName());
@@ -106,13 +107,13 @@ public class PointServiceImpl implements PointService {
         User user = userRepository.findByIdForUpdate(request.userCreatedId())
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
 
-        BigDecimal amount = request.amount();
+        Long amount = request.amount();
 
         if (request.type() == Type.USE) {
-            BigDecimal currentPoint = pointHistoryRepository.getPointByUser(user);
+            Long currentPoint = pointHistoryRepository.getPointByUser(user);
 
             if (currentPoint == null) {
-                currentPoint = BigDecimal.ZERO;
+                currentPoint = 0L;
             }
 
             if (currentPoint.compareTo(amount) < 0) {

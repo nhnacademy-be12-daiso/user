@@ -18,7 +18,6 @@ import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +51,7 @@ class UserControllerXUserIdUnitTest {
                 "test@example.com",
                 LocalDate.of(1990, 1, 1),
                 "GENERAL",
-                BigDecimal.valueOf(1000),
+                1000L,
                 "ACTIVE",
                 LocalDateTime.now()
         );
@@ -81,12 +80,12 @@ class UserControllerXUserIdUnitTest {
 
         UserResponse user1 = new UserResponse(
                 1L, "user1", "사용자1", "01011111111", "user1@test.com",
-                LocalDate.of(1990, 1, 1), "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now()
+                LocalDate.of(1990, 1, 1), "GENERAL", 0L, "ACTIVE", LocalDateTime.now()
         );
 
         UserResponse user2 = new UserResponse(
                 1L, "user2", "사용자2", "01022222222", "user2@test.com",
-                LocalDate.of(1991, 2, 2), "VIP", BigDecimal.valueOf(5000), "ACTIVE", LocalDateTime.now()
+                LocalDate.of(1991, 2, 2), "VIP", 5000L, "ACTIVE", LocalDateTime.now()
         );
 
         given(userService.getUserInfo(userId1)).willReturn(user1);
@@ -114,7 +113,7 @@ class UserControllerXUserIdUnitTest {
         Long largeUserId = 99999L;
         UserResponse response = new UserResponse(
                 1L, "testuser", "테스트", "01012345678", "test@test.com",
-                LocalDate.of(1990, 1, 1), "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now()
+                LocalDate.of(1990, 1, 1), "GENERAL", 0L, "ACTIVE", LocalDateTime.now()
         );
 
         given(userService.getUserInfo(largeUserId)).willReturn(response);
@@ -157,7 +156,7 @@ class UserControllerXUserIdUnitTest {
     private UserResponse createUserResponse(String loginId, String userName) {
         return new UserResponse(
                 1L, loginId, userName, "01012345678", loginId + "@test.com",
-                LocalDate.of(1990, 1, 1), "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now()
+                LocalDate.of(1990, 1, 1), "GENERAL", 0L, "ACTIVE", LocalDateTime.now()
         );
     }
 }

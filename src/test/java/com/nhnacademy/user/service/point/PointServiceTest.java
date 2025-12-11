@@ -80,11 +80,11 @@ class PointServiceTest {
     @DisplayName("현재 포인트 잔액 조회 (DB 계산 결과 반환)")
     void test1() {
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
-        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(1000));
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(1000L);
 
         PointResponse response = pointService.getCurrentPoint(testUserId);
 
-        assertThat(response.currentPoint()).isEqualTo(BigDecimal.valueOf(1000));
+        assertThat(response.currentPoint()).isEqualTo(1000L);
     }
 
     @Test
@@ -108,9 +108,9 @@ class PointServiceTest {
     @DisplayName("포인트 사용 실패 - 잔액 부족")
     void test3() {
         given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
-        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(100));
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(100L);
 
-        PointRequest request = new PointRequest(testUserId, BigDecimal.valueOf(1000), Type.USE, "사용");
+        PointRequest request = new PointRequest(testUserId, 1000L, Type.USE, "사용");
 
         assertThatThrownBy(() -> pointService.processPoint(request))
                 .isInstanceOf(PointNotEnoughException.class)

@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.service.point.PointService;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +46,7 @@ class PointControllerTest {
     void test1() throws Exception {
         Long userId = 1L;
         Page<PointHistoryResponse> page = new PageImpl<>(List.of(
-                new PointHistoryResponse(BigDecimal.TEN, Type.EARN, "적립", LocalDateTime.now())
+                new PointHistoryResponse(10L, Type.EARN, "적립", LocalDateTime.now())
         ));
 
         given(pointService.getMyPointHistory(eq(userId), any())).willReturn(page);

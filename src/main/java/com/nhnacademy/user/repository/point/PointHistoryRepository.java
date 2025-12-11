@@ -14,7 +14,6 @@ package com.nhnacademy.user.repository.point;
 
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.user.User;
-import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +27,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
             "WHEN ph.type = 'CANCEL' THEN ph.amount " + // 사용 취소면 다시 더해줘야 함
             "ELSE 0 END), 0) " +
             "FROM PointHistory ph WHERE ph.user = :user")
-    BigDecimal getPointByUser(User user);
+    Long getPointByUser(User user);
 
     // 특정 회원의 포인트 내역 페이징 조회
     Page<PointHistory> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);

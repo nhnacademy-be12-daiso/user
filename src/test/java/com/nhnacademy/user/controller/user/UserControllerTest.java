@@ -30,7 +30,6 @@ import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.UserService;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +74,7 @@ class UserControllerTest {
         Long userId = 1L;
         UserResponse response = new UserResponse(
                 1L, "testId", "홍길동", "010-1234-5678", "test@email.com", LocalDate.now(),
-                "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now());
+                "GENERAL", 0L, "ACTIVE", LocalDateTime.now());
 
         given(userService.getUserInfo(userId)).willReturn(response);
 
