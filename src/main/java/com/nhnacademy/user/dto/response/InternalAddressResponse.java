@@ -12,7 +12,8 @@
 
 package com.nhnacademy.user.dto.response;
 
-public record InternalAddressResponse(String addressName,
+public record InternalAddressResponse(Long addressId,
+                                      String addressName,
                                       String zipCode,
                                       String roadAddress,
                                       String addressDetail,

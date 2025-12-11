@@ -82,8 +82,8 @@ public class InternalUserServiceImpl implements InternalUserService {
 
         List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()
                 .map(address -> new InternalAddressResponse(
-                        address.getAddressName(), address.getZipCode(), address.getRoadAddress(),
-                        address.getAddressDetail(), address.isDefault()))
+                        address.getAddressId(), address.getAddressName(), address.getZipCode(),
+                        address.getRoadAddress(), address.getAddressDetail(), address.isDefault()))
                 .toList();
 
         return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),
