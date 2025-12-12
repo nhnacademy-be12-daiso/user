@@ -59,6 +59,7 @@ rabbitmq:
     key: team3.coupon.welcome
   queue:
     name: team3.coupon.welcome.queue  #  메시지가 쌓일 실제 우편함 이름입니다.
+    user: team3.book.deducted.user.queue
 
 eureka:
   instance:

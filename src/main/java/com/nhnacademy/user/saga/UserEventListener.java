@@ -11,11 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserEventListener {
 
-    private static final String USER_QUEUE = "team3.book.deducted.user.queue";
 
     private final UserEventPublisher userEventPublisher;
 
-    @RabbitListener(queues = USER_QUEUE)
+    @RabbitListener(queues = "${rabbitmq.queue.user}")
     @Transactional
     public void handleBookDeductedEvent(OrderConfirmedEvent event) {
         log.info("[User API] ===== 주문 확정 이벤트 수신됨 =====");
@@ -25,7 +24,7 @@ public class UserEventListener {
             // TODO 포인트 차감 로직
 
             // saga 다음 단계를 위한 이벤트 발행
-//            userEventPublisher
+            userEventPublisher.publishPointDeductedEvent(event);
 
             log.info("[User API] 포인트 내역 업데이트 성공");
             log.info("[User API] 다음 이벤트 발행 완료 : User API -> Coupon API");
