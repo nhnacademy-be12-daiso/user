@@ -46,14 +46,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
-
     private final GradeRepository gradeRepository;
+    private final UserGradeHistoryRepository userGradeHistoryRepository;
 
     private final StatusRepository statusRepository;
-
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
-
-    private final UserGradeHistoryRepository userGradeHistoryRepository;
 
     private final PointService pointService;
 

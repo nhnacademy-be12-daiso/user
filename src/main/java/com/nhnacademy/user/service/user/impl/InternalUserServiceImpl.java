@@ -62,7 +62,10 @@ public class InternalUserServiceImpl implements InternalUserService {
     @Transactional(readOnly = true)
     public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
         User user = userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
+                .orElseThrow(() -> {
+                    log.error("[주문/결제] 회원 정보 조회 실페: 찾을 수 없는 회원 ({})", userCreatedId);
+                    return new UserNotFoundException("찾을 수 없는 회원입니다.");
+                });
 
         Account account = user.getAccount();
 
@@ -71,7 +74,8 @@ public class InternalUserServiceImpl implements InternalUserService {
                 .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
-            throw new UserNotFoundException("탈퇴한 계정입니다.");
+            log.error("[주문/결제] 회원 정보 조회 실패: 탈퇴한 계정");
+            throw new UserNotFoundException("이미 탈퇴한 계정입니다.");
         }
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)

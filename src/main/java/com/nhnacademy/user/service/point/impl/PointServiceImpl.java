@@ -45,7 +45,6 @@ public class PointServiceImpl implements PointService {
     private final UserRepository userRepository;
 
     private final PointHistoryRepository pointHistoryRepository;
-
     private final PointPolicyRepository pointPolicyRepository;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -75,7 +74,10 @@ public class PointServiceImpl implements PointService {
         User user = getUser(userCreatedId);
 
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
-                .orElseThrow(() -> new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다"));
+                .orElseThrow(() -> {
+                    log.error("[포인트] 정책 기반 적립 실패: 없는 포인트 정책 ({})", policyType);
+                    return new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다");
+                });
 
         long calculatedAmount;
 

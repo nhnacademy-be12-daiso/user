@@ -12,9 +12,10 @@
 
 package com.nhnacademy.user.config;
 
+import com.nhnacademy.user.properties.MailProperties;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,23 +24,27 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 @Slf4j
 @Configuration
+@EnableConfigurationProperties(MailProperties.class)
 public class MailConfig {
 
     // SMTP 서버
-    @Value("${spring.mail.host}")
-    private String host;
+    private final String host;
 
     // 포트
-    @Value("${spring.mail.port}")
-    private Integer port;
+    private final Integer port;
 
     // 계정
-    @Value("${spring.mail.username}")
-    private String username;
+    private final String username;
 
     // 비밀번호
-    @Value("${spring.mail.password}")
-    private String password;
+    private final String password;
+
+    public MailConfig(MailProperties mailProperties) {
+        this.host = mailProperties.getHost();
+        this.port = mailProperties.getPort();
+        this.username = mailProperties.getUsername();
+        this.password = mailProperties.getPassword();
+    }
 
     @Bean
     public JavaMailSender javaMailService() {   // JavaMailSender 빈 등록
@@ -90,8 +95,6 @@ public class MailConfig {
 
         // 디버그 모드
         properties.setProperty("mail.debug", "true");
-
-        log.info("[MailConfig] SMTP 속성 설정 완료 - SSL: true, Auth: PLAIN LOGIN, Port: {}", port);
 
         return properties;
     }

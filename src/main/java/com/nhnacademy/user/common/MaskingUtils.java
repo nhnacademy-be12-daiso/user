@@ -24,6 +24,7 @@ public final class MaskingUtils { // 아이디 마스킹
         }
 
         int length = loginId.length();
+
         int visibleLength = (length > 3) ? length - 3 : 1;
 
         return loginId.substring(0, visibleLength) + "*".repeat(length - visibleLength);

@@ -1,3 +1,15 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
 package com.nhnacademy.user.saga;
 
 import lombok.RequiredArgsConstructor;
@@ -10,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class UserEventListener {
-
 
     private final UserEventPublisher userEventPublisher;
 
@@ -28,7 +39,7 @@ public class UserEventListener {
 
             log.info("[User API] 포인트 내역 업데이트 성공");
             log.info("[User API] 다음 이벤트 발행 완료 : User API -> Coupon API");
-        } catch(Exception e) { // 커스텀 예외 처리 꼭 하기
+        } catch (Exception e) { // 커스텀 예외 처리 꼭 하기
             log.error("[User API] ===== 포인트 내역 업데이트 실패로 인한 보상 트랜잭션 시작 =====");
             log.error("[User API] Order ID : {}", event.getOrderId());
 
@@ -39,8 +50,6 @@ public class UserEventListener {
 //             TODO Dead Letter Queue 처리
 //             ---> 근데 여기서도 보상 트랜잭션 날려야하는거 아님?
 //        }
-
     }
-
 
 }

@@ -52,11 +52,10 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
 
     @Override
     public Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria) {
-        // querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
-        // 서브쿼리 전용 별칭 선언
+        // 서브쿼리 전용 별칭 선언: querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
+        // 같은 테이블을 메인 쿼리와 서브 쿼리에서 동시에 사용하기 위한 규칙
         QUserGradeHistory subGradeHistory = new QUserGradeHistory("subGradeHistory");
         QAccountStatusHistory subStatusHistory = new QAccountStatusHistory("subStatusHistory");
-        // 같은 테이블을 메인 쿼리와 서브 쿼리에서 동시에 사용하기 위한 규칙
 
         // 데이터 조회 쿼리
         List<UserResponse> content = jpaQueryFactory
