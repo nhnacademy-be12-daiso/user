@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
         // 웰컴 쿠폰 발급 요청
         try {
             couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
-            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송)
+            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송), try-catch로 잡으면 완벽한 비동기가 아님. 전달하는 행위 자체를 비동기로 만들자! 이벤트리스너 이용
         } catch (Exception e) {
             log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", saved.getUserCreatedId(), e.getMessage());
         }
