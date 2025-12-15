@@ -62,7 +62,8 @@ public class RabbitMqConfig {
     // ----- saga를 위한 설정 ------
 
     private static final String BOOK_EXCHANGE = "team3.book.exchange";
-    private static final String USER_QUEUE = "team3.book.deducted.user.queue";
+    @Value("${rabbitmq.queue.user}")
+    private String USER_QUEUE;
     private static final String ROUTING_KEY_DEDUCTED = "inventory.deducted";
 
     private static final String USER_EXCHANGE = "team3.user.exchange";
@@ -88,6 +89,4 @@ public class RabbitMqConfig {
     public TopicExchange userExchange() {
         return new TopicExchange(USER_EXCHANGE);
     }
-
-
 }
