@@ -40,7 +40,6 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -111,7 +110,7 @@ class AdminServiceTest {
                 "test@email.com",
                 LocalDate.now(),
                 "GENERAL",
-                BigDecimal.valueOf(1000),
+                1000L,
                 "ACTIVE",
                 LocalDateTime.now()
         );
@@ -125,7 +124,7 @@ class AdminServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
         assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
-        assertThat(result.getContent().get(0).point()).isEqualTo(BigDecimal.valueOf(1000));
+        assertThat(result.getContent().get(0).point()).isEqualTo(1000L);
 
         verify(userRepository).findAllUser(pageable, new UserSearchCriteria("test"));
     }
@@ -152,7 +151,7 @@ class AdminServiceTest {
         given(mockGradeHistory.getGrade()).willReturn(mockGrade);
         given(mockGrade.getGradeName()).willReturn("VIP");
 
-        given(pointService.getCurrentPoint(userId)).willReturn(new PointResponse(BigDecimal.TEN));
+        given(pointService.getCurrentPoint(userId)).willReturn(new PointResponse(10L));
 
         UserDetailResponse response = adminService.getUserDetail(userId);
 

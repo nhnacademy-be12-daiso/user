@@ -19,7 +19,6 @@ import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,14 +44,14 @@ class PointHistoryRepositoryTest {
         User user = new User("테스트", "010-1111-2222", "test@test.com", LocalDate.now());
         userRepository.save(user);
 
-        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(1000), Type.EARN, "가입"));
-        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.USE, "구매"));
-        pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(500), Type.CANCEL, "구매 취소"));
+        pointHistoryRepository.save(new PointHistory(user, 1000L, Type.EARN, "가입"));
+        pointHistoryRepository.save(new PointHistory(user, 500L, Type.USE, "구매"));
+        pointHistoryRepository.save(new PointHistory(user, 500L, Type.CANCEL, "구매 취소"));
 
         // 1000 - 500 + 500 = 1000
-        BigDecimal balance = pointHistoryRepository.getPointByUser(user);
+        Long balance = pointHistoryRepository.getPointByUser(user);
 
-        assertThat(balance).isEqualByComparingTo(BigDecimal.valueOf(1000));
+        assertThat(balance).isEqualByComparingTo(1000L);
     }
 
     @Test
@@ -61,9 +60,9 @@ class PointHistoryRepositoryTest {
         User user = new User("테스트2", "010-3333-4444", "test2@test.com", LocalDate.now());
         userRepository.save(user);
 
-        BigDecimal balance = pointHistoryRepository.getPointByUser(user);
+        Long balance = pointHistoryRepository.getPointByUser(user);
 
-        assertThat(balance).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(balance).isEqualByComparingTo(0L);
     }
 
     @Test
@@ -73,7 +72,7 @@ class PointHistoryRepositoryTest {
         userRepository.save(user);
 
         for (int i = 1; i <= 15; i++) {
-            pointHistoryRepository.save(new PointHistory(user, BigDecimal.valueOf(i), Type.EARN, "적립 " + i));
+            pointHistoryRepository.save(new PointHistory(user, (long) i, Type.EARN, "적립 " + i));
         }
 
         Page<PointHistory> page = pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(

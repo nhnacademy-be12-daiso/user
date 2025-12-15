@@ -38,12 +38,19 @@ spring:
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
 
-#  data:
-#    redis:
-#      host: ${SPRING_DATA_REDIS_HOST}
-#      port: ${SPRING_DATA_REDIS_PORT}
-#      password: ${SPRING_DATA_REDIS_PASSWORD}
-#      database: ${USER_SPRING_DATA_REDIS_DATABASE}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+      database: ${USER_SPRING_DATA_REDIS_DATABASE}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 10
+          min-idle: 2
+        shutdown-timeout: 100ms
 
 rabbitmq:
   exchange:
@@ -52,6 +59,7 @@ rabbitmq:
     key: team3.coupon.welcome
   queue:
     name: team3.coupon.welcome.queue  #  메시지가 쌓일 실제 우편함 이름입니다.
+    user: team3.book.deducted.user.queue
 
 eureka:
   instance:
@@ -68,6 +76,12 @@ logging:
     org.springframework.web: DEBUG
 
 management:
+  tracing:
+    sampling:
+      probability: 0.1
+  zipkin:
+    tracing:
+      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT}
   endpoints:
     web:
       exposure:

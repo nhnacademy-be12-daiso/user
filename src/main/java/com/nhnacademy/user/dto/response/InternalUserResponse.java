@@ -21,7 +21,7 @@ public record InternalUserResponse(Long userCreatedId,
                                    String email,
                                    String gradeName,
                                    BigDecimal pointRate,
-                                   BigDecimal point,
+                                   Long point,
                                    List<InternalAddressResponse> addresses) {
     // 주문 서비스가 결제 화면을 그릴 때 원하는 정보만 담기 위해 필요한 DTO
 }

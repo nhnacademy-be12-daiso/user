@@ -35,7 +35,6 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -85,7 +84,7 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                                                 .then(pointHistory.amount.negate()) // 사용이면 -
                                                 .otherwise(pointHistory.amount)     // 아니면 +
                                                 .sum()
-                                                .coalesce(BigDecimal.ZERO) // null이면 0
+                                                .coalesce(0L) // null이면 0
                                 )
                                 .from(pointHistory)
                                 .where(pointHistory.user.eq(user)),

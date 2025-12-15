@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.service.point.PointService;
-import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,7 @@ class InternalPointControllerTest {
     @Test
     @DisplayName("[내부] 포인트 적립/사용 처리")
     void test1() throws Exception {
-        PointRequest request = new PointRequest(1L, BigDecimal.TEN, Type.EARN, "적립");
+        PointRequest request = new PointRequest(1L, 10L, Type.EARN, "적립");
 
         doNothing().when(pointService).processPoint(any());
 

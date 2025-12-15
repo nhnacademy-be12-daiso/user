@@ -29,7 +29,6 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.InternalUserService;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,12 +78,12 @@ public class InternalUserServiceImpl implements InternalUserService {
                 .map(UserGradeHistory::getGrade)
                 .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
 
-        BigDecimal point = pointService.getCurrentPoint(userCreatedId).currentPoint();
+        Long point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
         List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()
                 .map(address -> new InternalAddressResponse(
-                        address.getAddressName(), address.getZipCode(), address.getRoadAddress(),
-                        address.getAddressDetail()))
+                        address.getAddressId(), address.getAddressName(), address.getZipCode(),
+                        address.getRoadAddress(), address.getAddressDetail(), address.isDefault()))
                 .toList();
 
         return new InternalUserResponse(userCreatedId, user.getUserName(), user.getPhoneNumber(), user.getEmail(),
