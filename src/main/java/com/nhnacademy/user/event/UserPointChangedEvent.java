@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.dto.event;
+package com.nhnacademy.user.event;
 
 public record UserPointChangedEvent(Long userCreatedId) {
     // 마이페이지 캐싱용: 포인트가 변경되었다는 사실만 전달하는 이벤트 객체

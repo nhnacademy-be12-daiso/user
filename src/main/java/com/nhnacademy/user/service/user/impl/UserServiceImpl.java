@@ -12,7 +12,8 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.WelcomeCouponEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
@@ -49,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +79,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final CouponMessageProducer couponMessageProducer;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
 
@@ -131,15 +135,17 @@ public class UserServiceImpl implements UserService {
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
 
+        // 웰컴 쿠폰 발급 요청
+        eventPublisher.publishEvent(new WelcomeCouponEvent(saved.getUserCreatedId()));
+
         log.info("회원가입 성공 - userCreatedId: {}, loginId: {}", saved.getUserCreatedId(), request.loginId());
 
-        // 웰컴 쿠폰 발급 요청
-        try {
-            couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
-            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송), try-catch로 잡으면 완벽한 비동기가 아님. 전달하는 행위 자체를 비동기로 만들자! 이벤트리스너 이용
-        } catch (Exception e) {
-            log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", saved.getUserCreatedId(), e.getMessage());
-        }
+//        try {
+//            couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
+//            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송), try-catch로 잡으면 완벽한 비동기가 아님. 전달하는 행위 자체를 비동기로 만들자! 이벤트리스너 이용
+//        } catch (Exception e) {
+//            log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", saved.getUserCreatedId(), e.getMessage());
+//        }
     }
 
     @Override

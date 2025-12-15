@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.service.point.impl;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
