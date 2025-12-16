@@ -91,7 +91,7 @@ class PointServiceTest {
     @DisplayName("정책으로 포인트 적립 및 이벤트 발행 확인")
     void test2() {
         // given
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
+        given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
 
         PointPolicy policy = new PointPolicy("회원가입", "REGISTER", Method.AMOUNT, BigDecimal.valueOf(5000));
         given(pointPolicyRepository.findByPolicyType("REGISTER")).willReturn(Optional.of(policy));

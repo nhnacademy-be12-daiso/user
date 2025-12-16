@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @Tag(name = "계정 API")
 @RestController
 @RequiredArgsConstructor
@@ -67,7 +65,7 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<Void> activateAccount(@RequestHeader("X-User-Id") Long userCreatedId,
-                                                @RequestParam String code) {
+                                                @RequestParam("code") String code) {
         verificationService.verifyCode(userCreatedId, code);
 
         accountService.activeUser(userCreatedId);
@@ -95,9 +93,10 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
+    // GET /api/users/check-id?id={loginId}
     @GetMapping("/check-id")
     @Operation(summary = "아이디 중복 확인")
-    public ResponseEntity<Boolean> checkLoginId(@RequestParam String loginId) {
+    public ResponseEntity<Boolean> checkLoginId(@RequestParam("id") String loginId) {
         boolean isExist = accountService.existsLoginId(loginId);
 
         return ResponseEntity.ok().body(isExist);

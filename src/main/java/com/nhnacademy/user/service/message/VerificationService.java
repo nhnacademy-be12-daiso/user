@@ -33,59 +33,40 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 처리 서비스 (MailService 기반)
 
-    private final StringRedisTemplate redisTemplate;
+    private final AccountRepository accountRepository;
+    private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     private final MailService mailService;
 
-    private final AccountRepository accountRepository;
+    private final StringRedisTemplate redisTemplate;
 
-    private final AccountStatusHistoryRepository statusHistoryRepository;
-
-    private static final String PREFIX = "ACTIVE_CODE:";
+    private static final String PREFIX = "DORMANT_RELEASE_CODE:";
 
     private static final long LIMIT_TIME = (long) 5 * 60;  // 5분
 
     public void sendCode(Long userCreatedId) {  // 인증번호 발송
-        log.info("[VerificationService] 휴면 해제 인증번호 발송 시작 - userCreatedId: {}", userCreatedId);
-
         try {
             Account account = accountRepository.findByUser_UserCreatedId(userCreatedId)
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 계정입니다."));
-            log.info("[VerificationService] 계정 조회 성공 - userCreatedId: {}", userCreatedId);
 
+            // 휴면 상태 검증
             validateDormantAccount(account);
-            log.info("[VerificationService] 휴면 상태 검증 성공");
 
             String email = account.getUser().getEmail();
-            log.info("[VerificationService] 사용자 이메일: {}", email);
 
             try {
-                log.info("[VerificationService] 메일 발송 시작 - email: {}", email);
                 String code = mailService.sendCode(email);
-                log.info("[VerificationService] 메일 발송 성공 - code: {}", code);
 
-                // redis 저장: (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
+                // redis 저장: (key: DORMANT_RELEASE_CODE:userCreatedId, value: 123456, TTL: 5분)
                 redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
-                log.info("[VerificationService] Redis 저장 성공 - key: {}{}", PREFIX, userCreatedId);
-
-                log.info("[VerificationService] 휴면 계정 활성화 인증번호 메일 발송 완료 - userCreatedId: {}, email: {}",
-                        userCreatedId, email);
 
             } catch (Exception e) {
-                log.error("[VerificationService] 메일 발송 중 에러 발생", e);
+                log.error("[인증번호] 메일 발송 실패: ", e);
                 throw new MailSendException("인증코드 발송에 실패했습니다: " + e.getMessage());
             }
 
-        } catch (UserNotFoundException e) {
-            log.error("[VerificationService] 사용자 조회 실패 - userCreatedId: {}", userCreatedId, e);
-            throw e;
-
-        } catch (NotDormantAccountException e) {
-            log.error("[VerificationService] 휴면 상태 검증 실패 - userCreatedId: {}", userCreatedId, e);
-            throw e;
-
         } catch (Exception e) {
-            log.error("[VerificationService] 예상치 못한 에러 발생 - userCreatedId: {}", userCreatedId, e);
+            log.error("[인증번호] 메일 발송 실패: 예상치 못한 에러");
             throw new MailSendException("인증코드 발송에 실패했습니다: " + e.getMessage());
         }
     }
@@ -95,22 +76,24 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
         String savedCode = redisTemplate.opsForValue().get(PREFIX + userCreatedId);
 
         if (savedCode == null || !savedCode.equals(code)) {
-            log.warn("휴면 계정 인증 실패 - userCreatedId: {}", userCreatedId);
-
+            log.warn("[인증번호] 인증번호 검증 실패: 잘못된 인증번호 입력값");
             throw new InvalidCodeException("올바르지 않은 코드입니다.");
         }
 
         // 인증 성공 시 redis에서 삭제 (재사용 방지)
         redisTemplate.delete(PREFIX + userCreatedId);
-
-        log.info("휴면 계정 인증 성공 - userCreatedId: {}", userCreatedId);
     }
 
     public void validateDormantAccount(Account account) { // 계정의 상태 검증
-        AccountStatusHistory latestHistory = statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .orElseThrow(() -> new StateNotFoundException("상태 정보가 없습니다."));
+        AccountStatusHistory latestHistory =
+                accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
+                        .orElseThrow(() -> {
+                            log.error("[인증번호] 계정 상태 검증 실패: 계정 상태 누락");
+                            return new StateNotFoundException("상태 정보가 없습니다.");
+                        });
 
         if (!"DORMANT".equals(latestHistory.getStatus().getStatusName())) {
+            log.warn("[인증번호] 계정 상태 검증 실패: 휴면 상태가 아닌 계정");
             throw new NotDormantAccountException("휴면 상태의 계정이 아닙니다.");
         }
     }

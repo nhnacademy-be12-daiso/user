@@ -167,6 +167,9 @@ class AdminServiceTest {
         Long targetUserId = 1L;
         AccountStatusRequest request = new AccountStatusRequest("BANNED");
 
+        given(mockUser.getAccount()).willReturn(mockAccount);
+        given(mockAccount.getLoginId()).willReturn("testUser");
+        
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(statusRepository.findByStatusName("BANNED")).willReturn(Optional.of(mockStatus));
 

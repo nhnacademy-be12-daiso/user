@@ -120,7 +120,7 @@ public class AccountControllerTest {
         String loginId = "test1";
 
         mockMvc.perform(get("/api/users/check-id")
-                        .param("loginId", loginId)
+                        .param("id", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"))

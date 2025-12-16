@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Slf4j
 @Tag(name = "유저 API")
@@ -59,11 +61,10 @@ public class UserController {
         return ResponseEntity.status(status).body(response);
     }
 
-    // GET /api/users/birthday
+    // GET /api/users/birthday?month={month}
     @GetMapping("/birthday")
     @Operation(summary = "생일 월로 사용자 조회", description = "특정 월이 생일인 사용자 목록 조회")
-    public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(@RequestParam int month) {
-        // month에 해당하는 생일자 조회
+    public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(@RequestParam("month") int month) {
         List<BirthdayUserResponse> users = userService.findByBirthdayMonth(month);
 
         return ResponseEntity.ok(users);
@@ -79,7 +80,12 @@ public class UserController {
     public ResponseEntity<Void> signUp(@Valid @RequestBody SignupRequest request) {
         userService.signUp(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(request.loginId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     // GET /api/users/me
@@ -89,10 +95,10 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "탈퇴한 계정"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
     })
-    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) { // 사용자 정보 조회
+    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         UserResponse userInfo = userService.getUserInfo(userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(userInfo);
+        return ResponseEntity.ok().body(userInfo);
     }
 
     // PUT /api/users/me
@@ -103,10 +109,10 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
     })
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                             @Valid @RequestBody UserModifyRequest request) { // 사용자 정보 수정
+                                             @Valid @RequestBody UserModifyRequest request) {
         userService.modifyUserInfo(userCreatedId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // PUT /api/users/me/password
@@ -117,10 +123,10 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                                 @Valid @RequestBody PasswordModifyRequest request) { // 사용자 비밀번호 수정
+                                                 @Valid @RequestBody PasswordModifyRequest request) {
         userService.modifyUserPassword(userCreatedId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // DELETE /api/users/me
