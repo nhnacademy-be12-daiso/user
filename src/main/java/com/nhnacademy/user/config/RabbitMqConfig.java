@@ -12,10 +12,7 @@
 
 package com.nhnacademy.user.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -75,7 +72,10 @@ public class RabbitMqConfig {
 
     @Bean
     public Queue userPointQueue() {
-        return new Queue(USER_QUEUE, true);
+        return QueueBuilder.durable(USER_QUEUE)
+                .withArgument("x-dead-letter-exchange", "team3.user.dlx") // 큐에서 문제가 생기면 해당 DLX로 보냄
+                .withArgument("x-dead-letter-routing-key", "fail.user")
+                .build();
     }
 
     @Bean
