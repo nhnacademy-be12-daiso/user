@@ -89,11 +89,14 @@ public class AdminServiceImpl implements AdminService {
         Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())
-                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> {
+                    log.error("[관리자] 계정 상태 변경 실패: 존재하지 않는 상태 ({})", request.statusName());
+                    return new StateNotFoundException("존재하지 않는 상태입니다.");
+                });
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, newStatus));
 
-        log.info("관리자 [{}] - 회원 [{}]의 상태를 {}(으)로 변경", adminId, userId, newStatus);
+        log.debug("[관리자 - {}] - 계정 ({})의 상태를 {}(으)로 변경", adminId, account.getLoginId(), newStatus);
     }
 
     @Override
@@ -102,13 +105,16 @@ public class AdminServiceImpl implements AdminService {
         User user = getUser(userId);
 
         Grade newGrade = gradeRepository.findByGradeName(request.gradeName())
-                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
+                .orElseThrow(() -> {
+                    log.error("[관리자] 회원 등급 변경 실패: 존재하지 않는 등급 ({})", request.gradeName());
+                    return new GradeNotFoundException("존재하지 않는 등급입니다.");
+                });
 
-        String reason = String.format("관리자[%d] 수동 등급 변경", adminId);
+        String reason = String.format("관리자 (%d) 수동 등급 변경", adminId);
 
         userGradeHistoryRepository.save(new UserGradeHistory(user, newGrade, reason));
 
-        log.info("관리자 [{}] - 회원 [{}]의 등급을 {}(으)로 변경", adminId, userId, newGrade);
+        log.debug("[관리자 - {}] - 회원 ({})의 등급을 {}(으)로 변경", adminId, userId, newGrade);
     }
 
     private User getUser(Long userCreatedId) {

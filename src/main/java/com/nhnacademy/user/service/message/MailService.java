@@ -13,19 +13,17 @@
 package com.nhnacademy.user.service.message;
 
 import com.nhnacademy.user.exception.message.MailSendException;
+import com.nhnacademy.user.properties.MailProperties;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Slf4j
 @Service
 public class MailService {
@@ -34,8 +32,12 @@ public class MailService {
 
     private final JavaMailSender javaMailSender;
 
-    @Value("${spring.mail.username}")
-    private String username;    // 발신자 이메일(현재: wlsdud3309@naver.com - 개인 메일)
+    private final String username;
+
+    public MailService(JavaMailSender javaMailSender, MailProperties properties) {
+        this.javaMailSender = javaMailSender;
+        this.username = properties.getUsername();   // 발신자 이메일(현재: wlsdud3309@naver.com - 개인 메일)
+    }
 
     public MimeMessage createCode(String email, String code)
             throws MessagingException, UnsupportedEncodingException {   // 휴면 해제 인증번호 메일

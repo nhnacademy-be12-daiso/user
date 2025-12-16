@@ -49,11 +49,7 @@ public class FindAccountServiceImpl implements FindAccountService {
         User user = userRepository.findByUserNameAndEmail(request.userName(), request.email())
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
 
-        String loginId = user.getAccount().getLoginId();
-
-        log.info("아이디 찾기 성공 - userCreatedId: {}, loginId: {}", user.getUserCreatedId(), loginId);
-
-        return MaskingUtils.maskLoginId(loginId);
+        return MaskingUtils.maskLoginId(user.getAccount().getLoginId());
     }
 
     @Override
@@ -64,6 +60,7 @@ public class FindAccountServiceImpl implements FindAccountService {
         User user = account.getUser();
 
         if (!user.getUserName().equals(request.userName()) || !user.getEmail().equals(request.email())) {
+            log.warn("[비밀번호 찾기] 임시 비밀번호 발급 실패: 일치하지 않는 정보");
             throw new UserNotFoundException("입력하신 정보가 회원 정보와 일치하지 않습니다.");
         }
 
@@ -74,11 +71,8 @@ public class FindAccountServiceImpl implements FindAccountService {
         try {
             mailService.sendTemporaryPassword(user.getEmail(), temporaryPassword);
 
-            log.info("임시 비밀번호 발급 성공 - loginId: {}, email: {}", request.loginId(), request.email());
-
         } catch (Exception e) {
-            log.info("임시 비밀번호 발급 메일 전송 실패 - loginId: {}", request.loginId());
-
+            log.error("[비밀번호 찾기] 임시 비밀번호 발급 실패: 메일 전송 실패");
             throw new MailSendException("메일 발송 중 오류가 발생했습니다. 다시 시도해주세요.");
         }
     }

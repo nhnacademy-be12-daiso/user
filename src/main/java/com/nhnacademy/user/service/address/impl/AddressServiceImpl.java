@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AddressServiceImpl implements AddressService {
 
     private final UserRepository userRepository;
-
     private final AddressRepository addressRepository;
 
     private static final String CACHE_NAME = "addresses";
@@ -54,6 +53,7 @@ public class AddressServiceImpl implements AddressService {
 
         // 주소 개수 확인
         if (addressCount >= 10) {
+            log.warn("[주소] 추가 실패: 주소 최대 개수 초과");
             throw new AddressLimitExceededException("최대 10개의 주소만 등록할 수 있습니다.");
         }
 
@@ -69,8 +69,6 @@ public class AddressServiceImpl implements AddressService {
                 request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(), isDefault);
 
         Address saved = addressRepository.save(address);
-
-        log.info("배송지 추가 - userCreatedId: {}", userCreatedId);
 
         return saved.getAddressId();
     }
@@ -103,6 +101,7 @@ public class AddressServiceImpl implements AddressService {
 
         // 사용자가 직접 기본 배송지 설정 해제를 하지 않고 다른 주소를 기본 배송지로 설정했을 때 자동으로 해제
         if (address.isDefault() && !request.isDefault()) {
+            log.warn("[주소] 수정 실패: 기본 배송지 해제");
             throw new DefaultAddressRequiredException("기본 배송지 설정은 해제할 수 없습니다. 다른 배송지를 기본 배송지로 설정하면 자동으로 변경됩니다.");
         }
 
@@ -120,12 +119,11 @@ public class AddressServiceImpl implements AddressService {
 
         // 지우려는 배송지가 기본 배송지면 예외
         if (address.isDefault()) {
+            log.warn("[주소] 삭제 실패: 기본 배송지 삭제");
             throw new DefaultAddressDeletionException("기본 배송지는 삭제할 수 없습니다.");
         }
 
         addressRepository.delete(address);
-
-        log.info("배송지 삭제 - userCreatedId: {}, addressId: {}", userCreatedId, addressId);
     }
 
     private User getUser(Long userCreatedId) {

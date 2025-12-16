@@ -95,17 +95,17 @@ public class UserServiceImpl implements UserService {
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
     public void signUp(SignupRequest request) { // 회원가입
         if (accountRepository.existsById(request.loginId())) {
-            log.error("[회원가입] 실패: 로그인 아이디 중복");
+            log.warn("[회원가입] 실패: 로그인 아이디 중복");
             throw new UserAlreadyExistsException("이미 존재하는 아이디입니다.");
         }
 
         if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            log.error("[회원가입] 실패: 연락처 중복");
+            log.warn("[회원가입] 실패: 연락처 중복");
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
         if (userRepository.existsByEmail(request.email())) {
-            log.error("[회원가입] 실패: 이메일 중복");
+            log.warn("[회원가입] 실패: 이메일 중복");
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
@@ -163,7 +163,7 @@ public class UserServiceImpl implements UserService {
                 });
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
-            log.error("[마이페이지] 회원 정보 조회 실패: 탈퇴한 계정");
+            log.warn("[마이페이지] 회원 정보 조회 실패: 탈퇴한 계정");
             throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
@@ -192,13 +192,13 @@ public class UserServiceImpl implements UserService {
 
         // 전화번호 중복 검사 - 현재 전화번호와 다른 경우만 검사
         if (!request.phoneNumber().equals(currentPhone) && userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            log.error("[마이페이지] 회원 정보 수정 실패: 연락처 중복");
+            log.warn("[마이페이지] 회원 정보 수정 실패: 연락처 중복");
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
         // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
         if (!request.email().equals(currentEmail) && userRepository.existsByEmail(request.email())) {
-            log.error("[마이페이지] 회원 정보 수정 실패: 이메일 중복");
+            log.warn("[마이페이지] 회원 정보 수정 실패: 이메일 중복");
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
         Account account = user.getAccount();
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
-            log.error("[마이페이지] 비밀번호 수정 실패: 틀린 현재 비밀번호");
+            log.warn("[마이페이지] 비밀번호 수정 실패: 일치하지 않는 비밀번호");
             throw new PasswordNotMatchException("현재 비밀번호가 일치하지 않습니다.");
         }
 

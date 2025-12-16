@@ -23,6 +23,7 @@ import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
 import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.exception.message.MailSendException;
+import com.nhnacademy.user.exception.point.InvalidPointInputException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
@@ -114,6 +115,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorMap);
+    }
+
+    @ExceptionHandler(InvalidPointInputException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidPointInputException(InvalidPointInputException ex) {
+        // 잘못된 포인트 입력값
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
     }
 
     // ==================== 401 Unauthorized ====================
