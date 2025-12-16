@@ -12,7 +12,8 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.WelcomeCouponEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
@@ -49,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,15 +63,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
-    private final AccountRepository accountRepository;
-
     private final GradeRepository gradeRepository;
-
-    private final StatusRepository statusRepository;
-
     private final UserGradeHistoryRepository userGradeHistoryRepository;
 
+    private final AccountRepository accountRepository;
+    private final StatusRepository statusRepository;
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
     private final PointService pointService;
@@ -78,10 +76,14 @@ public class UserServiceImpl implements UserService {
 
     private final CouponMessageProducer couponMessageProducer;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
+    private static final String ACTIVE_STATUS = "ACTIVE";
+    private static final String GENERAL_GRADE = "GENERAL";
+    private static final String SIGNUP_POINT_POLICY_TYPE = "REGISTER";
 
     private static final String PAYCO_PHONE_NUMBER_PREFIX = "010-PAYCO-";
-
     private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
 
     private static final String CACHE_NAME = "users";
@@ -90,21 +92,24 @@ public class UserServiceImpl implements UserService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @CacheEvict(cacheNames = CACHE_NAME, key = "#event.userCreatedId")
     public void handlePointChangedEvent(UserPointChangedEvent event) {
-        log.info("포인트 변경 감지: 회원 캐시(userInfo) 삭제 완료: {}", event.userCreatedId());
+        log.debug("포인트 변경 감지: 회원 캐시(userInfo) 삭제 완료: {}", event.userCreatedId());
     }
 
     @Override
     @Transactional  // user, account 둘 중 하나라도 저장 실패 시 롤백
     public void signUp(SignupRequest request) { // 회원가입
         if (accountRepository.existsById(request.loginId())) {
+            log.warn("[회원가입] 실패: 로그인 아이디 중복");
             throw new UserAlreadyExistsException("이미 존재하는 아이디입니다.");
         }
 
         if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
+            log.warn("[회원가입] 실패: 연락처 중복");
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
         if (userRepository.existsByEmail(request.email())) {
+            log.warn("[회원가입] 실패: 이메일 중복");
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
@@ -119,55 +124,56 @@ public class UserServiceImpl implements UserService {
         accountRepository.save(account);
 
         // 초기 등급(GENERAL) 저장
-        Grade grade = gradeRepository.findByGradeName("GENERAL")
-                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
+        Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
+                .orElseThrow(() -> {
+                    log.error("[회원가입] 실패: 존재하지 않는 등급 ({})", GENERAL_GRADE);
+                    return new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다.");
+                });
         userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
 
         // 초기 상태(ACTIVE) 저장
-        Status status = statusRepository.findByStatusName("ACTIVE")
-                .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
+        Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
+                .orElseThrow(() -> {
+                    log.error("[회원가입] 실패: 존재하지 않는 상태 ({})", ACTIVE_STATUS);
+                    return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
+                });
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
 
-        log.info("회원가입 성공 - userCreatedId: {}, loginId: {}", saved.getUserCreatedId(), request.loginId());
-
         // 웰컴 쿠폰 발급 요청
-        try {
-            couponMessageProducer.sendWelcomeCouponMessage(saved.getUserCreatedId());
-            // 웰컴 쿠폰 발급 요청(비동기 메시지 전송)
-        } catch (Exception e) {
-            log.error("웰컴 쿠폰 메시지 전송 실패 - userCreatedId: {}, error: {}", saved.getUserCreatedId(), e.getMessage());
-        }
+        eventPublisher.publishEvent(new WelcomeCouponEvent(saved.getUserCreatedId()));
     }
 
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result == null")
     public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
-        log.info("회원 정보 조회 시작 - userCreatedId: {}", userCreatedId);
-
         User user = getUser(userCreatedId);
 
         Account account = user.getAccount();
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new StateNotFoundException("계정 상태 정보가 누락되었습니다."));
+                .orElseThrow(() -> {
+                    log.error("[마이페이지] 회원 정보 조회 실패: 계정 상태 누락");
+                    return new StateNotFoundException("계정 상태 정보가 누락되었습니다.");
+                });
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
+            log.warn("[마이페이지] 회원 정보 조회 실패: 탈퇴한 계정");
             throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new GradeNotFoundException("회원 등급 정보가 누락되었습니다."));
+                .orElseThrow(() -> {
+                    log.error("[마이페이지] 회원 정보 조회 실패: 회원 등급 누락");
+                    return new GradeNotFoundException("회원 등급 정보가 누락되었습니다.");
+                });
 
         PointResponse pointResponse = pointService.getCurrentPoint(userCreatedId);
-
-        log.info("회원 정보 조회 완료 - userCreatedId: {}, loginId: {}, status: {}",
-                userCreatedId, user.getAccount().getLoginId(), status.getStatusName());
 
         return new UserResponse(userCreatedId, account.getLoginId(),
                 user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
@@ -178,27 +184,24 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")
     public void modifyUserInfo(Long userCreatedId, UserModifyRequest request) { // 회원 정보 수정
-        log.info("[회원정보수정] 시작 - userCreatedId: {}", userCreatedId);
-
         User user = getUser(userCreatedId);
 
         String currentPhone = user.getPhoneNumber();
         String currentEmail = user.getEmail();
 
-        // 전화번호 중복 검사 - 현재 전화번호와 다르고, 더미가 아닌 경우만 검사
+        // 전화번호 중복 검사 - 현재 전화번호와 다른 경우만 검사
         if (!request.phoneNumber().equals(currentPhone) && userRepository.existsByPhoneNumber(request.phoneNumber())) {
-            // 더미 데이터이거나, 실제 데이터가 변경된 경우 중복 검사
+            log.warn("[마이페이지] 회원 정보 수정 실패: 연락처 중복");
             throw new UserAlreadyExistsException("이미 존재하는 연락처입니다.");
         }
 
         // 이메일 중복 검사 - 현재 이메일과 다른 경우만 검사
         if (!request.email().equals(currentEmail) && userRepository.existsByEmail(request.email())) {
+            log.warn("[마이페이지] 회원 정보 수정 실패: 이메일 중복");
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
         user.modifyInfo(request.userName(), request.phoneNumber(), request.email(), request.birth());
-
-        log.info("[회원정보수정] 완료 - userCreatedId: {}", userCreatedId);
     }
 
     @Override
@@ -210,6 +213,7 @@ public class UserServiceImpl implements UserService {
         Account account = user.getAccount();
 
         if (!passwordEncoder.matches(request.currentPassword(), account.getPassword())) {
+            log.warn("[마이페이지] 비밀번호 수정 실패: 일치하지 않는 비밀번호");
             throw new PasswordNotMatchException("현재 비밀번호가 일치하지 않습니다.");
         }
 
@@ -224,12 +228,12 @@ public class UserServiceImpl implements UserService {
         Account account = user.getAccount();
 
         Status status = statusRepository.findByStatusName(WITHDRAWN_STATUS)
-                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
-
-        // 계정 상태를 WITHDRAWN으로 변경
+                .orElseThrow(() -> {
+                    log.error("[마이페이지] 회원 탈퇴 실패: 존재하지 않는 상태 ({})", WITHDRAWN_STATUS);
+                    return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
+                });
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
-        log.info("회원 탈퇴 처리 완료 - userCreatedId: {}", userCreatedId);
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
 

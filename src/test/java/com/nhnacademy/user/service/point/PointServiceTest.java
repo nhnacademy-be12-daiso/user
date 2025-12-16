@@ -19,7 +19,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -91,7 +91,7 @@ class PointServiceTest {
     @DisplayName("정책으로 포인트 적립 및 이벤트 발행 확인")
     void test2() {
         // given
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
+        given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
 
         PointPolicy policy = new PointPolicy("회원가입", "REGISTER", Method.AMOUNT, BigDecimal.valueOf(5000));
         given(pointPolicyRepository.findByPolicyType("REGISTER")).willReturn(Optional.of(policy));

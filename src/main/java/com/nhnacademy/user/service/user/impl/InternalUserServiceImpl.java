@@ -41,10 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class InternalUserServiceImpl implements InternalUserService {
 
     private final UserRepository userRepository;
+    private final UserGradeHistoryRepository userGradeHistoryRepository;
 
     private final AddressRepository addressRepository;
-
-    private final UserGradeHistoryRepository userGradeHistoryRepository;
 
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
@@ -62,21 +61,31 @@ public class InternalUserServiceImpl implements InternalUserService {
     @Transactional(readOnly = true)
     public InternalUserResponse getInternalUserInfo(Long userCreatedId) {   // 주문/결제용 회원 정보 조회
         User user = userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
+                .orElseThrow(() -> {
+                    log.warn("[주문/결제] 회원 정보 조회 실페: 찾을 수 없는 회원 ({})", userCreatedId);
+                    return new UserNotFoundException("찾을 수 없는 회원입니다.");
+                });
 
         Account account = user.getAccount();
 
         Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
                 .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
+                .orElseThrow(() -> {
+                    log.error("[주문/결제] 회원 정보 조회 실패: 계정 상태 누락");
+                    return new StateNotFoundException("존재하지 않는 상태입니다.");
+                });
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
-            throw new UserNotFoundException("탈퇴한 계정입니다.");
+            log.warn("[주문/결제] 회원 정보 조회 실패: 탈퇴한 계정");
+            throw new UserNotFoundException("이미 탈퇴한 계정입니다.");
         }
 
         Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
                 .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new GradeNotFoundException("존재하지 않는 등급입니다."));
+                .orElseThrow(() -> {
+                    log.error("[주문/결제] 회원 정보 조회 실패: 회원 등급 누락");
+                    return new GradeNotFoundException("존재하지 않는 등급입니다.");
+                });
 
         Long point = pointService.getCurrentPoint(userCreatedId).currentPoint();
 
