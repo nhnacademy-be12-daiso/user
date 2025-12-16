@@ -44,6 +44,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     private static final long LIMIT_TIME = (long) 5 * 60;  // 5분
 
+    @Transactional(readOnly = true)
     public void sendCode(Long userCreatedId) {  // 인증번호 발송
         try {
             Account account = accountRepository.findByUser_UserCreatedId(userCreatedId)

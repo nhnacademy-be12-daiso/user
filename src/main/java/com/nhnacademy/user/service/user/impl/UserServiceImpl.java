@@ -12,8 +12,6 @@
 
 package com.nhnacademy.user.service.user.impl;
 
-import com.nhnacademy.user.event.UserPointChangedEvent;
-import com.nhnacademy.user.event.WelcomeCouponEvent;
 import com.nhnacademy.user.dto.payco.PaycoLoginResponse;
 import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
@@ -29,6 +27,8 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
+import com.nhnacademy.user.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.WelcomeCouponEvent;
 import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.user.GradeNotFoundException;
@@ -78,8 +78,8 @@ public class UserServiceImpl implements UserService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    private static final String WITHDRAWN_STATUS = "WITHDRAWN";
     private static final String ACTIVE_STATUS = "ACTIVE";
+    private static final String WITHDRAWN_STATUS = "WITHDRAWN";
     private static final String GENERAL_GRADE = "GENERAL";
     private static final String SIGNUP_POINT_POLICY_TYPE = "REGISTER";
 
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
 
         // 회원가입 축하 포인트 지급
-        pointService.earnPointByPolicy(user.getUserCreatedId(), "REGISTER");
+        pointService.earnPointByPolicy(user.getUserCreatedId(), SIGNUP_POINT_POLICY_TYPE);
 
         // 웰컴 쿠폰 발급 요청
         eventPublisher.publishEvent(new WelcomeCouponEvent(saved.getUserCreatedId()));
