@@ -15,6 +15,7 @@ package com.nhnacademy.user.saga;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -27,7 +28,8 @@ public class UserEventPublisher {
     private final AmqpTemplate rabbitTemplate;
 
     private final String USER_EXCHANGE = "team3.saga.user.exchange";
-    private final String ROUTING_KEY_DEDUCTED = "point.deducted";
+    @Value("${rabbitmq.routing.point.deducted}")
+    private String ROUTING_KEY_DEDUCTED;
 
     // 로컬 트랜잭션이 커밋된 후에 실행됨
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
