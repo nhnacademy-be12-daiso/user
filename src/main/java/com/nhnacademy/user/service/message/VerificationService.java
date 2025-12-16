@@ -40,7 +40,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final String PREFIX = "ACTIVE_CODE:";
+    private static final String PREFIX = "DORMANT_RELEASE_CODE:";
 
     private static final long LIMIT_TIME = (long) 5 * 60;  // 5분
 
@@ -57,7 +57,7 @@ public class VerificationService {  // 휴면 > 활성 전환을 위한 인증 �
             try {
                 String code = mailService.sendCode(email);
 
-                // redis 저장: (key: ACTIVE_CODE:userCreatedId, value: 123456, TTL: 5분)
+                // redis 저장: (key: DORMANT_RELEASE_CODE:userCreatedId, value: 123456, TTL: 5분)
                 redisTemplate.opsForValue().set(PREFIX + userCreatedId, code, LIMIT_TIME, TimeUnit.SECONDS);
 
             } catch (Exception e) {
