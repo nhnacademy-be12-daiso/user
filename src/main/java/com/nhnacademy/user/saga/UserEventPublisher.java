@@ -14,7 +14,7 @@ public class UserEventPublisher {
 
     private final AmqpTemplate rabbitTemplate;
 
-    private final String USER_EXCHANGE = "team3.user.exchange";
+    private final String USER_EXCHANGE = "team3.saga.user.exchange";
     private final String ROUTING_KEY_DEDUCTED = "point.deducted";
 
     // 로컬 트랜잭션이 커밋된 후에 실행됨
