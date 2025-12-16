@@ -56,37 +56,4 @@ public class RabbitMqConfig {
         return rabbitTemplate;
     }
 
-    // ----- saga를 위한 설정 ------
-
-    private static final String BOOK_EXCHANGE = "team3.book.exchange";
-    @Value("${rabbitmq.queue.user}")
-    private String USER_QUEUE;
-    private static final String ROUTING_KEY_DEDUCTED = "inventory.deducted";
-
-    private static final String USER_EXCHANGE = "team3.user.exchange";
-
-    @Bean
-    public TopicExchange bookExchange() {
-        return new TopicExchange(BOOK_EXCHANGE);
-    }
-
-    @Bean
-    public Queue userPointQueue() {
-        return QueueBuilder.durable(USER_QUEUE)
-                .withArgument("x-dead-letter-exchange", "team3.user.dlx") // 큐에서 문제가 생기면 해당 DLX로 보냄
-                .withArgument("x-dead-letter-routing-key", "fail.user")
-                .build();
-    }
-
-    @Bean
-    public Binding bindingBookDeducted(Queue userPointQueue, TopicExchange bookExchange) {
-        return BindingBuilder.bind(userPointQueue)
-                .to(bookExchange)
-                .with(ROUTING_KEY_DEDUCTED);
-    }
-
-    @Bean
-    public TopicExchange userExchange() {
-        return new TopicExchange(USER_EXCHANGE);
-    }
 }
