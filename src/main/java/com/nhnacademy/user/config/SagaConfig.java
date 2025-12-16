@@ -13,9 +13,10 @@ public class SagaConfig {
     private static final String BOOK_EXCHANGE = "team3.saga.book.exchange";
     @Value("${rabbitmq.queue.user}")
     private String USER_QUEUE;
-    private static final String ROUTING_KEY_DEDUCTED = "inventory.deducted";
+    @Value("${rabbitmq.routing.book.deducted}")
+    private String ROUTING_KEY_DEDUCTED;
 
-    private static final String USER_EXCHANGE = "team3.saga.user2.exchange";
+    private static final String USER_EXCHANGE = "team3.saga.user.exchange";
 
     @Bean
     public DirectExchange bookExchange() {
