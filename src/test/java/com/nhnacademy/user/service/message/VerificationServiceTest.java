@@ -12,6 +12,16 @@
 
 package com.nhnacademy.user.service.message;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Status;
@@ -20,6 +30,8 @@ import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import jakarta.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,14 +41,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VerificationServiceTest {
@@ -86,12 +90,13 @@ class VerificationServiceTest {
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
         given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.of(mockAccount));
-        given(statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(any())).willReturn(Optional.of(mockHistory));
+        given(statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(any())).willReturn(
+                Optional.of(mockHistory));
         given(mailService.sendCode(anyString())).willReturn(code);
 
         verificationService.sendCode(userCreatedId);
 
-        verify(valueOperations).set(eq("ACTIVE_CODE:" + userCreatedId), anyString(), anyLong(), any());
+        verify(valueOperations).set(eq("DORMANT_RELEASE_CODE:" + userCreatedId), anyString(), anyLong(), any());
         verify(mailService).sendCode(eq(email));
     }
 
@@ -104,7 +109,7 @@ class VerificationServiceTest {
 
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
-        given(valueOperations.get("ACTIVE_CODE:" + userCreatedId)).willReturn(correctCode);
+        given(valueOperations.get("DORMANT_RELEASE_CODE:" + userCreatedId)).willReturn(correctCode);
 
         assertThatThrownBy(() -> verificationService.verifyCode(userCreatedId, wrongCode))
                 .isInstanceOf(InvalidCodeException.class);
