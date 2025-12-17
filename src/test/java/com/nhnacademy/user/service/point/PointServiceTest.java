@@ -19,7 +19,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.nhnacademy.user.dto.event.UserPointChangedEvent;
+import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
@@ -80,18 +80,18 @@ class PointServiceTest {
     @DisplayName("현재 포인트 잔액 조회 (DB 계산 결과 반환)")
     void test1() {
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
-        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(1000));
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(1000L);
 
         PointResponse response = pointService.getCurrentPoint(testUserId);
 
-        assertThat(response.currentPoint()).isEqualTo(BigDecimal.valueOf(1000));
+        assertThat(response.currentPoint()).isEqualTo(1000L);
     }
 
     @Test
     @DisplayName("정책으로 포인트 적립 및 이벤트 발행 확인")
     void test2() {
         // given
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
+        given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
 
         PointPolicy policy = new PointPolicy("회원가입", "REGISTER", Method.AMOUNT, BigDecimal.valueOf(5000));
         given(pointPolicyRepository.findByPolicyType("REGISTER")).willReturn(Optional.of(policy));
@@ -108,9 +108,9 @@ class PointServiceTest {
     @DisplayName("포인트 사용 실패 - 잔액 부족")
     void test3() {
         given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
-        given(pointHistoryRepository.getPointByUser(user)).willReturn(BigDecimal.valueOf(100));
+        given(pointHistoryRepository.getPointByUser(user)).willReturn(100L);
 
-        PointRequest request = new PointRequest(testUserId, BigDecimal.valueOf(1000), Type.USE, "사용");
+        PointRequest request = new PointRequest(testUserId, 1000L, Type.USE, "사용");
 
         assertThatThrownBy(() -> pointService.processPoint(request))
                 .isInstanceOf(PointNotEnoughException.class)

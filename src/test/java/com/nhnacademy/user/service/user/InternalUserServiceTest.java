@@ -93,7 +93,7 @@ class InternalUserServiceTest {
                 .willReturn(Optional.of(gradeHistory));
 
         given(pointService.getCurrentPoint(any()))
-                .willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+                .willReturn(new PointResponse(5000L));
 
         Address address = new Address(testUser, "집", "12345", "주소", "상세", true);
         given(addressRepository.findAllByUser(testUser))
@@ -104,7 +104,7 @@ class InternalUserServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.userCreatedId()).isEqualTo(testUserId);
         assertThat(response.gradeName()).isEqualTo("GOLD");
-        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
+        assertThat(response.point()).isEqualTo(5000L);
         assertThat(response.addresses()).hasSize(1);
     }
 

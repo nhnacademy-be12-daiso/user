@@ -12,8 +12,10 @@
 
 package com.nhnacademy.user.entity.point;
 
-public enum Type {  // 포인트 타입 (적립, 사용, 취소)
+public enum Type {  // 포인트 타입
 
-    EARN, USE, CANCEL
+    EARN,   // 적립
+    USE,    // 사용
+    CANCEL  // 취소
 
 }

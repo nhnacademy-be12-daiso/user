@@ -36,10 +36,10 @@ public class AccountServiceImpl implements AccountService {
     private final UserRepository userRepository;
 
     private final AccountRepository accountRepository;
-
+    private final AccountStatusHistoryRepository accountStatusHistoryRepository;
     private final StatusRepository statusRepository;
 
-    private final AccountStatusHistoryRepository accountStatusHistoryRepository;
+    private static final String ACTIVE_STATUS = "ACTIVE";
 
     @Override
     @Transactional(readOnly = true)
@@ -55,16 +55,13 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = user.getAccount();
 
-        Status status = getStatus("ACTIVE");
+        Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
+                .orElseThrow(() -> {
+                    log.error("[휴면 계정 활성화] 계정 상태 변환 실패: 존재하지 않는 상태 ({})", ACTIVE_STATUS);
+                    return new StateNotFoundException("존재하지 않는 상태입니다.");
+                });
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
-
-        log.info("휴면 계정 활성화 완료 - userCreatedId: {}", userCreatedId);
-    }
-
-    private Status getStatus(String statusName) {
-        return statusRepository.findByStatusName(statusName)
-                .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
     }
 
 }

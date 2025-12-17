@@ -13,10 +13,9 @@
 package com.nhnacademy.user.dto.response;
 
 import com.nhnacademy.user.entity.point.Type;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record PointHistoryResponse(BigDecimal amount,
+public record PointHistoryResponse(Long amount,
                                    Type type,
                                    String description,
                                    LocalDateTime createdAt) {

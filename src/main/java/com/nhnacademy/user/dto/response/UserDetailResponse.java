@@ -12,7 +12,6 @@
 
 package com.nhnacademy.user.dto.response;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -25,7 +24,7 @@ public record UserDetailResponse(Long userCreatedId,
                                  String statusName,
                                  String gradeName,
                                  String role,
-                                 BigDecimal currentPoint,
+                                 Long currentPoint,
                                  LocalDateTime joinedAt,
                                  LocalDateTime lastLoginAt) {
     // 관리자용, 회원 상세 조회 DTO

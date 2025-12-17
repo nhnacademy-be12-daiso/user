@@ -195,7 +195,7 @@ class UserServiceTest {
         given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
                 .willReturn(Optional.of(statusHistory));
 
-        given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(BigDecimal.valueOf(5000)));
+        given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(5000L));
 
         UserResponse response = userService.getUserInfo(testUserId);
 
@@ -203,7 +203,7 @@ class UserServiceTest {
         assertThat(response.loginId()).isEqualTo(testLoginId);
         assertThat(response.userName()).isEqualTo("테스트");
         assertThat(response.gradeName()).isEqualTo("GOLD");
-        assertThat(response.point()).isEqualTo(BigDecimal.valueOf(5000));
+        assertThat(response.point()).isEqualTo(5000L);
     }
 
     @Test

@@ -28,7 +28,6 @@ import com.nhnacademy.user.dto.request.UserGradeRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.AdminService;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +57,7 @@ public class AdminControllerTest {
     void test1() throws Exception {
         UserResponse response = new UserResponse(
                 1L, "testUser", "홍길동", "010-1234-5678", "test@test.com", null,
-                "GENERAL", BigDecimal.ZERO, "ACTIVE", LocalDateTime.now());
+                "GENERAL", 0L, "ACTIVE", LocalDateTime.now());
 
         Page<UserResponse> page = new PageImpl<>(List.of(response));
         given(adminService.getAllUsers(any(), any())).willReturn(page);
@@ -77,7 +76,7 @@ public class AdminControllerTest {
         Long userId = 1L;
         UserDetailResponse response = new UserDetailResponse(
                 userId, "detailUser", "상세유저", "010-1111-2222", "detail@test.com", null,
-                "ACTIVE", "VIP", "USER", BigDecimal.valueOf(5000), LocalDateTime.now(), LocalDateTime.now()
+                "ACTIVE", "VIP", "USER", 5000L, LocalDateTime.now(), LocalDateTime.now()
         );
 
         given(adminService.getUserDetail(userId)).willReturn(response);

@@ -12,8 +12,6 @@
 
 package com.nhnacademy.user.dto.response;
 
-import java.math.BigDecimal;
-
-public record PointResponse(BigDecimal currentPoint) {
+public record PointResponse(Long currentPoint) {
     // 잔액 조회용 응답 DTO
 }

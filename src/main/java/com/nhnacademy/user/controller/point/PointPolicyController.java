@@ -19,10 +19,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,11 +32,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Tag(name = "포인트 정책 API - 관리자 전용")
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/api/admin/points/policies")
 public class PointPolicyController {
 
@@ -50,19 +49,23 @@ public class PointPolicyController {
     public ResponseEntity<Void> createPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.createPolicy(request);
-        log.info("관리자 [{}] - 포인트 정책 등록", userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(userCreatedId)
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     // GET /api/admin/points/policies
     @GetMapping
     @Operation(summary = "포인트 정책 전체 조회")
     public ResponseEntity<List<PointPolicyResponse>> getPolicies() {
-        return ResponseEntity.status(HttpStatus.OK).body(pointPolicyService.getPolicies());
+        return ResponseEntity.ok().body(pointPolicyService.getPolicies());
     }
 
-    // PUT /api/admin/points/policies
+    // PUT /api/admin/points/policies/{pointPolicyId}
     @PutMapping("/{pointPolicyId}")
     @Operation(summary = "포인트 정책 수정")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
@@ -70,21 +73,19 @@ public class PointPolicyController {
                                              @PathVariable Long pointPolicyId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.modifyPolicy(pointPolicyId, request);
-        log.info("관리자 [{}] - 포인트 정책 수정", userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
-    // DELETE /api/admin/points/policies
+    // DELETE /api/admin/points/policies/{pointPolicyId}
     @DeleteMapping("/{pointPolicyId}")
     @Operation(summary = "포인트 정책 삭제")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> deletePolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId) {
         pointPolicyService.deletePolicy(pointPolicyId);
-        log.info("관리자 [{}] - 포인트 정책 삭제", userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.noContent().build();
     }
 
 }

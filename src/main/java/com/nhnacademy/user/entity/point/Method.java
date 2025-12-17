@@ -12,8 +12,9 @@
 
 package com.nhnacademy.user.entity.point;
 
-public enum Method {    // 포인트 정책 적립 방식(정액, 정률)
+public enum Method {    // 포인트 정책 적립 방식
 
-    AMOUNT, RATIO
+    AMOUNT, // 정액
+    RATIO   // 정률
 
 }

@@ -41,4 +41,5 @@ public interface UserService {
     List<BirthdayUserResponse> findByBirthdayMonth(int month);
 
     PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request);
+
 }
