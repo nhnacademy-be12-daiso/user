@@ -1,0 +1,47 @@
+package com.nhnacademy.user.saga;
+
+import com.nhnacademy.user.entity.saga.UserOutbox;
+import com.nhnacademy.user.exception.saga.ExternalServiceException;
+import com.nhnacademy.user.repository.saga.UserOutboxRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class UserOutboxRelayProcessor {
+
+    private final UserEventPublisher userEventPublisher;
+    private final UserOutboxRepository userOutboxRepository;
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processRelay(Long outboxId) {
+
+        UserOutbox outbox = userOutboxRepository.findById(outboxId).orElseThrow();
+        // <<<<<< 예외처리
+
+        try {
+            userEventPublisher.publishUserOutboxMessage(
+                    outbox.getTopic(),
+                    outbox.getRoutingKey(),
+                    outbox.getPayload()
+            );
+            outbox.markAsPublished();
+            userOutboxRepository.save(outbox);
+
+        } catch(ExternalServiceException e) { // 실패시 재시도 및 롤백
+            if (outbox.getRetryCount() < 3) {
+                outbox.incrementRetryCount();
+                userOutboxRepository.save(outbox); // DB에 업데이트
+            } else {
+                outbox.markAsFailed();
+                userOutboxRepository.save(outbox); // DB에 업데이트
+                log.error("[User API] Outbox 메세지 최종 발행 실패 OutboxID : {}", outboxId);
+            }
+            throw e; // 예외 던져서 롤백 유도
+        }
+    }
+}

@@ -56,4 +56,17 @@ public class RabbitMqConfig {
         return rabbitTemplate;
     }
 
+    // ----- saga용 config -----
+
+    @Bean(name = "outboxRabbitTemplate")
+    public RabbitTemplate outboxRabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+
+        // 중요: 여기엔 Jackson이 아니라 SimpleMessageConverter를 끼워넣어!
+        // (기본값이 SimpleMessageConverter라 아예 설정을 안 해도 됨)
+        // template.setMessageConverter(new SimpleMessageConverter());
+
+        return template;
+    }
+
 }
