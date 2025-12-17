@@ -27,6 +27,7 @@ import com.nhnacademy.user.exception.point.InvalidPointInputException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
+import com.nhnacademy.user.exception.saga.FailedSerializationException;
 import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
@@ -234,6 +235,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MailSendException.class)
     public ResponseEntity<ErrorResponse> handlerMailSendException(MailSendException ex) {
         // 메일 발송 중 오류
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
+    }
+    @ExceptionHandler(FailedSerializationException.class)
+    public ResponseEntity<ErrorResponse> handlerFailedSerializationException(FailedSerializationException ex) {
+        // saga 통신 중 직렬화 오류
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
