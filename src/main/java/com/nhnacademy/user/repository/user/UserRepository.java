@@ -19,6 +19,9 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -42,8 +45,15 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     Optional<User> findByIdForUpdate(Long userCreatedId);
 
     // 생일이 특정 월인 사용자 조회
-    @Query("SELECT u FROM User u WHERE FUNCTION('MONTH', u.birth) = :month")
-    List<User> findByBirthMonth(@Param("month") int month);
+//    @Query("SELECT u FROM User u WHERE FUNCTION('MONTH', u.birth) = :month")
+//    List<User> findByBirthMonth(@Param("month") int month);
+
+    @Query("""
+        select u
+        from User u
+        where month(u.birth) = :month
+        """)
+    Slice<User> findByBirthMonth(@Param("month") int month, Pageable pageable);
 
     // 이름과 이메일로 회원 조회
     Optional<User> findByUserNameAndEmail(String userName, String email);
