@@ -29,6 +29,7 @@ public class UserOutboxRelayProcessor {
                     outbox.getRoutingKey(),
                     outbox.getPayload()
             );
+            log.info("[User API] Order ID : {}", outbox.getAggregateId());
             outbox.markAsPublished();
             userOutboxRepository.save(outbox);
 

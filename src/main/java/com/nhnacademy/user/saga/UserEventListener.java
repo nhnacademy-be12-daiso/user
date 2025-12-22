@@ -55,7 +55,7 @@ public class UserEventListener {
         try {
             // TODO 포인트 차감 로직
 
-            UserDeduplicationLog logEntry = new UserDeduplicationLog(msgId);
+            UserDeduplicationLog logEntry = new UserDeduplicationLog(msgId.toString());
             userDeduplicationRepository.save(logEntry);
 
             try {
