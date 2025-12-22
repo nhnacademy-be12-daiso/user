@@ -10,24 +10,23 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.common;
+package com.nhnacademy.user.properties;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)    // 인스턴스화 방지
-public final class MaskingUtils { // 아이디 마스킹
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "spring.mail")
+public class MailProperties {
 
-    public static String maskLoginId(String loginId) {
-        if (loginId == null || loginId.length() < 2) {
-            return loginId;
-        }
+    private String host;
 
-        int length = loginId.length();
+    private Integer port;
 
-        int visibleLength = (length > 3) ? length - 3 : 1;
+    private String username;
 
-        return loginId.substring(0, visibleLength) + "*".repeat(length - visibleLength);
-    }
+    private String password;
 
 }

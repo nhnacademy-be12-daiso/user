@@ -44,4 +44,5 @@ public interface UserService {
     Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable);
 
     PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request);
+
 }

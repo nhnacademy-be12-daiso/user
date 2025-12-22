@@ -14,12 +14,10 @@ package com.nhnacademy.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-@EnableScheduling   // 특정 시간마다 자동으로 실행되는 작업
-@EnableFeignClients
+@EnableJpaAuditing
 public class UserApplication {
 
     public static void main(String[] args) {

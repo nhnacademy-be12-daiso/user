@@ -89,7 +89,12 @@ public class UserController {
     public ResponseEntity<Void> signUp(@Valid @RequestBody SignupRequest request) {
         userService.signUp(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(request.loginId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     // GET /api/users/me
@@ -99,10 +104,10 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "탈퇴한 계정"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
     })
-    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) { // 사용자 정보 조회
+    public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         UserResponse userInfo = userService.getUserInfo(userCreatedId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(userInfo);
+        return ResponseEntity.ok().body(userInfo);
     }
 
     // PUT /api/users/me
@@ -113,10 +118,10 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
     })
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                             @Valid @RequestBody UserModifyRequest request) { // 사용자 정보 수정
+                                             @Valid @RequestBody UserModifyRequest request) {
         userService.modifyUserInfo(userCreatedId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // PUT /api/users/me/password
@@ -127,10 +132,10 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
-                                                 @Valid @RequestBody PasswordModifyRequest request) { // 사용자 비밀번호 수정
+                                                 @Valid @RequestBody PasswordModifyRequest request) {
         userService.modifyUserPassword(userCreatedId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
     // DELETE /api/users/me

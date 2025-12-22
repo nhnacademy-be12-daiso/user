@@ -37,6 +37,15 @@ spring:
     port: ${SPRING_RABBITMQ_PORT}
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        acknowledge-mode: auto
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+          multiplier: 2.0
 
   data:
     redis:
@@ -57,9 +66,13 @@ rabbitmq:
     name: team3.coupon.exchange
   routing:
     key: team3.coupon.welcome
+    book:
+      deducted: inventory.deducted
+    point:
+      deducted: point.deducted
   queue:
     name: team3.coupon.welcome.queue  #  메시지가 쌓일 실제 우편함 이름입니다.
-    user: team3.book.deducted.user.queue
+    user: team3.saga.user.queue
 
 eureka:
   instance:
@@ -76,12 +89,6 @@ logging:
     org.springframework.web: DEBUG
 
 management:
-  tracing:
-    sampling:
-      probability: 0.1
-  zipkin:
-    tracing:
-      endpoint: ${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT}
   endpoints:
     web:
       exposure:

@@ -12,10 +12,7 @@
 
 package com.nhnacademy.user.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -59,34 +56,17 @@ public class RabbitMqConfig {
         return rabbitTemplate;
     }
 
-    // ----- saga를 위한 설정 ------
+    // ----- saga용 config -----
 
-    private static final String BOOK_EXCHANGE = "team3.book.exchange";
-    @Value("${rabbitmq.queue.user}")
-    private String USER_QUEUE;
-    private static final String ROUTING_KEY_DEDUCTED = "inventory.deducted";
+    @Bean(name = "outboxRabbitTemplate")
+    public RabbitTemplate outboxRabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
 
-    private static final String USER_EXCHANGE = "team3.user.exchange";
+        // 중요: 여기엔 Jackson이 아니라 SimpleMessageConverter를 끼워넣어!
+        // (기본값이 SimpleMessageConverter라 아예 설정을 안 해도 됨)
+        // template.setMessageConverter(new SimpleMessageConverter());
 
-    @Bean
-    public TopicExchange bookExchange() {
-        return new TopicExchange(BOOK_EXCHANGE);
+        return template;
     }
 
-    @Bean
-    public Queue userPointQueue() {
-        return new Queue(USER_QUEUE, true);
-    }
-
-    @Bean
-    public Binding bindingBookDeducted(Queue userPointQueue, TopicExchange bookExchange) {
-        return BindingBuilder.bind(userPointQueue)
-                .to(bookExchange)
-                .with(ROUTING_KEY_DEDUCTED);
-    }
-
-    @Bean
-    public TopicExchange userExchange() {
-        return new TopicExchange(USER_EXCHANGE);
-    }
 }

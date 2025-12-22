@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,20 +29,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/internal/points")
 public class InternalPointController {
-    // Gateway 혹은 다른 MSA 서비스(Order Service 등)에서
-    // 회원의 존재 여부를 확인하거나 주문 시 필요한 정보를 조회할 때 호출됩니다.
+    // Gateway 혹은 다른 MSA 서비스(Order Service 등)에서 회원의 존재 여부를 확인하거나 주문 시 필요한 정보를 조회할 때 호출됩니다.
     // 일반 사용자는 호출할 수 없도록 Gateway에서 막혀야 합니다.
 
     private final PointService pointService;
 
     // POST /api/internal/points
-    @Operation(summary = "[내부] 포인트 적립/사용 처리")
     @PostMapping
+    @Operation(summary = "[내부] 포인트 적립/사용 처리")
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
         // 서비스 로직 호출 (User 업데이트 + History 저장)
         pointService.processPoint(request);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.ok().build();
     }
 
 }
