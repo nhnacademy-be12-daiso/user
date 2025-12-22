@@ -51,6 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -241,16 +243,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BirthdayUserResponse> findByBirthdayMonth(int month) {
-        List<User> users = userRepository.findByBirthMonth(month);
+    public Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable) {
+        Slice<User> users = userRepository.findByBirthMonth(month, pageable);
 
-        return users.stream()
-                .map(user -> new BirthdayUserResponse(
+        return users.map(user ->
+                new BirthdayUserResponse(
                         user.getUserCreatedId(),
                         user.getUserName(),
                         user.getBirth()
-                ))
-                .toList();
+                )
+        );
     }
 
     @Override
