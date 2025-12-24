@@ -260,9 +260,8 @@ public class UserServiceImpl implements UserService {
 
         if (existingAccount.isPresent()) {
             Account account = existingAccount.get();
-            Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                    .map(AccountStatusHistory::getStatus)
-                    .orElseThrow(() -> new StateNotFoundException("존재하지 않는 상태입니다."));
+            Status status = account.getStatus();
+
             if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
                 throw new UserNotFoundException("탈퇴한 계정입니다.");
             }
