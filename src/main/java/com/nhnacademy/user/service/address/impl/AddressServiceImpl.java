@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,8 +39,6 @@ public class AddressServiceImpl implements AddressService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
 
-    private static final String CACHE_NAME = "addresses";
-
     /**
      * 새 배송지를 추가하는 메소드
      *
@@ -52,7 +48,6 @@ public class AddressServiceImpl implements AddressService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 추가 시 기존 캐시 삭제
     public Long addAddress(Long userCreatedId, AddressRequest request) {
         User user = getUser(userCreatedId);
 
@@ -86,7 +81,6 @@ public class AddressServiceImpl implements AddressService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result.isEmpty()")   // 배송지 조회 시 캐시 적용
     public List<AddressResponse> getMyAddresses(Long userCreatedId) {
         User user = getUser(userCreatedId);
 
@@ -110,7 +104,6 @@ public class AddressServiceImpl implements AddressService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 수정 시 기존 캐시 삭제
     public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) {
         User user = getUser(userCreatedId);
 
@@ -139,7 +132,6 @@ public class AddressServiceImpl implements AddressService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 삭제 시 기존 캐시 삭제
     public void deleteAddress(Long userCreatedId, Long addressId) {
         User user = getUser(userCreatedId);
 

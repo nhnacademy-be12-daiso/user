@@ -66,7 +66,7 @@ public class FindAccountServiceImpl implements FindAccountService {
      * @param request 계정 아이디와 회원 이름, 회원 이메일
      */
     @Override
-    public void createTemporaryPassword(FindPasswordRequest request) {  // 로그인 아이디랑 이름, 이메일로 비밀번호 찾기 (임시 비밀번호 발급)
+    public void createTemporaryPassword(FindPasswordRequest request) {
         Account account = accountRepository.findById(request.loginId())
                 .orElseThrow(() -> {
                     log.warn("[FindAccountService] 임시 비밀번호 발급 실패: 존재하지 않는 계장 ({})", request.loginId());

@@ -14,13 +14,11 @@ package com.nhnacademy.user.service.point.impl;
 
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.point.Method;
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.exception.point.InvalidPointInputException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
@@ -49,42 +47,60 @@ public class PointServiceImpl implements PointService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    @Override
-    @Transactional(readOnly = true)
-    public PointResponse getCurrentPoint(Long userCreatedId) {  // 현재 내 포인트 잔액 조회
-        Long point = getUser(userCreatedId).getCurrentPoint();
+//    /**
+//     * 포인트 잔액 조회
+//     * @param userCreatedId Users 테이블 PK
+//     * @return 현재 포인트 잔액
+//     */
+//    @Override
+//    @Transactional(readOnly = true)
+//    public PointResponse getCurrentPoint(Long userCreatedId) {
+//        Long point = getUser(userCreatedId).getCurrentPoint();
+//
+//        if (point == null) {
+//            point = 0L;
+//        }
+//
+//        return new PointResponse(point);
+//    }
 
-        if (point == null) {
-            point = 0L;
-        }
-
-        return new PointResponse(point);
-    }
-
+    /**
+     * 포인트 정책을 기반으로 포인트 적립하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param policyType    포인트 정책 타입
+     */
     @Override
     @Transactional
-    public void earnPointByPolicy(Long userCreatedId, String policyType) {  // 정책 기반 포인트 적립
+    public void earnPointByPolicy(Long userCreatedId, String policyType) {
         earnPointByPolicy(userCreatedId, policyType, null);
     }
 
+    /**
+     * 포인트 정책을 기반으로 포인트 적립하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param policyType    포인트 정책 타입
+     * @param targetAmount  적립할 포인트 값 (정액/정률)
+     */
     @Override
     public void earnPointByPolicy(Long userCreatedId, String policyType, BigDecimal targetAmount) {
         User user = getLockUser(userCreatedId);
 
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> {
-                    log.error("[포인트] 정책 기반 적립 실패: 찾을 수 없는 포인트 정책 ({})", policyType);
-                    return new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다");
+                    log.error("[PointService] 포인트 정책 기반 적립 실패: 찾을 수 없는 포인트 정책 ({})", policyType);
+                    return new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다.");
                 });
 
         long calculatedAmount;
 
-        if (pointPolicy.getMethod() == Method.AMOUNT) {
+        if (pointPolicy.getMethod() == Method.AMOUNT) { // 정액일 때
             calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용 (소수점 버림)
 
-        } else {
+        } else {    // 정률일 때
             if (targetAmount == null || targetAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                log.warn("[포인트] 정책 기반 적립 실패: 잘못된 포인트 입력 값");
+                log.warn("[PointService] 포인트 정책 기반 적립 실패: 잘못된 포인트 입력 값");
                 throw new InvalidPointInputException("정률(RATIO) 정책은 기준 금액이 필수입니다.");
             }
 
@@ -96,26 +112,28 @@ public class PointServiceImpl implements PointService {
 
         // Users 테이블 현재 포인트 필드도 같이 동기화
         user.modifyPoint(calculatedAmount);
-
-        // 포인트가 변동되었다고 알려줌
-        eventPublisher.publishEvent(new UserPointChangedEvent(userCreatedId));
     }
 
+    /**
+     * 포인트 변동을 수동으로 처리하는 메소드
+     *
+     * @param request Users 테이블 PK, 적립할 금액, 포인트 타입(적립/사용/취소), 설명
+     */
     @Override
     @Transactional
-    public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
+    public void processPoint(PointRequest request) {
         User user = getLockUser(request.userCreatedId());
 
         if (request.type() == Type.USE) {
-            Long currentPoint = pointHistoryRepository.getPointByUser(user);
+            Long currentPoint = user.getCurrentPoint();
 
             if (currentPoint == null) {
                 currentPoint = 0L;
             }
 
             if (currentPoint.compareTo(request.amount()) < 0) {
-                log.warn("[포인트] 변동 처리 실패: 잔액 부족");
-                throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
+                log.warn("[PointService] 포인트 변동 수동 처리 실패: 잔액 부족 (현재: {})", currentPoint);
+                throw new PointNotEnoughException("포인트 잔액이 부족합니다.");
             }
         }
 
@@ -124,9 +142,6 @@ public class PointServiceImpl implements PointService {
 
         // Users 테이블 현재 포인트 필드도 같이 동기화
         user.modifyPoint(request.amount());
-
-        // 포인트가 변동되었다고 알려줌
-        eventPublisher.publishEvent(new UserPointChangedEvent(request.userCreatedId()));
     }
 
     @Override
