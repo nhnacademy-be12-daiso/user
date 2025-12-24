@@ -67,9 +67,7 @@ public class AddressController {
     @Operation(summary = "내 배송지 목록 조회")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader("X-User-Id") Long userCreatedId) {
-        List<AddressResponse> addresses = addressService.getMyAddresses(userCreatedId);
-
-        return ResponseEntity.ok().body(addresses);
+        return ResponseEntity.ok().body(addressService.getMyAddresses(userCreatedId));
     }
 
     // PUT /api/users/me/addresses/{addressId}

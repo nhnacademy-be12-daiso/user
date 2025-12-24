@@ -50,9 +50,7 @@ public class AdminController {
     public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable,
                                                           @RequestParam(name = "keyword", required = false)
                                                           String keyword) {
-        UserSearchCriteria criteria = new UserSearchCriteria(keyword);
-
-        return ResponseEntity.ok().body(adminService.getAllUsers(pageable, criteria));
+        return ResponseEntity.ok().body(adminService.getAllUsers(pageable, new UserSearchCriteria(keyword)));
     }
 
     // GET /api/admin/users/{userCreatedId}

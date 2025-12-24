@@ -105,9 +105,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
     })
     public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
-        UserResponse userInfo = userService.getUserInfo(userCreatedId);
-
-        return ResponseEntity.ok().body(userInfo);
+        return ResponseEntity.ok().body(userService.getUserInfo(userCreatedId));
     }
 
     // PUT /api/users/me
