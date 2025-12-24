@@ -18,7 +18,6 @@ import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.BirthdayUserResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
@@ -44,7 +43,6 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +65,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final GradeRepository gradeRepository;
     private final UserGradeHistoryRepository userGradeHistoryRepository;
-
     private final AccountRepository accountRepository;
     private final StatusRepository statusRepository;
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
@@ -89,7 +86,6 @@ public class UserServiceImpl implements UserService {
     private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
 
     private static final String CACHE_NAME = "users";
-
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @CacheEvict(cacheNames = CACHE_NAME, key = "#event.userCreatedId")
@@ -132,6 +128,7 @@ public class UserServiceImpl implements UserService {
                     return new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다.");
                 });
         userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
+        user.modifyGrade(grade);
 
         // 초기 상태(ACTIVE) 저장
         Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
@@ -140,6 +137,7 @@ public class UserServiceImpl implements UserService {
                     return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
                 });
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
+        account.modifyStatus(status);
 
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), SIGNUP_POINT_POLICY_TYPE);
@@ -154,32 +152,21 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserInfo(Long userCreatedId) {   // 회원 정보 조회
         User user = getUser(userCreatedId);
 
-        Account account = user.getAccount();
-
-        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> {
-                    log.error("[마이페이지] 회원 정보 조회 실패: 계정 상태 누락");
-                    return new StateNotFoundException("계정 상태 정보가 누락되었습니다.");
-                });
-
-        if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
+        if (WITHDRAWN_STATUS.equals(user.getAccount().getStatus().getStatusName())) {
             log.warn("[마이페이지] 회원 정보 조회 실패: 탈퇴한 계정");
             throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
-        Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> {
-                    log.error("[마이페이지] 회원 정보 조회 실패: 회원 등급 누락");
-                    return new GradeNotFoundException("회원 등급 정보가 누락되었습니다.");
-                });
-
-        PointResponse pointResponse = pointService.getCurrentPoint(userCreatedId);
-
-        return new UserResponse(userCreatedId, account.getLoginId(),
-                user.getUserName(), user.getPhoneNumber(), user.getEmail(), user.getBirth(),
-                grade.getGradeName(), pointResponse.currentPoint(), status.getStatusName(), account.getJoinedAt());
+        return new UserResponse(userCreatedId,
+                user.getAccount().getLoginId(),
+                user.getUserName(),
+                user.getPhoneNumber(),
+                user.getEmail(),
+                user.getBirth(),
+                user.getGrade().getGradeName(),
+                user.getCurrentPoint(),
+                user.getAccount().getStatus().getStatusName(),
+                user.getAccount().getJoinedAt());
     }
 
     @Override
@@ -235,6 +222,7 @@ public class UserServiceImpl implements UserService {
                     return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
                 });
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
+        account.modifyStatus(status);
 
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }

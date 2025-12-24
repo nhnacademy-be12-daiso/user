@@ -26,12 +26,12 @@ import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.account.StateNotFoundException;
 import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,15 +44,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 public class AdminServiceImpl implements AdminService {
+    private final AccountRepository accountRepository;
 
     private final UserRepository userRepository;
     private final GradeRepository gradeRepository;
     private final UserGradeHistoryRepository userGradeHistoryRepository;
-
     private final StatusRepository statusRepository;
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
-
-    private final PointService pointService;
 
     @Override
     @Transactional(readOnly = true)
@@ -65,20 +63,18 @@ public class AdminServiceImpl implements AdminService {
     public UserDetailResponse getUserDetail(Long userCreatedId) {   // 특정 회원 상세 조회
         User user = getUser(userCreatedId);
 
-        Account account = user.getAccount();
-
         return new UserDetailResponse(userCreatedId,
                 user.getAccount().getLoginId(),
                 user.getUserName(),
                 user.getPhoneNumber(),
                 user.getEmail(),
                 user.getBirth(),
-                getStatus(account).getStatusName(),
-                getGrade(user).getGradeName(),
+                user.getAccount().getStatus().getStatusName(),
+                user.getGrade().getGradeName(),
                 user.getAccount().getRole().name(),
-                pointService.getCurrentPoint(user.getUserCreatedId()).currentPoint(),
-                account.getJoinedAt(),
-                account.getLastLoginAt());
+                user.getCurrentPoint(),
+                user.getAccount().getJoinedAt(),
+                user.getAccount().getLastLoginAt());
     }
 
     @Override
@@ -120,18 +116,6 @@ public class AdminServiceImpl implements AdminService {
     private User getUser(Long userCreatedId) {
         return userRepository.findByIdWithAccount(userCreatedId)
                 .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
-    }
-
-    private Grade getGrade(User user) {
-        return userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new GradeNotFoundException("등급 정보가 누락되었습니다."));
-    }
-
-    private Status getStatus(Account account) {
-        return accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new StateNotFoundException("상태 정보가 누락되었습니다."));
     }
 
 }

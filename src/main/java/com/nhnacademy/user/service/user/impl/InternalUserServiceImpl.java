@@ -15,19 +15,14 @@ package com.nhnacademy.user.service.user.impl;
 import com.nhnacademy.user.dto.response.InternalAddressResponse;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserGradeHistory;
-import com.nhnacademy.user.exception.account.StateNotFoundException;
-import com.nhnacademy.user.exception.user.GradeNotFoundException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.InternalUserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,12 +37,8 @@ public class InternalUserServiceImpl implements InternalUserService {
 
     private final UserRepository userRepository;
     private final UserGradeHistoryRepository userGradeHistoryRepository;
-
     private final AddressRepository addressRepository;
-
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
-
-    private final PointService pointService;
 
     private static final String WITHDRAWN_STATUS = "WITHDRAWN";
 
@@ -68,26 +59,16 @@ public class InternalUserServiceImpl implements InternalUserService {
 
         Account account = user.getAccount();
 
-        Status status = accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> {
-                    log.error("[주문/결제] 회원 정보 조회 실패: 계정 상태 누락");
-                    return new StateNotFoundException("존재하지 않는 상태입니다.");
-                });
+        Status status = account.getStatus();
 
         if (WITHDRAWN_STATUS.equals(status.getStatusName())) {
             log.warn("[주문/결제] 회원 정보 조회 실패: 탈퇴한 계정");
             throw new UserNotFoundException("이미 탈퇴한 계정입니다.");
         }
 
-        Grade grade = userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> {
-                    log.error("[주문/결제] 회원 정보 조회 실패: 회원 등급 누락");
-                    return new GradeNotFoundException("존재하지 않는 등급입니다.");
-                });
+        Grade grade = user.getGrade();
 
-        Long point = pointService.getCurrentPoint(userCreatedId).currentPoint();
+        Long point = user.getCurrentPoint();
 
         List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()
                 .map(address -> new InternalAddressResponse(

@@ -62,12 +62,11 @@ public class User {     // 회원 기본 정보
     @Column(name = "current_point", nullable = false)
     private Long currentPoint;
 
-    public User(String userName, String phoneNumber, String email, LocalDate birth, Grade grade) {
+    public User(String userName, String phoneNumber, String email, LocalDate birth) {
         this.userName = userName;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.birth = birth;
-        this.grade = grade;
         this.currentPoint = 0L;
     }
 

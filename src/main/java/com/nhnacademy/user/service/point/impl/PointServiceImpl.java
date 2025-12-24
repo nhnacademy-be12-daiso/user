@@ -12,7 +12,6 @@
 
 package com.nhnacademy.user.service.point.impl;
 
-import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.dto.response.PointResponse;
@@ -21,6 +20,7 @@ import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.exception.point.InvalidPointInputException;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
@@ -44,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PointServiceImpl implements PointService {
 
     private final UserRepository userRepository;
-
     private final PointHistoryRepository pointHistoryRepository;
     private final PointPolicyRepository pointPolicyRepository;
 
@@ -53,9 +52,7 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional(readOnly = true)
     public PointResponse getCurrentPoint(Long userCreatedId) {  // 현재 내 포인트 잔액 조회
-        User user = getUser(userCreatedId);
-
-        Long point = pointHistoryRepository.getPointByUser(user);
+        Long point = getUser(userCreatedId).getCurrentPoint();
 
         if (point == null) {
             point = 0L;
@@ -83,7 +80,7 @@ public class PointServiceImpl implements PointService {
         long calculatedAmount;
 
         if (pointPolicy.getMethod() == Method.AMOUNT) {
-            calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용(소수점 버림)
+            calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용 (소수점 버림)
 
         } else {
             if (targetAmount == null || targetAmount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -94,9 +91,11 @@ public class PointServiceImpl implements PointService {
             calculatedAmount = targetAmount.multiply(pointPolicy.getEarnPoint()).longValue();
         }
 
-        PointHistory pointHistory = new PointHistory(user, calculatedAmount, Type.EARN, pointPolicy.getPolicyName());
+        // 포인트 내역 저장
+        pointHistoryRepository.save(new PointHistory(user, calculatedAmount, Type.EARN, pointPolicy.getPolicyName()));
 
-        pointHistoryRepository.save(pointHistory);
+        // Users 테이블 현재 포인트 필드도 같이 동기화
+        user.modifyPoint(calculatedAmount);
 
         // 포인트가 변동되었다고 알려줌
         eventPublisher.publishEvent(new UserPointChangedEvent(userCreatedId));
@@ -107,8 +106,6 @@ public class PointServiceImpl implements PointService {
     public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
         User user = getLockUser(request.userCreatedId());
 
-        Long amount = request.amount();
-
         if (request.type() == Type.USE) {
             Long currentPoint = pointHistoryRepository.getPointByUser(user);
 
@@ -116,15 +113,17 @@ public class PointServiceImpl implements PointService {
                 currentPoint = 0L;
             }
 
-            if (currentPoint.compareTo(amount) < 0) {
+            if (currentPoint.compareTo(request.amount()) < 0) {
                 log.warn("[포인트] 변동 처리 실패: 잔액 부족");
                 throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
             }
         }
 
-        PointHistory pointHistory = new PointHistory(user, amount, request.type(), request.description());
+        // 포인트 내역 저장
+        pointHistoryRepository.save(new PointHistory(user, request.amount(), request.type(), request.description()));
 
-        pointHistoryRepository.save(pointHistory);
+        // Users 테이블 현재 포인트 필드도 같이 동기화
+        user.modifyPoint(request.amount());
 
         // 포인트가 변동되었다고 알려줌
         eventPublisher.publishEvent(new UserPointChangedEvent(request.userCreatedId()));

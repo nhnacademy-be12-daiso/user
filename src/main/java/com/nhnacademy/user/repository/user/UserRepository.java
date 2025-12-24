@@ -17,9 +17,7 @@ import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import feign.Param;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
-import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,10 +47,10 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
 //    List<User> findByBirthMonth(@Param("month") int month);
 
     @Query("""
-        select u
-        from User u
-        where month(u.birth) = :month
-        """)
+            select u
+            from User u
+            where month(u.birth) = :month
+            """)
     Slice<User> findByBirthMonth(@Param("month") int month, Pageable pageable);
 
     // 이름과 이메일로 회원 조회
