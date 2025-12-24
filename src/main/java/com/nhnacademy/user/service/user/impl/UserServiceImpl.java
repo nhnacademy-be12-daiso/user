@@ -80,8 +80,6 @@ public class UserServiceImpl implements UserService {
     private static final String PAYCO_PHONE_NUMBER_PREFIX = "010-PAYCO-";
     private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
 
-    private static final String CACHE_NAME = "users";
-
     /**
      * 회원가입하는 메소드
      *
@@ -298,17 +296,17 @@ public class UserServiceImpl implements UserService {
         Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser);
         accountRepository.save(newAccount);
 
-        Grade grade = gradeRepository.findByGradeName("GENERAL")
+        Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
                 .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
         userGradeHistoryRepository.save(new UserGradeHistory(newUser, grade, "Payco 회원가입"));
         newUser.modifyGrade(grade);
 
-        Status status = statusRepository.findByStatusName("ACTIVE")
+        Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
                 .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
         accountStatusHistoryRepository.save(new AccountStatusHistory(newAccount, status));
         newAccount.modifyStatus(status);
 
-        pointService.earnPointByPolicy(newUser.getUserCreatedId(), "REGISTER");
+        pointService.earnPointByPolicy(newUser.getUserCreatedId(), SIGNUP_POINT_POLICY_TYPE);
 
         log.info("[Payco] 신규 회원 가입 - userCreatedId: {}, loginId: {}", newUser.getUserCreatedId(), loginId);
 

@@ -75,7 +75,7 @@ public class AccountServiceImpl implements AccountService {
                 });
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
-        accountRepository.save(account);
+        account.modifyStatus(status);
     }
 
 }
