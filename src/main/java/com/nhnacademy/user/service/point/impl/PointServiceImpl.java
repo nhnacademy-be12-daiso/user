@@ -30,7 +30,6 @@ import com.nhnacademy.user.service.point.PointService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,25 +43,6 @@ public class PointServiceImpl implements PointService {
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final PointPolicyRepository pointPolicyRepository;
-
-    private final ApplicationEventPublisher eventPublisher;
-
-//    /**
-//     * 포인트 잔액 조회
-//     * @param userCreatedId Users 테이블 PK
-//     * @return 현재 포인트 잔액
-//     */
-//    @Override
-//    @Transactional(readOnly = true)
-//    public PointResponse getCurrentPoint(Long userCreatedId) {
-//        Long point = getUser(userCreatedId).getCurrentPoint();
-//
-//        if (point == null) {
-//            point = 0L;
-//        }
-//
-//        return new PointResponse(point);
-//    }
 
     /**
      * 포인트 정책을 기반으로 포인트 적립하는 메소드
@@ -144,9 +124,16 @@ public class PointServiceImpl implements PointService {
         user.modifyPoint(request.amount());
     }
 
+    /**
+     * 포인트 내역 조회하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param pageable      페이징 처리
+     * @return 페이징된 전체 포인트 내역 목록
+     */
     @Override
     @Transactional(readOnly = true)
-    public Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable) {    // 내 포인트 내역 조회
+    public Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable) {
         User user = getUser(userCreatedId);
 
         return pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(user, pageable)

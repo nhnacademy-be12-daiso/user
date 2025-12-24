@@ -20,9 +20,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface PointService {
 
-    // 현재 내 포인트 잔액 조회
-//    PointResponse getCurrentPoint(Long userCreatedId);
-
     // 정책 기반 포인트 적립
     void earnPointByPolicy(Long userCreatedId, String policyType);
 
