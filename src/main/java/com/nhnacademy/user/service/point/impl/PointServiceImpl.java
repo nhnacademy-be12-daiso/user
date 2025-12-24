@@ -121,7 +121,7 @@ public class PointServiceImpl implements PointService {
         pointHistoryRepository.save(new PointHistory(user, request.amount(), request.type(), request.description()));
 
         // Users 테이블 현재 포인트 필드도 같이 동기화
-        user.modifyPoint(request.amount());
+        user.modifyPoint(request.type() == Type.USE ? -request.amount() : request.amount());
     }
 
     /**
