@@ -46,9 +46,9 @@ public class SagaHandler {
             log.error("[User API] 포인트 차감 성공 - Order : {}", event.getOrderId());
 
         } catch(PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
-            log.error("[User API] 재고 부족으로 인한 차감 실패 - Order : {}", event.getOrderId());
+            log.error("[User API] 포인트 부족으로 인한 차감 실패 - Order : {}", event.getOrderId());
             isSuccess = false;
-            reason = "OUT_OF_STOCK";
+            reason = "INSUFFICIENT_POINTS";
         } catch(Exception e) {
             log.error("[User API] 예상치 못한 시스템 에러 발생 - Order : {}", event.getOrderId(), e);
             isSuccess = false;
