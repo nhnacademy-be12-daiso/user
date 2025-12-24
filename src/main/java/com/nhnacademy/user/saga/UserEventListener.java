@@ -47,7 +47,7 @@ public class UserEventListener {
         log.info("[User API] Order ID : {}", event.getOrderId());
 
         Long msgId = event.getOrderId();
-        if(userDeduplicationRepository.existsById(msgId)) {
+        if (userDeduplicationRepository.existsById(msgId)) {
             log.warn("[User API] 중복 이벤트 수신 및 무시 : {}", msgId);
             return;
         }
@@ -60,9 +60,9 @@ public class UserEventListener {
 
             try {
                 UserOutbox outbox = new UserOutbox(
-                    event.getOrderId(),
-                    "USER",
-                    "team3.saga.user.exchange",
+                        event.getOrderId(),
+                        "USER",
+                        "team3.saga.user.exchange",
                         routingKey,
                         objectMapper.writeValueAsString(event)
                 );
@@ -70,21 +70,24 @@ public class UserEventListener {
                 userOutboxRepository.save(outbox);
                 publisher.publishEvent(new UserOutboxCommittedEvent(this, outbox.getId()));
                 // 커밋 이벤트 발행
-            } catch(FailedSerializationException e) {
+
+            } catch (FailedSerializationException e) {
                 log.warn("객체 직렬화 실패");
                 throw new FailedSerializationException("Failed to serialize event payload");
             }
 
             log.info("[User API] 포인트 내역 업데이트 성공");
+
         } catch (InsufficientPointException e) { // 커스텀 예외 처리 꼭 하기
             log.error("[User API] ===== 포인트 내역 업데이트 실패로 인한 보상 트랜잭션 시작 =====");
             log.error("[User API] Order ID : {}", event.getOrderId());
 
             throw e; // 트랜잭션이 걸려있으므로 예외를 던지면 DB 트랜잭션 롤백
-        }
-        catch(Exception e) {
+
+        } catch (Exception e) {
             log.error("[User API] 이벤트 처리 중 예상치 못한 오류 발생 : {}", e.getMessage());
             throw new AmqpRejectAndDontRequeueException(e.getMessage(), e);
         }
     }
+
 }
