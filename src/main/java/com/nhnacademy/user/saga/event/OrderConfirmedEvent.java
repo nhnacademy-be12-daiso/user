@@ -10,9 +10,8 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.saga;
+package com.nhnacademy.user.saga.event;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderConfirmedEvent {
+public class OrderConfirmedEvent implements SagaEvent {
 
     private Long orderId;
     private Long userId;
