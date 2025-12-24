@@ -133,7 +133,7 @@ public class UserController {
     })
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                                  @Valid @RequestBody PasswordModifyRequest request) {
-        userService.modifyUserPassword(userCreatedId, request);
+        userService.modifyAccountPassword(userCreatedId, request);
 
         return ResponseEntity.ok().build();
     }

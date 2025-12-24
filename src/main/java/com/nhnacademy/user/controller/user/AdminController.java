@@ -70,7 +70,7 @@ public class AdminController {
     public ResponseEntity<Void> modifyUserStatus(@RequestHeader("X-User-Id") Long adminId,
                                                  @PathVariable Long userCreatedId,
                                                  @RequestBody AccountStatusRequest request) {
-        adminService.modifyUserStatus(adminId, userCreatedId, request);
+        adminService.modifyAccountStatus(adminId, userCreatedId, request);
 
         return ResponseEntity.ok().build();
     }
