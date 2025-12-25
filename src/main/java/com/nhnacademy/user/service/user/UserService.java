@@ -19,6 +19,9 @@ import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.BirthdayUserResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+
 import java.util.List;
 
 public interface UserService {
@@ -38,7 +41,7 @@ public interface UserService {
     // 회원 탈퇴(회원 상태를 WITHDRAWN으로 바꿈)
     void withdrawUser(Long userCreatedId);
 
-    List<BirthdayUserResponse> findByBirthdayMonth(int month);
+    Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable);
 
     PaycoLoginResponse findOrCreatePaycoUser(PaycoSignUpRequest request);
 

@@ -29,6 +29,10 @@ import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,14 +65,19 @@ public class UserController {
         return ResponseEntity.status(status).body(response);
     }
 
-    // GET /api/users/birthday?month={month}
-    @GetMapping("/birthday")
+    // GET /api/users/birthday
     @Operation(summary = "생일 월로 사용자 조회", description = "특정 월이 생일인 사용자 목록 조회")
-    public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(@RequestParam("month") int month) {
-        List<BirthdayUserResponse> users = userService.findByBirthdayMonth(month);
-
-        return ResponseEntity.ok(users);
+    @GetMapping("/birthday")
+    public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(
+            @RequestParam int month,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("userCreatedId").ascending());
+        Slice<BirthdayUserResponse> slice = userService.findByBirthdayMonth(month, pageable);
+        return ResponseEntity.ok(slice.getContent());
     }
+
 
     // POST /api/users/signup
     @PostMapping("/signup")
