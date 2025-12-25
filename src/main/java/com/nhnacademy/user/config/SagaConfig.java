@@ -1,5 +1,6 @@
 package com.nhnacademy.user.config;
 
+import com.nhnacademy.user.saga.SagaTopic;
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -7,6 +8,43 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SagaConfig {
+
+
+    // ------ orchestration ------
+
+
+    @Bean
+    public TopicExchange sagaExchange() {
+        return new TopicExchange(SagaTopic.ORDER_EXCHANGE);
+    }
+
+
+    @Bean
+    public Queue userQueue() {
+        return new Queue(SagaTopic.USER_QUEUE);
+    }
+
+    @Bean
+    public Queue userRollbackQueue() {
+        return new Queue(SagaTopic.USER_COMPENSATION_QUEUE);
+    }
+
+    @Bean
+    public Binding userBinding(Queue userQueue, TopicExchange sagaExchange) {
+        return BindingBuilder.bind(userQueue)
+                .to(sagaExchange)
+                .with(SagaTopic.USER_RK);
+    }
+
+    @Bean
+    public Binding userRollbackBinding(Queue userRollbackQueue, TopicExchange sagaExchange) {
+        return BindingBuilder.bind(userRollbackQueue)
+                .to(sagaExchange)
+                .with(SagaTopic.USER_COMPENSATION_RK);
+    }
+
+
+    // =============================
 
     // ----- saga를 위한 설정 ------
 

@@ -32,28 +32,6 @@ public class UserEventPublisher {
     @Qualifier("outboxRabbitTemplate")
     private final AmqpTemplate rabbitTemplate;
 
-    private final String USER_EXCHANGE = "team3.saga.user.exchange";
-    @Value("${rabbitmq.routing.point.deducted}")
-    private String ROUTING_KEY_DEDUCTED;
-
-//    // 로컬 트랜잭션이 커밋된 후에 실행됨
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-//    public void publishPointDeductedEvent(OrderConfirmedEvent event) {
-//        try {
-//            rabbitTemplate.convertAndSend(
-//                    USER_EXCHANGE,
-//                    ROUTING_KEY_DEDUCTED,
-//                    event
-//            );
-//
-//            log.info("[User API] 재고 차감 성공 이벤트 발행 완료 : {}", ROUTING_KEY_DEDUCTED);
-//
-//        } catch (Exception e) {
-//            log.warn("[User API] RabbitMQ 발행 실패 : {}", e.getMessage());
-//            // TODO : Outbox 패턴 또는 재시도 로직 구현해야함!!!
-//        }
-//    }
-
     public void publishUserOutboxMessage(String topic, String routingKey, String payload) {
 
         try {
@@ -66,9 +44,10 @@ public class UserEventPublisher {
 
             rabbitTemplate.send(topic, routingKey, message); // 직렬화 해서 생으로 보냄
 
-            log.info("[User API] 다음 이벤트 발행 완료 : User API -> Coupon API");
+            log.info("[User API] ===== 메세지 발송됨 =====");
+            log.info("[User API] Routing Key : {}", routingKey);
         } catch (Exception e) {
-            log.warn("[User API] RabbitMQ 발행 실패 : {}", e.getMessage());
+            log.warn("[User API] 메세지 발행 실패 : {}", e.getMessage());
             throw new ExternalServiceException("rabbitMQ 메세지 발행 실패");
         }
     }
