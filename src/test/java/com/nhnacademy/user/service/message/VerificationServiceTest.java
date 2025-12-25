@@ -23,12 +23,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.repository.account.AccountRepository;
-import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import jakarta.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
@@ -45,38 +44,35 @@ import org.springframework.data.redis.core.ValueOperations;
 @ExtendWith(MockitoExtension.class)
 class VerificationServiceTest {
 
-    @Mock
-    StringRedisTemplate redisTemplate;
-
-    @Mock
-    ValueOperations<String, String> valueOperations;
-
-    @Mock
-    AccountRepository accountRepository;
-
-    @Mock
-    AccountStatusHistoryRepository statusHistoryRepository;
-
-    @Mock
-    MailService mailService;
-
     @InjectMocks
-    VerificationService verificationService;
+    private VerificationService verificationService;
+
+    @Mock
+    private AccountRepository accountRepository;
+
+    @Mock
+    private MailService mailService;
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     private Account mockAccount;
-
-    private AccountStatusHistory mockHistory;
+    private User mockUser;
+    private Status dormantStatus;
+    private Status activeStatus;
 
     @BeforeEach
     void setUp() {
-        User mockUser = mock(User.class);
-        mockAccount = mock(Account.class);
-        mockHistory = mock(AccountStatusHistory.class);
-        Status status = new Status("DORMANT");
+        dormantStatus = new Status("DORMANT");
+        activeStatus = new Status("ACTIVE");
 
-        lenient().when(mockUser.getAccount()).thenReturn(mockAccount);
+        mockUser = mock(User.class);
+        mockAccount = mock(Account.class);
+
         lenient().when(mockAccount.getUser()).thenReturn(mockUser);
-        lenient().when(mockHistory.getStatus()).thenReturn(status);
         lenient().when(mockUser.getEmail()).thenReturn("test@test.com");
     }
 
@@ -88,10 +84,9 @@ class VerificationServiceTest {
         String code = "123456";
 
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
-
         given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.of(mockAccount));
-        given(statusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(any())).willReturn(
-                Optional.of(mockHistory));
+
+        given(mockAccount.getStatus()).willReturn(dormantStatus);
         given(mailService.sendCode(anyString())).willReturn(code);
 
         verificationService.sendCode(userCreatedId);
@@ -113,6 +108,15 @@ class VerificationServiceTest {
 
         assertThatThrownBy(() -> verificationService.verifyCode(userCreatedId, wrongCode))
                 .isInstanceOf(InvalidCodeException.class);
+    }
+
+    @Test
+    @DisplayName("계정 상태 검증 실패 - 휴면 계정이 아님")
+    void test3() {
+        given(mockAccount.getStatus()).willReturn(activeStatus);
+
+        assertThatThrownBy(() -> verificationService.validateDormantAccount(mockAccount))
+                .isInstanceOf(NotDormantAccountException.class);
     }
 
 }

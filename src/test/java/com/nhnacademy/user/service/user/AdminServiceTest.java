@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.dto.search.UserSearchCriteria;
@@ -38,7 +37,6 @@ import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.AdminServiceImpl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,9 +71,6 @@ class AdminServiceTest {
 
     @Mock
     private UserGradeHistoryRepository userGradeHistoryRepository;
-
-    @Mock
-    private PointService pointService;
 
     @InjectMocks
     private AdminServiceImpl adminService;
@@ -141,17 +136,13 @@ class AdminServiceTest {
 
         given(userRepository.findByIdWithAccount(userId)).willReturn(Optional.of(mockUser));
 
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(mockAccount)).willReturn(
-                Optional.of(mockStatusHistory));
         given(mockStatusHistory.getStatus()).willReturn(mockStatus);
         given(mockStatus.getStatusName()).willReturn("ACTIVE");
 
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(mockUser)).willReturn(
-                Optional.of(mockGradeHistory));
         given(mockGradeHistory.getGrade()).willReturn(mockGrade);
         given(mockGrade.getGradeName()).willReturn("VIP");
 
-        given(pointService.getCurrentPoint(userId)).willReturn(new PointResponse(10L));
+        given(mockUser.getCurrentPoint()).willReturn(10L);
 
         UserDetailResponse response = adminService.getUserDetail(userId);
 
@@ -166,16 +157,16 @@ class AdminServiceTest {
         Long adminId = 999L;
         Long targetUserId = 1L;
         AccountStatusRequest request = new AccountStatusRequest("BANNED");
+        Account mockAccount = mock(Account.class);
 
-        given(mockUser.getAccount()).willReturn(mockAccount);
-        given(mockAccount.getLoginId()).willReturn("testUser");
-        
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
+        given(mockUser.getAccount()).willReturn(mockAccount);
         given(statusRepository.findByStatusName("BANNED")).willReturn(Optional.of(mockStatus));
 
-        adminService.modifyUserStatus(adminId, targetUserId, request);
+        adminService.modifyAccountStatus(adminId, targetUserId, request);
 
         verify(accountStatusHistoryRepository).save(any(AccountStatusHistory.class));
+        verify(mockAccount).modifyStatus(mockStatus);
     }
 
     @Test
@@ -184,6 +175,7 @@ class AdminServiceTest {
         Long adminId = 999L;
         Long targetUserId = 1L;
         UserGradeRequest request = new UserGradeRequest("GOLD");
+        User mockUser = mock(User.class);
 
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(gradeRepository.findByGradeName("GOLD")).willReturn(Optional.of(mockGrade));
@@ -191,6 +183,7 @@ class AdminServiceTest {
         adminService.modifyUserGrade(adminId, targetUserId, request);
 
         verify(userGradeHistoryRepository).save(any(UserGradeHistory.class));
+        verify(mockUser).modifyGrade(mockGrade);
     }
 
     @Test
@@ -203,7 +196,7 @@ class AdminServiceTest {
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.modifyUserStatus(adminId, targetUserId, request))
+        assertThatThrownBy(() -> adminService.modifyAccountStatus(adminId, targetUserId, request))
                 .isInstanceOf(StateNotFoundException.class)
                 .hasMessageContaining("존재하지 않는 상태");
     }

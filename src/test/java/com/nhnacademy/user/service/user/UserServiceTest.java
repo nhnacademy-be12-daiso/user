@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -28,15 +29,12 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.producer.CouponMessageProducer;
@@ -113,26 +111,27 @@ class UserServiceTest {
     @Test
     @DisplayName("회원가입 성공")
     void test1() {
-        SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
-                "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
+        SignupRequest request = new SignupRequest("testId", "testPw123!", "홍길동", "010-1234-5678", "test@test.com",
+                LocalDate.of(1990, 1, 1));
+        Grade generalGrade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        Status activeStatus = new Status("ACTIVE");
 
         given(accountRepository.existsById(anyString())).willReturn(false);
         given(userRepository.existsByPhoneNumber(anyString())).willReturn(false);
         given(userRepository.existsByEmail(anyString())).willReturn(false);
-
-        given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
-        given(userRepository.save(any(User.class))).willReturn(testUser);
-
-        Grade generalGrade = new Grade("GENERAL", BigDecimal.ONE);
-        Status activeStatus = new Status("ACTIVE");
-
         given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(generalGrade));
         given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(activeStatus));
 
+        User savedUser = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
+        ReflectionTestUtils.setField(savedUser, "userCreatedId", 1L);
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+
         userService.signUp(request);
 
-        verify(userRepository).save(any(User.class));
-        verify(accountRepository).save(any(Account.class));
+        // Then
+        verify(userRepository).save(
+                argThat(user -> user.getGrade().getGradeName().equals("GENERAL") && user.getCurrentPoint() == 0L));
+        verify(accountRepository).save(argThat(account -> account.getStatus().getStatusName().equals("ACTIVE")));
     }
 
     @Test
@@ -185,17 +184,7 @@ class UserServiceTest {
     void test5() {
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
 
-        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
-        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "승급");
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
-                .willReturn(Optional.of(gradeHistory));
-
-        Status status = new Status("ACTIVE");
-        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
-                .willReturn(Optional.of(statusHistory));
-
-        given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(5000L));
+        given(testUser.getCurrentPoint()).willReturn(5000L);
 
         UserResponse response = userService.getUserInfo(testUserId);
 
@@ -243,7 +232,7 @@ class UserServiceTest {
         given(passwordEncoder.matches("oldPwd", "encodedOld")).willReturn(true);
         given(passwordEncoder.encode("newPwd")).willReturn("encodedNew");
 
-        userService.modifyUserPassword(testUserId, request);
+        userService.modifyAccountPassword(testUserId, request);
 
         verify(mockAccount).modifyPassword("encodedNew");
     }
@@ -276,14 +265,10 @@ class UserServiceTest {
 
         Account existingAccount = mock(Account.class);
         User existingUser = mock(User.class);
-        Status activeStatus = new Status("ACTIVE");
-        AccountStatusHistory history = new AccountStatusHistory(existingAccount, activeStatus);
 
         given(accountRepository.findById(expectedLoginId)).willReturn(Optional.of(existingAccount));
         given(existingAccount.getUser()).willReturn(existingUser);
         given(existingAccount.getRole()).willReturn(Role.USER);
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(existingAccount))
-                .willReturn(Optional.of(history));
 
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
 

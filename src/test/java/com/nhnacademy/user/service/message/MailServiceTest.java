@@ -18,7 +18,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.nhnacademy.user.properties.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
@@ -37,9 +36,6 @@ public class MailServiceTest {
 
     @Mock
     private JavaMailSender javaMailSender;
-
-    @Mock
-    private MailProperties mailProperties;
 
     @InjectMocks
     private MailService mailService;
