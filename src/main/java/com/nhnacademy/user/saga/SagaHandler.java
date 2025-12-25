@@ -35,14 +35,18 @@ public class SagaHandler {
         String reason = null; // 실패시 사유
 
         try {
-            // TODO 포인트 차감 로직
-            // 서비스 주입받아서 하시면 됨
-
 //            testService.process(); // 일부러 포인트 부족 터트리기
-
-
-            // 로직 중에 포인트 부족하면 해당 커스텀 예외 던지시면 됩니다.
-            // 더 좋은 방법 있으면 추천 좀
+            // TODO 01 포인트 차감 로직 (양진영 님)
+            /**
+             *  본인들 서비스 주입받아서 로직 구현하시면 됩니다.
+             *  매개변수로 넘어온 event DTO를 까보시면 필요한 정보들이 담겨 있습니다.
+             *  그거 토대로 각자 로직에 구현해주면 됨 (재고 차감, 포인트 차감, 쿠폰 사용 처리)
+             *
+             *  만약 포인트 차감 중 오류가 발생한다?
+             *  그럼 하단에 PointNotEnoughException 던지면 됩니다!
+             *
+             *  더 좋은 로직 있다면 추천 가능
+             */
 
             log.error("[User API] 포인트 차감 성공 - Order : {}", event.getOrderId());
 
@@ -79,8 +83,12 @@ public class SagaHandler {
         String reason = null; // 실패시 사유
 
         try {
-            // TODO 포인트 '보상' 로직
-            // 서비스 주입받아서 하시면 됨
+            // TODO 02 포인트 '보상' 로직 (양진영 님)
+            /**
+             * 동일하게 서비스 주입받아서 하시면 되는데,
+             * 여기서는 '뭔가 잘못돼서 다시 원복시키는 롤백'의 과정입니다.
+             * 그니까 아까 차감했던 포인트를 다시 원복시키는 로직을 구현하시면 됩니다.
+             */
 
             log.error("[User API] 포인트 보상 성공 - Order : {}", event.getOrderId());
 
