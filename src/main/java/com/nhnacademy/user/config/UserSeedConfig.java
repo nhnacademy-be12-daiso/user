@@ -12,6 +12,7 @@
 
 package com.nhnacademy.user.config;
 
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -35,7 +36,7 @@ public class UserSeedConfig {
 
     @Bean
     public CommandLineRunner seedBirthdayUsers() {
-        return args -> seedDecemberUsers(100_000);
+        return args -> seedDecemberUsers(50_000);
     }
 
     @Transactional
@@ -43,16 +44,19 @@ public class UserSeedConfig {
         int batchSize = 1000;
         LocalDate birth = LocalDate.of(1990, 12, 10); // 12월 생일 고정(원하면 날짜 바꿔)
 
+        Grade gradeRef = em.getReference(Grade.class, 1L); // 여기 1L은 GENERAL/ACTIVE 등 너희 기준 id로
+
+
         List<User> buffer = new ArrayList<>(batchSize);
 
         for (int i = 1; i <= total; i++) {
-            String userName = "dec-user-" + i;
+            String userName = "birth-user-" + i;
 
             // unique 보장
             String phone = "010-9" + String.format("%07d", i);        // 010-90000001 ~
             String email = "dec_user_" + i + "@test.local";           // 유니크
 
-            buffer.add(new User(userName, phone, email, birth));
+            buffer.add(new User(userName, phone, email, birth, gradeRef));
 
             if (buffer.size() == batchSize) {
                 userRepository.saveAll(buffer);
