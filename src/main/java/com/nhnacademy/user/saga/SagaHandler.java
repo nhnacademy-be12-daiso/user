@@ -1,16 +1,27 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
 package com.nhnacademy.user.saga;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nhnacademy.user.entity.saga.UserOutbox;
+import com.nhnacademy.user.dto.request.PointRequest;
+import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
-import com.nhnacademy.user.exception.saga.FailedSerializationException;
 import com.nhnacademy.user.repository.saga.UserOutboxRepository;
 import com.nhnacademy.user.saga.event.OrderCompensateEvent;
 import com.nhnacademy.user.saga.event.OrderConfirmedEvent;
-import com.nhnacademy.user.saga.event.SagaEvent;
 import com.nhnacademy.user.saga.event.SagaReply;
+import com.nhnacademy.user.service.point.PointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +38,8 @@ public class SagaHandler {
     private final ApplicationEventPublisher publisher;
     private final SagaTestService testService;
     private final SagaReplyService replyService;
+
+    private final PointService pointService;
 
     @Transactional
     public void handleEvent(OrderConfirmedEvent event) {
@@ -47,22 +60,40 @@ public class SagaHandler {
              *
              *  더 좋은 로직 있다면 추천 가능
              */
+            // 포인트 차감
+            if (event.getUsedPoint() != null && event.getOrderId() > 0) {
+                pointService.processPoint(new PointRequest(
+                        event.getUserId(),
+                        event.getUsedPoint(),
+                        Type.USE,
+                        "주문/결제시 포인트 사용"));
+            }
 
-            log.error("[User API] 포인트 차감 성공 - Order : {}", event.getOrderId());
+            // 포인트 적립
+            if (event.getSavedPoint() != null && event.getSavedPoint() > 0) {
+                pointService.processPoint(new PointRequest(
+                        event.getUserId(),
+                        event.getSavedPoint(),
+                        Type.EARN,
+                        "주문/결제 후 포인트 적립"));
+            }
 
-        } catch(PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
+            log.debug("[User API] 포인트 차감 및 적립 성공 - Order : {}", event.getOrderId());
+
+        } catch (PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
             log.error("[User API] 포인트 부족으로 인한 차감 실패 - Order : {}", event.getOrderId());
             isSuccess = false;
             reason = "INSUFFICIENT_POINTS";
             throw e;
-        } catch(Exception e) {
+
+        } catch (Exception e) {
             log.error("[User API] 예상치 못한 시스템 에러 발생 - Order : {}", event.getOrderId(), e);
             isSuccess = false;
             reason = "SYSTEM_ERROR";
             // 이렇게 예외 범위를 넓게 해놔야 무슨 에러가 터져도 finally 문이 실행됨
             throw e;
-        }
-        finally {
+
+        } finally {
             // 성공했든 실패했든 답장은 해야함
             SagaReply reply = new SagaReply(
                     event.getOrderId(),
@@ -89,15 +120,32 @@ public class SagaHandler {
              * 여기서는 '뭔가 잘못돼서 다시 원복시키는 롤백'의 과정입니다.
              * 그니까 아까 차감했던 포인트를 다시 원복시키는 로직을 구현하시면 됩니다.
              */
+            // 사용했던 포인트 복구
+            if (event.getUsedPoint() > 0) {
+                pointService.processPoint(new PointRequest(
+                        event.getUserId(),
+                        event.getUsedPoint(),
+                        Type.EARN,
+                        "주문/결제 실패 포인트 복구"));
+            }
 
-            log.error("[User API] 포인트 보상 성공 - Order : {}", event.getOrderId());
+            // 적립됐던 포인트 회수
+            if (event.getSavedPoint() > 0) {
+                pointService.processPoint(new PointRequest(
+                        event.getUserId(),
+                        event.getSavedPoint(),
+                        Type.USE,
+                        "주문/결제 실패 포인트 회수"
+                ));
+            }
 
-        } catch(Exception e) {
+            log.debug("[User API] 포인트 보상 성공 - Order : {}", event.getOrderId());
+
+        } catch (Exception e) {
             log.error("[User API] 예상치 못한 시스템 에러 발생 - Order : {}", event.getOrderId(), e);
             isSuccess = false;
             reason = "SYSTEM_ERROR";
-        }
-        finally {
+        } finally {
             // 성공했든 실패했든 답장은 해야함
             SagaReply reply = new SagaReply(
                     event.getOrderId(),
