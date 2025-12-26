@@ -244,8 +244,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable) {
-        Grade active = gradeRepository.getReferenceById(1L);
-        return userRepository.findBirthdayUsersActive(month, active, pageable);
+        return userRepository.findBirthdayUsersActive(month, 1L, pageable); // ACTIVE=1 하드코딩
     }
 
 

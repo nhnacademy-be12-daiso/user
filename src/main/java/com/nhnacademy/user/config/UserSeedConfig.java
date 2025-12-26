@@ -1,17 +1,8 @@
-/*
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * + Copyright 2025. NHN Academy Corp. All rights reserved.
- * + * While every precaution has been taken in the preparation of this resource,  assumes no
- * + responsibility for errors or omissions, or for damages resulting from the use of the information
- * + contained herein
- * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
- * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
- * + prior written permission.
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- */
-
 package com.nhnacademy.user.config;
 
+import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -42,26 +33,34 @@ public class UserSeedConfig {
     @Transactional
     public void seedDecemberUsers(int total) {
         int batchSize = 1000;
-        LocalDate birth = LocalDate.of(1990, 12, 10); // 12월 생일 고정(원하면 날짜 바꿔)
+        LocalDate birth = LocalDate.of(1990, 12, 10);
 
-        Grade gradeRef = em.getReference(Grade.class, 1L); // 여기 1L은 GENERAL/ACTIVE 등 너희 기준 id로
-
+        Grade defaultGrade = em.getReference(Grade.class, 1L);
+        Status activeStatus = em.getReference(Status.class, 1L);
 
         List<User> buffer = new ArrayList<>(batchSize);
 
         for (int i = 1; i <= total; i++) {
-            String userName = "birth-user-" + i;
+            String userName = "dec-user-" + i;
+            String phone = "010-9" + String.format("%07d", i);
+            String email = "dec_user_" + i + "@test.local";
 
-            // unique 보장
-            String phone = "010-9" + String.format("%07d", i);        // 010-90000001 ~
-            String email = "dec_user_" + i + "@test.local";           // 유니크
+            User user = new User(userName, phone, email, birth, defaultGrade);
 
-            buffer.add(new User(userName, phone, email, birth, gradeRef));
+            String loginId = "dec_login_" + i;
+            String password = "{noop}1234";
+            Role role = Role.USER;
+
+            // 연관관계 주인(Account)에서 user 지정하면 끝
+            Account account = new Account(loginId, password, role, user, activeStatus);
+            user.linkAccount(account);
+
+            buffer.add(user);
 
             if (buffer.size() == batchSize) {
                 userRepository.saveAll(buffer);
                 userRepository.flush();
-                em.clear();      // 1차 캐시 비우기 (메모리 폭발 방지)
+                em.clear();
                 buffer.clear();
             }
         }
@@ -72,5 +71,4 @@ public class UserSeedConfig {
             em.clear();
         }
     }
-
 }

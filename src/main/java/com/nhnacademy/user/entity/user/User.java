@@ -100,4 +100,9 @@ public class User {     // 회원 기본 정보
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();    // 배송지 리스트, 일대다 관계, User 삭제 시 Addresses 함께 삭제
 
+    public void linkAccount(Account account) {
+        this.account = account;
+    }
+
+
 }
