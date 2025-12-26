@@ -14,7 +14,6 @@ package com.nhnacademy.user.saga.event;
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,4 +36,5 @@ public class OrderConfirmedEvent implements SagaEvent {
     private Long usedPoint; // 사용 포인트
     private Long savedPoint; // 적립 포인트
     private List<Long> usedCouponIds;
+
 }

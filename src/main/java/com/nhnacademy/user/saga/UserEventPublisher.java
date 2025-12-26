@@ -13,16 +13,14 @@
 package com.nhnacademy.user.saga;
 
 import com.nhnacademy.user.exception.saga.ExternalServiceException;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,7 +31,6 @@ public class UserEventPublisher {
     private final AmqpTemplate rabbitTemplate;
 
     public void publishUserOutboxMessage(String topic, String routingKey, String payload) {
-
         try {
             byte[] body = payload.getBytes(StandardCharsets.UTF_8);
 
@@ -46,6 +43,7 @@ public class UserEventPublisher {
 
             log.info("[User API] ===== 메세지 발송됨 =====");
             log.info("[User API] Routing Key : {}", routingKey);
+
         } catch (Exception e) {
             log.warn("[User API] 메세지 발행 실패 : {}", e.getMessage());
             throw new ExternalServiceException("rabbitMQ 메세지 발행 실패");

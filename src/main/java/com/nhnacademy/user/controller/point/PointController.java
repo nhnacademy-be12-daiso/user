@@ -41,9 +41,7 @@ public class PointController {
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader("X-User-Id") Long userCreatedId,
                                                                   @PageableDefault Pageable pageable) {
-        Page<PointHistoryResponse> pointHistoryResponses = pointService.getMyPointHistory(userCreatedId, pageable);
-
-        return ResponseEntity.ok().body(pointHistoryResponses);
+        return ResponseEntity.ok().body(pointService.getMyPointHistory(userCreatedId, pageable));
     }
 
 }

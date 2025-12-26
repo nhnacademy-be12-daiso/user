@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,19 +39,23 @@ public class AddressServiceImpl implements AddressService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
 
-    private static final String CACHE_NAME = "addresses";
-
+    /**
+     * 새 배송지를 추가하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param request       배송지 별칭, 우편 번호, 도로명 주소, 상세 주소
+     * @return Addresses 테이블에 추가된 PK
+     */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 추가 시 기존 캐시 삭제
-    public Long addAddress(Long userCreatedId, AddressRequest request) {    // 새 배송지 추가
+    public Long addAddress(Long userCreatedId, AddressRequest request) {
         User user = getUser(userCreatedId);
 
         long addressCount = addressRepository.countByUser(user);
 
         // 주소 개수 확인
         if (addressCount >= 10) {
-            log.warn("[주소] 추가 실패: 주소 최대 개수 초과");
+            log.warn("[AddressService] 새 배송지 추가 실패: 주소 최대 개수 초과");
             throw new AddressLimitExceededException("최대 10개의 주소만 등록할 수 있습니다.");
         }
 
@@ -68,28 +70,41 @@ public class AddressServiceImpl implements AddressService {
         Address address = new Address(user,
                 request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(), isDefault);
 
-        Address saved = addressRepository.save(address);
-
-        return saved.getAddressId();
+        return addressRepository.save(address).getAddressId();
     }
 
+    /**
+     * 회원이 등록한 배송지 목록을 조회하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @return 회원이 등록한 배송지 목록
+     */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CACHE_NAME, key = "#userCreatedId", unless = "#result.isEmpty()")   // 배송지 조회 시 캐시 적용
-    public List<AddressResponse> getMyAddresses(Long userCreatedId) {   // 모든 주소 목록 조회
+    public List<AddressResponse> getMyAddresses(Long userCreatedId) {
         User user = getUser(userCreatedId);
 
         return addressRepository.findAllByUser(user).stream()
-                .map(address -> new AddressResponse(address.getAddressId(), address.getAddressName(),
-                        address.getZipCode(), address.getRoadAddress(), address.getAddressDetail(),
-                        address.isDefault()))
+                .map(address ->
+                        new AddressResponse(address.getAddressId(),
+                                address.getAddressName(),
+                                address.getZipCode(),
+                                address.getRoadAddress(),
+                                address.getAddressDetail(),
+                                address.isDefault()))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 이미 등록된 배송지의 정보를 수정하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param addressId     Addresses 테이블 PK
+     * @param request       배송지 별칭, 우편 번호, 도로명 주소, 상세 주소
+     */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 수정 시 기존 캐시 삭제
-    public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) { // 특정 주소 정보 수정
+    public void modifyAddress(Long userCreatedId, Long addressId, AddressRequest request) {
         User user = getUser(userCreatedId);
 
         // 요청이 기본 배송지로 왔을 때 기존 기본 배송지를 초기화
@@ -101,25 +116,30 @@ public class AddressServiceImpl implements AddressService {
 
         // 사용자가 직접 기본 배송지 설정 해제를 하지 않고 다른 주소를 기본 배송지로 설정했을 때 자동으로 해제
         if (address.isDefault() && !request.isDefault()) {
-            log.warn("[주소] 수정 실패: 기본 배송지 해제");
+            log.warn("[AddressService] 배송지 수정 실패: 기본 배송지 해제");
             throw new DefaultAddressRequiredException("기본 배송지 설정은 해제할 수 없습니다. 다른 배송지를 기본 배송지로 설정하면 자동으로 변경됩니다.");
         }
 
-        address.modifyDetails(request.addressName(), request.zipCode(), request.roadAddress(), request.addressDetail(),
-                request.isDefault());
+        address.modifyDetails(request.addressName(),
+                request.zipCode(), request.roadAddress(), request.addressDetail(), request.isDefault());
     }
 
+    /**
+     * 이미 등록된 배송지를 삭제하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param addressId     Addresses 테이블 PK
+     */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, key = "#userCreatedId")    // 배송지 삭제 시 기존 캐시 삭제
-    public void deleteAddress(Long userCreatedId, Long addressId) { // 특정 주소 삭제
+    public void deleteAddress(Long userCreatedId, Long addressId) {
         User user = getUser(userCreatedId);
 
         Address address = getAddress(addressId, user);
 
         // 지우려는 배송지가 기본 배송지면 예외
         if (address.isDefault()) {
-            log.warn("[주소] 삭제 실패: 기본 배송지 삭제");
+            log.warn("[AddressService] 배송지 삭제 실패: 기본 배송지 삭제");
             throw new DefaultAddressDeletionException("기본 배송지는 삭제할 수 없습니다.");
         }
 
@@ -128,12 +148,18 @@ public class AddressServiceImpl implements AddressService {
 
     private User getUser(Long userCreatedId) {
         return userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
+                .orElseThrow(() -> {
+                    log.warn("[AddressService] 찾을 수 없는 회원 ({})", userCreatedId);
+                    return new UserNotFoundException("찾을 수 없는 회원입니다.");
+                });
     }
 
     private Address getAddress(Long addressId, User user) {
         return addressRepository.findByAddressIdAndUser(addressId, user)
-                .orElseThrow(() -> new AddressNotFoundException("찾을 수 없는 주소입니다."));
+                .orElseThrow(() -> {
+                    log.warn("[AddressService] 찾을 수 없는 배송지 ({})", addressId);
+                    return new AddressNotFoundException("찾을 수 없는 배송지입니다.");
+                });
     }
 
 }

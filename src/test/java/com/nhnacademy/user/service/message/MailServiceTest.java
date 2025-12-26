@@ -19,18 +19,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.properties.MailProperties;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.io.UnsupportedEncodingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class MailServiceTest {
@@ -41,7 +37,6 @@ public class MailServiceTest {
     @Mock
     private MailProperties mailProperties;
 
-    @InjectMocks
     private MailService mailService;
 
     @Mock
@@ -49,12 +44,13 @@ public class MailServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(mailService, "username", "wlsdud3309@naver.com");
+        given(mailProperties.getUsername()).willReturn("test@nhnacademy.com");
+        mailService = new MailService(javaMailSender, mailProperties);
     }
 
     @Test
     @DisplayName("휴면 해제 인증코드 메일 발송 - 성공")
-    void test1() throws MessagingException, UnsupportedEncodingException {
+    void test1() {
         String email = "user@example.com";
 
         given(javaMailSender.createMimeMessage()).willReturn(mimeMessage);
@@ -67,7 +63,7 @@ public class MailServiceTest {
 
     @Test
     @DisplayName("임시 비밀번호 메일 발송 - 성공")
-    void test2() throws MessagingException, UnsupportedEncodingException {
+    void test2() {
         String email = "user@example.com";
         String tempPassword = "StrongPassword123!";
 

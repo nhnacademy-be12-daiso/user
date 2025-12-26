@@ -1,18 +1,34 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
 package com.nhnacademy.user.entity.saga;
 
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Getter
 @Entity
 @Table(name = "user_outbox")
-@EntityListeners(AuditingEntityListener.class) // Auditing 활성화
 public class UserOutbox {
 
     @Id
@@ -34,11 +50,11 @@ public class UserOutbox {
     @Enumerated(EnumType.STRING)
     private OutboxStatus status = OutboxStatus.PENDING;
 
-    @CreatedDate // 생성 시 자동 기록
+    @CreationTimestamp // 생성 시 자동 기록
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate // 업데이트 시 자동 기록
+    @UpdateTimestamp // 업데이트 시 자동 기록
     private LocalDateTime updatedAt;
 
     // 1. JPA 필수: 기본 생성자 (protected 사용 권장)

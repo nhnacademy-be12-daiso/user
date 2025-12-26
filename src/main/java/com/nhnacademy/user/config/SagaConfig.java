@@ -80,4 +80,5 @@ public class SagaConfig {
     public DirectExchange userExchange() {
         return new DirectExchange(USER_EXCHANGE);
     }
+
 }

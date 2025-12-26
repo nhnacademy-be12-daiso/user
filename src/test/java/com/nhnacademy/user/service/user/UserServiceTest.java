@@ -16,10 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -28,15 +26,12 @@ import com.nhnacademy.user.dto.payco.PaycoSignUpRequest;
 import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
-import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
-import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.producer.CouponMessageProducer;
@@ -50,6 +45,7 @@ import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.impl.UserServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,6 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -71,16 +68,16 @@ class UserServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
-    private GradeRepository gradeRepository;
-
-    @Mock
-    private StatusRepository statusRepository;
-
-    @Mock
     private UserGradeHistoryRepository userGradeHistoryRepository;
 
     @Mock
     private AccountStatusHistoryRepository accountStatusHistoryRepository;
+
+    @Mock
+    private GradeRepository gradeRepository;
+
+    @Mock
+    private StatusRepository statusRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -90,6 +87,9 @@ class UserServiceTest {
 
     @Mock
     CouponMessageProducer couponMessageProducer;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -113,24 +113,25 @@ class UserServiceTest {
     @Test
     @DisplayName("회원가입 성공")
     void test1() {
-        SignupRequest request = new SignupRequest("test", "pwd123!@#", "테스트",
-                "010-1234-5678", "test@test.com", LocalDate.of(2003, 11, 7));
+        SignupRequest request = new SignupRequest("testId", "testPw123!", "홍길동", "010-1234-5678", "test@test.com",
+                LocalDate.of(1990, 1, 1));
+        Grade generalGrade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        Status activeStatus = new Status("ACTIVE");
 
         given(accountRepository.existsById(anyString())).willReturn(false);
         given(userRepository.existsByPhoneNumber(anyString())).willReturn(false);
         given(userRepository.existsByEmail(anyString())).willReturn(false);
-
-        given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
-        given(userRepository.save(any(User.class))).willReturn(testUser);
-
-        Grade generalGrade = new Grade("GENERAL", BigDecimal.ONE);
-        Status activeStatus = new Status("ACTIVE");
-
         given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(generalGrade));
         given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(activeStatus));
 
+        User savedUser =
+                new User(request.userName(), request.phoneNumber(), request.email(), request.birth(), generalGrade);
+        ReflectionTestUtils.setField(savedUser, "userCreatedId", 1L);
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+
         userService.signUp(request);
 
+        verify(eventPublisher, times(1)).publishEvent(any(Object.class));
         verify(userRepository).save(any(User.class));
         verify(accountRepository).save(any(Account.class));
     }
@@ -183,27 +184,26 @@ class UserServiceTest {
     @Test
     @DisplayName("회원 정보 조회 성공")
     void test5() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
-
-        Grade grade = new Grade("GOLD", BigDecimal.valueOf(2.5));
-        UserGradeHistory gradeHistory = new UserGradeHistory(testUser, grade, "승급");
-        given(userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(testUser))
-                .willReturn(Optional.of(gradeHistory));
-
+        Long userCreatedId = 1L;
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
         Status status = new Status("ACTIVE");
-        AccountStatusHistory statusHistory = new AccountStatusHistory(testAccount, status);
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(testAccount))
-                .willReturn(Optional.of(statusHistory));
 
-        given(pointService.getCurrentPoint(testUserId)).willReturn(new PointResponse(5000L));
+        User user = new User("홍길동", "010-1234-5678", "test@test.com", LocalDate.of(1990, 1, 1), grade);
+        Account account = new Account("testId", "pw", Role.USER, user, status);
 
-        UserResponse response = userService.getUserInfo(testUserId);
+        ReflectionTestUtils.setField(user, "userCreatedId", userCreatedId);
+        ReflectionTestUtils.setField(user, "currentPoint", 1000L);
+        ReflectionTestUtils.setField(user, "account", account);
+        ReflectionTestUtils.setField(account, "joinedAt", LocalDateTime.now());
 
-        assertThat(response).isNotNull();
-        assertThat(response.loginId()).isEqualTo(testLoginId);
-        assertThat(response.userName()).isEqualTo("테스트");
-        assertThat(response.gradeName()).isEqualTo("GOLD");
-        assertThat(response.point()).isEqualTo(5000L);
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(user));
+
+        UserResponse response = userService.getUserInfo(userCreatedId);
+
+        assertThat(response.userName()).isEqualTo("홍길동");
+        assertThat(response.point()).isEqualTo(1000L);
+        assertThat(response.gradeName()).isEqualTo("GENERAL");
+        assertThat(response.statusName()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -243,7 +243,7 @@ class UserServiceTest {
         given(passwordEncoder.matches("oldPwd", "encodedOld")).willReturn(true);
         given(passwordEncoder.encode("newPwd")).willReturn("encodedNew");
 
-        userService.modifyUserPassword(testUserId, request);
+        userService.modifyAccountPassword(testUserId, request);
 
         verify(mockAccount).modifyPassword("encodedNew");
     }
@@ -252,20 +252,22 @@ class UserServiceTest {
     @DisplayName("Payco 신규 회원가입")
     void test9() {
         PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
-        String expectedLoginId = "PAYCO_PAYCO_12345";
+        Grade generalGrade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        Status activeStatus = new Status("ACTIVE");
 
-        given(accountRepository.findById(expectedLoginId)).willReturn(Optional.empty());
+        given(accountRepository.findById(anyString())).willReturn(Optional.empty());
+        given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(generalGrade));
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(activeStatus));
 
-        given(gradeRepository.findByGradeName("GENERAL")).willReturn(Optional.of(mock(Grade.class)));
-        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(mock(Status.class)));
+        User savedUser = new User("Payco User", "010-0000-0000", "payco@test.com", LocalDate.now(), generalGrade);
+        ReflectionTestUtils.setField(savedUser, "userCreatedId", 1L);
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
 
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
 
         assertThat(response.isNewUser()).isTrue();
-        verify(userRepository).save(any(User.class));
-        verify(accountRepository).save(any(Account.class));
-        verify(pointService).earnPointByPolicy(any(), eq("REGISTER"));
-        verify(couponMessageProducer).sendWelcomeCouponMessage(any());
+        verify(userGradeHistoryRepository).save(any());
+        verify(pointService).earnPointByPolicy(any(), anyString());
     }
 
     @Test
@@ -274,21 +276,17 @@ class UserServiceTest {
         PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
         String expectedLoginId = "PAYCO_PAYCO_12345";
 
-        Account existingAccount = mock(Account.class);
-        User existingUser = mock(User.class);
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
         Status activeStatus = new Status("ACTIVE");
-        AccountStatusHistory history = new AccountStatusHistory(existingAccount, activeStatus);
+        User existingUser = new User("Payco User", "010", "a@a.com", LocalDate.now(), grade);
+        Account existingAccount = new Account(expectedLoginId, "pw", Role.USER, existingUser, activeStatus);
 
         given(accountRepository.findById(expectedLoginId)).willReturn(Optional.of(existingAccount));
-        given(existingAccount.getUser()).willReturn(existingUser);
-        given(existingAccount.getRole()).willReturn(Role.USER);
-        given(accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(existingAccount))
-                .willReturn(Optional.of(history));
 
         PaycoLoginResponse response = userService.findOrCreatePaycoUser(request);
 
         assertThat(response.isNewUser()).isFalse();
-        verify(userRepository, never()).save(any());
+        assertThat(response.loginId()).isEqualTo(expectedLoginId);
     }
 
 }

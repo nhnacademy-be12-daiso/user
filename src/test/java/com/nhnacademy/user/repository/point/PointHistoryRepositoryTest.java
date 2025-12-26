@@ -17,13 +17,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.Type;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,37 +41,16 @@ class PointHistoryRepositoryTest {
     @Autowired
     UserRepository userRepository;
 
-    @Test
-    @DisplayName("포인트 잔액 계산 확인 (적립 - 사용 + 취소)")
-    void test1() {
-        User user = new User("테스트", "010-1111-2222", "test@test.com", LocalDate.now());
-        userRepository.save(user);
-
-        pointHistoryRepository.save(new PointHistory(user, 1000L, Type.EARN, "가입"));
-        pointHistoryRepository.save(new PointHistory(user, 500L, Type.USE, "구매"));
-        pointHistoryRepository.save(new PointHistory(user, 500L, Type.CANCEL, "구매 취소"));
-
-        // 1000 - 500 + 500 = 1000
-        Long balance = pointHistoryRepository.getPointByUser(user);
-
-        assertThat(balance).isEqualByComparingTo(1000L);
-    }
-
-    @Test
-    @DisplayName("내역이 없을 때 잔액은 0원이어야 한다")
-    void test2() {
-        User user = new User("테스트2", "010-3333-4444", "test2@test.com", LocalDate.now());
-        userRepository.save(user);
-
-        Long balance = pointHistoryRepository.getPointByUser(user);
-
-        assertThat(balance).isEqualByComparingTo(0L);
-    }
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
     @DisplayName("포인트 내역 페이징 조회 및 최신순 정렬 확인")
-    void test3() {
-        User user = new User("페이징유저", "010-5555-6666", "page@test.com", LocalDate.now());
+    void test1() {
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User user = new User("페이징유저", "010-5555-6666", "page@test.com", LocalDate.now(), grade);
         userRepository.save(user);
 
         for (int i = 1; i <= 15; i++) {

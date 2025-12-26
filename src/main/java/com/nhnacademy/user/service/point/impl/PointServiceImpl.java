@@ -12,10 +12,8 @@
 
 package com.nhnacademy.user.service.point.impl;
 
-import com.nhnacademy.user.event.UserPointChangedEvent;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.point.Method;
 import com.nhnacademy.user.entity.point.PointHistory;
 import com.nhnacademy.user.entity.point.PointPolicy;
@@ -32,7 +30,6 @@ import com.nhnacademy.user.service.point.PointService;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,95 +41,99 @@ import org.springframework.transaction.annotation.Transactional;
 public class PointServiceImpl implements PointService {
 
     private final UserRepository userRepository;
-
     private final PointHistoryRepository pointHistoryRepository;
     private final PointPolicyRepository pointPolicyRepository;
 
-    private final ApplicationEventPublisher eventPublisher;
-
-    @Override
-    @Transactional(readOnly = true)
-    public PointResponse getCurrentPoint(Long userCreatedId) {  // 현재 내 포인트 잔액 조회
-        User user = getUser(userCreatedId);
-
-        Long point = pointHistoryRepository.getPointByUser(user);
-
-        if (point == null) {
-            point = 0L;
-        }
-
-        return new PointResponse(point);
-    }
-
+    /**
+     * 포인트 정책을 기반으로 포인트 적립하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param policyType    포인트 정책 타입
+     */
     @Override
     @Transactional
-    public void earnPointByPolicy(Long userCreatedId, String policyType) {  // 정책 기반 포인트 적립
+    public void earnPointByPolicy(Long userCreatedId, String policyType) {
         earnPointByPolicy(userCreatedId, policyType, null);
     }
 
+    /**
+     * 포인트 정책을 기반으로 포인트 적립하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param policyType    포인트 정책 타입
+     * @param targetAmount  적립할 포인트 값 (정액/정률)
+     */
     @Override
     public void earnPointByPolicy(Long userCreatedId, String policyType, BigDecimal targetAmount) {
         User user = getLockUser(userCreatedId);
 
         PointPolicy pointPolicy = pointPolicyRepository.findByPolicyType(policyType)
                 .orElseThrow(() -> {
-                    log.error("[포인트] 정책 기반 적립 실패: 찾을 수 없는 포인트 정책 ({})", policyType);
-                    return new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다");
+                    log.error("[PointService] 포인트 정책 기반 적립 실패: 찾을 수 없는 포인트 정책 ({})", policyType);
+                    return new PointPolicyNotFoundException("존재하지 않는 포인트 정책입니다.");
                 });
 
         long calculatedAmount;
 
-        if (pointPolicy.getMethod() == Method.AMOUNT) {
-            calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용(소수점 버림)
+        if (pointPolicy.getMethod() == Method.AMOUNT) { // 정액일 때
+            calculatedAmount = pointPolicy.getEarnPoint().longValue();  // 정책에 설정된 값 그대로 사용 (소수점 버림)
 
-        } else {
+        } else {    // 정률일 때
             if (targetAmount == null || targetAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                log.warn("[포인트] 정책 기반 적립 실패: 잘못된 포인트 입력 값");
+                log.warn("[PointService] 포인트 정책 기반 적립 실패: 잘못된 포인트 입력 값");
                 throw new InvalidPointInputException("정률(RATIO) 정책은 기준 금액이 필수입니다.");
             }
 
             calculatedAmount = targetAmount.multiply(pointPolicy.getEarnPoint()).longValue();
         }
 
-        PointHistory pointHistory = new PointHistory(user, calculatedAmount, Type.EARN, pointPolicy.getPolicyName());
+        // 포인트 내역 저장
+        pointHistoryRepository.save(new PointHistory(user, calculatedAmount, Type.EARN, pointPolicy.getPolicyName()));
 
-        pointHistoryRepository.save(pointHistory);
-
-        // 포인트가 변동되었다고 알려줌
-        eventPublisher.publishEvent(new UserPointChangedEvent(userCreatedId));
+        // Users 테이블 현재 포인트 필드도 같이 동기화
+        user.modifyPoint(calculatedAmount);
     }
 
+    /**
+     * 포인트 변동을 수동으로 처리하는 메소드
+     *
+     * @param request Users 테이블 PK, 적립할 금액, 포인트 타입(적립/사용/취소), 설명
+     */
     @Override
     @Transactional
-    public void processPoint(PointRequest request) {    // 포인트 변동 수동 처리
+    public void processPoint(PointRequest request) {
         User user = getLockUser(request.userCreatedId());
 
-        Long amount = request.amount();
-
         if (request.type() == Type.USE) {
-            Long currentPoint = pointHistoryRepository.getPointByUser(user);
+            Long currentPoint = user.getCurrentPoint();
 
             if (currentPoint == null) {
                 currentPoint = 0L;
             }
 
-            if (currentPoint.compareTo(amount) < 0) {
-                log.warn("[포인트] 변동 처리 실패: 잔액 부족");
-                throw new PointNotEnoughException("포인트 잔액이 부족합니다. (현재: " + currentPoint + ")");
+            if (currentPoint.compareTo(request.amount()) < 0) {
+                log.warn("[PointService] 포인트 변동 수동 처리 실패: 잔액 부족 (현재: {})", currentPoint);
+                throw new PointNotEnoughException("포인트 잔액이 부족합니다.");
             }
         }
 
-        PointHistory pointHistory = new PointHistory(user, amount, request.type(), request.description());
+        // 포인트 내역 저장
+        pointHistoryRepository.save(new PointHistory(user, request.amount(), request.type(), request.description()));
 
-        pointHistoryRepository.save(pointHistory);
-
-        // 포인트가 변동되었다고 알려줌
-        eventPublisher.publishEvent(new UserPointChangedEvent(request.userCreatedId()));
+        // Users 테이블 현재 포인트 필드도 같이 동기화
+        user.modifyPoint(request.type() == Type.USE ? -request.amount() : request.amount());
     }
 
+    /**
+     * 포인트 내역 조회하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @param pageable      페이징 처리
+     * @return 페이징된 전체 포인트 내역 목록
+     */
     @Override
     @Transactional(readOnly = true)
-    public Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable) {    // 내 포인트 내역 조회
+    public Page<PointHistoryResponse> getMyPointHistory(Long userCreatedId, Pageable pageable) {
         User user = getUser(userCreatedId);
 
         return pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(user, pageable)
