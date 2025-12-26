@@ -12,6 +12,8 @@
 
 package com.nhnacademy.user.repository.user;
 
+import com.nhnacademy.user.dto.response.BirthdayUserResponse;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import feign.Param;
@@ -50,8 +52,27 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
             select u
             from User u
             where month(u.birth) = :month
+                and u.grade.gradeId = :gradeId
             """)
-    Slice<User> findByBirthMonth(@Param("month") int month, Pageable pageable);
+    Slice<User> findByBirthMonth(@Param("month") int month,@Param("gradeId") Long gradeId, Pageable pageable);
+
+
+    @Query("""
+        select new com.nhnacademy.user.dto.response.BirthdayUserResponse(
+            u.userCreatedId, u.userName, u.birth
+        )
+        from User u
+        where month(u.birth) = :month
+          and u.grade = :grade
+        order by u.userCreatedId
+    """)
+    Slice<BirthdayUserResponse> findBirthdayUsersActive(
+            @Param("month") int month,
+            @Param("grade") Grade grade,
+            Pageable pageable
+    );
+
+
 
     // 이름과 이메일로 회원 조회
     Optional<User> findByUserNameAndEmail(String userName, String email);

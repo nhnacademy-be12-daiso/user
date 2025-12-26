@@ -14,8 +14,8 @@ package com.nhnacademy.user.dto.response;
 
 import java.time.LocalDate;
 
-public record BirthdayUserResponse(Long userCreatedId,
-                                   String username,
-                                   LocalDate birth) {
-    // 생일 월 기준으로 조회되는 사용자의 정보 (내부/스케줄러용)
+public record BirthdayUserResponse(
+        Long userCreatedId,
+       String username,
+       LocalDate birth) { // 생일 월 기준으로 조회되는 사용자의 정보 (내부/스케줄러용)
 }

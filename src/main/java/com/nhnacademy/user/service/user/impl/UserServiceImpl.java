@@ -244,14 +244,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable) {
-        Slice<User> users = userRepository.findByBirthMonth(month, pageable);
-
-        return users.map(user ->
-                new BirthdayUserResponse(
-                        user.getUserCreatedId(),
-                        user.getUserName(),
-                        user.getBirth()));
+        Grade active = gradeRepository.getReferenceById(1L);
+        return userRepository.findBirthdayUsersActive(month, active, pageable);
     }
+
 
     @Override
     @Transactional
