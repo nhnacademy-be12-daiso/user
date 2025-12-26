@@ -103,33 +103,35 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("이미 존재하는 이메일입니다.");
         }
 
-        // Users 테이블 저장
-        User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth());
-        User saved = userRepository.save(user);
-
-        String encodedPassword = passwordEncoder.encode(request.password());
-
-        // Accounts 테이블 저장 (인코딩된 비밀번호)
-        Account account = new Account(request.loginId(), encodedPassword, Role.USER, user);
-        accountRepository.save(account);
-
-        // 초기 등급(GENERAL) 저장
+        // 초기 등급(GENERAL) 조회
         Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
                 .orElseThrow(() -> {
                     log.error("[UserService] 회원가입 실패: 존재하지 않는 등급 ({})", GENERAL_GRADE);
                     return new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다.");
                 });
-        userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
-        user.modifyGrade(grade);
 
-        // 초기 상태(ACTIVE) 저장
+        // Users 테이블 저장
+        User user = new User(request.userName(), request.phoneNumber(), request.email(), request.birth(), grade);
+        User saved = userRepository.save(user);
+
+        // 초기 등급(GENERAL) 이력 저장
+        userGradeHistoryRepository.save(new UserGradeHistory(user, grade, "회원가입"));
+
+        // 초기 상태(ACTIVE) 조회
         Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
                 .orElseThrow(() -> {
                     log.error("[UserService] 회원가입 실패: 존재하지 않는 상태 ({})", ACTIVE_STATUS);
                     return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
                 });
+
+        String encodedPassword = passwordEncoder.encode(request.password());
+
+        // Accounts 테이블 저장 (인코딩된 비밀번호)
+        Account account = new Account(request.loginId(), encodedPassword, Role.USER, user, status);
+        accountRepository.save(account);
+
+        // 초기 상태(ACTIVE) 이력 저장
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
-        account.modifyStatus(status);
 
         // 회원가입 축하 포인트 지급
         pointService.earnPointByPolicy(user.getUserCreatedId(), SIGNUP_POINT_POLICY_TYPE);
