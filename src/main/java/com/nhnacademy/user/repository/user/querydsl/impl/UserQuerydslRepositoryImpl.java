@@ -13,27 +13,17 @@
 package com.nhnacademy.user.repository.user.querydsl.impl;
 
 import static com.nhnacademy.user.entity.account.QAccount.account;
-import static com.nhnacademy.user.entity.account.QAccountStatusHistory.accountStatusHistory;
-import static com.nhnacademy.user.entity.account.QStatus.status;
-import static com.nhnacademy.user.entity.point.QPointHistory.pointHistory;
-import static com.nhnacademy.user.entity.user.QGrade.grade;
 import static com.nhnacademy.user.entity.user.QUser.user;
-import static com.nhnacademy.user.entity.user.QUserGradeHistory.userGradeHistory;
 
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.dto.search.UserSearchCriteria;
-import com.nhnacademy.user.entity.account.QAccountStatusHistory;
-import com.nhnacademy.user.entity.point.Type;
-import com.nhnacademy.user.entity.user.QUserGradeHistory;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,11 +42,6 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
 
     @Override
     public Page<UserResponse> findAllUser(Pageable pageable, UserSearchCriteria criteria) {
-        // 서브쿼리 전용 별칭 선언: querydsl에서 동일한 엔티티를 from 절에 두 번 이상 사용할 때
-        // 같은 테이블을 메인 쿼리와 서브 쿼리에서 동시에 사용하기 위한 규칙
-        QUserGradeHistory subGradeHistory = new QUserGradeHistory("subGradeHistory");
-        QAccountStatusHistory subStatusHistory = new QAccountStatusHistory("subStatusHistory");
-
         // 데이터 조회 쿼리
         List<UserResponse> content = jpaQueryFactory
                 .select(Projections.constructor(UserResponse.class,
@@ -66,41 +51,16 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                         user.phoneNumber,
                         user.email,
                         user.birth,
-                        // [서브쿼리 1] 가장 최근 날짜를 찾아서 그 날짜의 등급 데이터를 가져옴
-                        JPAExpressions.select(grade.gradeName)
-                                .from(userGradeHistory)
-                                .join(userGradeHistory.grade, grade)
-                                .where(userGradeHistory.user.eq(user)
-                                        .and(userGradeHistory.changedAt.eq(
-                                                JPAExpressions.select(subGradeHistory.changedAt.max())
-                                                        .from(subGradeHistory)
-                                                        .where(subGradeHistory.user.eq(user))
-                                        ))),
-                        // [서브쿼리 2] 포인트 잔액 계산 (SUM)
-                        JPAExpressions.select(
-                                        new CaseBuilder()
-                                                .when(pointHistory.type.eq(Type.USE))
-                                                .then(pointHistory.amount.negate()) // 사용이면 -
-                                                .otherwise(pointHistory.amount)     // 아니면 +
-                                                .sum()
-                                                .coalesce(0L) // null이면 0
-                                )
-                                .from(pointHistory)
-                                .where(pointHistory.user.eq(user)),
-                        // [서브쿼리 3] 가장 최근 날짜를 찾아서 그 날짜의 상태 데이터를 가져옴
-                        JPAExpressions.select(status.statusName)
-                                .from(accountStatusHistory)
-                                .join(accountStatusHistory.status, status)
-                                .where(accountStatusHistory.account.eq(account)
-                                        .and(accountStatusHistory.changedAt.eq(
-                                                JPAExpressions.select(subStatusHistory.changedAt.max())
-                                                        .from(subStatusHistory)
-                                                        .where(subStatusHistory.account.eq(account))
-                                        ))),
+                        user.grade.gradeName,
+                        user.currentPoint,
+                        account.status.statusName,
                         account.joinedAt
                 ))
                 .from(user)
                 .join(user.account, account)
+                .join(user.grade)
+                .join(account.status)
+                .fetchJoin()
                 .where(containsKeyword(criteria.keyword()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

@@ -154,7 +154,7 @@ public class AddressServiceTest {
 
         assertThatThrownBy(() -> addressService.modifyAddress(testUserId, 99L, testRequest))
                 .isInstanceOf(AddressNotFoundException.class)
-                .hasMessage("찾을 수 없는 주소입니다.");
+                .hasMessage("찾을 수 없는 배송지입니다.");
     }
 
     @Test

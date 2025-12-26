@@ -14,15 +14,11 @@ package com.nhnacademy.user.service.point;
 
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
-import com.nhnacademy.user.dto.response.PointResponse;
 import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PointService {
-
-    // 현재 내 포인트 잔액 조회
-    PointResponse getCurrentPoint(Long userCreatedId);
 
     // 정책 기반 포인트 적립
     void earnPointByPolicy(Long userCreatedId, String policyType);

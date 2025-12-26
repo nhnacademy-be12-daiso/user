@@ -110,7 +110,7 @@ class UserControllerTest {
         PasswordModifyRequest request = new PasswordModifyRequest(
                 "oldPass123!@#", "newPass123!@#");
 
-        doNothing().when(userService).modifyUserPassword(eq(userId), any());
+        doNothing().when(userService).modifyAccountPassword(eq(userId), any());
 
         mockMvc.perform(put("/api/users/me/password")
                         .header("X-User-Id", userId)
