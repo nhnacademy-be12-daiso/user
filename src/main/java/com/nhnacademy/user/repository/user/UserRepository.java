@@ -62,15 +62,18 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
             u.userCreatedId, u.userName, u.birth
         )
         from User u
-        where month(u.birth) = :month
-          and u.grade = :grade
+        join u.account a
+        where u.birth is not null
+          and month(u.birth) = :month
+          and a.status.statusId = :statusId
         order by u.userCreatedId
     """)
     Slice<BirthdayUserResponse> findBirthdayUsersActive(
             @Param("month") int month,
-            @Param("grade") Grade grade,
+            @Param("statusId") Long statusId,
             Pageable pageable
     );
+
 
 
 
