@@ -70,6 +70,15 @@ public class User {     // 회원 기본 정보
         this.currentPoint = 0L;
     }
 
+    public User(String userName, String phoneNumber, String email, LocalDate birth, Grade grade) {
+        this.userName = userName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.birth = birth;
+        this.grade = grade;
+        this.currentPoint = 0L;
+    }
+
     public void modifyInfo(String userName, String phoneNumber, String email, LocalDate birth) {    // 회원 정보를 수정하는 메소드
         this.userName = userName;
         this.phoneNumber = phoneNumber;

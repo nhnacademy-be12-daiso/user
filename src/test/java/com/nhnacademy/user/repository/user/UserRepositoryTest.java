@@ -18,10 +18,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.account.AccountRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +38,7 @@ import org.springframework.context.annotation.Import;
 class UserRepositoryTest {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -42,11 +46,27 @@ class UserRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    private Grade defaultGrade;
+
+    private Status defaultStatus;
+
+    @BeforeEach
+    void setUp() {
+        defaultGrade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(defaultGrade);
+
+        defaultStatus = new Status("ACTIVE");
+        entityManager.persist(defaultStatus);
+
+        entityManager.flush();
+        entityManager.clear();
+    }
+
     @Test
     @DisplayName("User 저장 및 조회 성공")
     void test1() {
         User user = new User("테스트_이름", "010-1234-5678",
-                "test@test.com", LocalDate.of(2003, 11, 7));
+                "test@test.com", LocalDate.of(2003, 11, 7), defaultGrade);
         userRepository.save(user);
 
         User found = userRepository.findById(user.getUserCreatedId()).orElse(null);
@@ -56,17 +76,19 @@ class UserRepositoryTest {
         assertThat(found.getPhoneNumber()).isEqualTo("010-1234-5678");
         assertThat(found.getEmail()).isEqualTo("test@test.com");
         assertThat(found.getBirth()).isEqualTo(LocalDate.of(2003, 11, 7));
+        assertThat(found.getGrade().getGradeName()).isEqualTo("GENERAL");
+        assertThat(found.getCurrentPoint()).isEqualTo(0L);
     }
 
     @Test
     @DisplayName("중복된 연락처 저장 시 예외 발생")
     void test2() {
         User user1 = new User("테스트1", "010-0000-0000",
-                "test1@test.com", LocalDate.of(2003, 11, 7));
+                "test1@test.com", LocalDate.of(2003, 11, 7), defaultGrade);
         userRepository.save(user1);
 
         User user2 = new User("테스트2", "010-0000-0000",
-                "test2@test.com", LocalDate.now());
+                "test2@test.com", LocalDate.now(), defaultGrade);
 
         assertThatThrownBy(() -> userRepository.save(user2));
     }
@@ -75,11 +97,11 @@ class UserRepositoryTest {
     @DisplayName("중복된 이메일 저장 시 예외 발생")
     void test3() {
         User user1 = new User("테스트1", "010-1111-1111",
-                "test@test.com", LocalDate.of(2003, 11, 7));
+                "test@test.com", LocalDate.of(2003, 11, 7), defaultGrade);
         userRepository.save(user1);
 
         User user2 = new User("테스트2", "010-2222-2222",
-                "test@test.com", LocalDate.now());
+                "test@test.com", LocalDate.now(), defaultGrade);
 
         assertThatThrownBy(() -> userRepository.save(user2));
     }
@@ -87,10 +109,11 @@ class UserRepositoryTest {
     @Test
     @DisplayName("User 조회 시 Account까지 한 번에 조회(Fetch Join)")
     void test4() {
-        User user = new User("페치조인", "010-5555-5555", "fetch@join.com", LocalDate.now());
+        User user = new User(
+                "페치조인", "010-5555-5555", "fetch@join.com", LocalDate.now(), defaultGrade);
         userRepository.save(user);
 
-        Account account = new Account("fetch_id", "pass", Role.USER, user);
+        Account account = new Account("fetch_id", "pass", Role.USER, user, defaultStatus);
         accountRepository.save(account);
 
         entityManager.flush();
@@ -100,13 +123,16 @@ class UserRepositoryTest {
 
         assertThat(foundUser.getAccount()).isNotNull();
         assertThat(foundUser.getAccount().getLoginId()).isEqualTo("fetch_id");
+        assertThat(foundUser.getAccount().getStatus().getStatusName()).isEqualTo("ACTIVE");
     }
 
     @Test
     @DisplayName("비관적 락(Pessimistic Lock) 조회 쿼리 동작 확인")
     void test5() {
-        User user = new User("락테스트", "010-7777-8888", "lock@test.com", LocalDate.now());
+        User user = new User(
+                "락테스트", "010-7777-8888", "lock@test.com", LocalDate.now(), defaultGrade);
         userRepository.save(user);
+
         entityManager.flush();
         entityManager.clear();
 

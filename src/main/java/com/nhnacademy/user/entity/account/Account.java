@@ -68,6 +68,14 @@ public class Account {      // 회원 인증 (로그인) 정보
         this.user = user;
     }
 
+    public Account(String loginId, String password, Role role, User user, Status status) {
+        this.loginId = loginId;
+        this.password = password;
+        this.role = role;
+        this.user = user;
+        this.status = status;
+    }
+
     public void modifyPassword(String password) {   // 비밀번호를 변경하는 메소드
         this.password = password;
     }

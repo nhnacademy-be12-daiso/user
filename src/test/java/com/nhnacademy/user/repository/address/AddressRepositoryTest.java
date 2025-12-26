@@ -16,8 +16,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.nhnacademy.user.config.QueryDslConfig;
 import com.nhnacademy.user.entity.address.Address;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.UserRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,8 +44,11 @@ public class AddressRepositoryTest {
     @Test
     @DisplayName("주소 저장 성공")
     void test1() {
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
         User user = new User("테스트_이름", "010-1234-5678",
-                "test@test.com", LocalDate.of(2003, 11, 7));
+                "test@test.com", LocalDate.of(2003, 11, 7), grade);
         userRepository.save(user);
 
         Address address = new Address(user,
@@ -62,7 +67,10 @@ public class AddressRepositoryTest {
     @Test
     @DisplayName("기본 배송지 초기화(Bulk Update) 확인")
     void test2() {
-        User user = new User("테스트", "010-0000-0000", "t@t.com", LocalDate.now());
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User user = new User("테스트", "010-0000-0000", "t@t.com", LocalDate.now(), grade);
         userRepository.save(user);
 
         Address addr1 = new Address(user, "집", "12345", "주소1", "상세1", true); // 기본
@@ -86,7 +94,10 @@ public class AddressRepositoryTest {
     @Test
     @DisplayName("유저별 주소 개수 카운트")
     void test3() {
-        User user = new User("카운트", "010-9999-9999", "c@c.com", LocalDate.now());
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User user = new User("카운트", "010-9999-9999", "c@c.com", LocalDate.now(), grade);
         userRepository.save(user);
 
         addressRepository.save(new Address(user, "1", "12345", "1", "1", false));
@@ -100,7 +111,10 @@ public class AddressRepositoryTest {
     @Test
     @DisplayName("기본 배송지 1개 조회 - 기본 배송지가 있을 때")
     void test4() {
-        User user = new User("배송지테스트", "010-1111-1111", "addr@test.com", LocalDate.now());
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User user = new User("배송지테스트", "010-1111-1111", "addr@test.com", LocalDate.now(), grade);
         userRepository.save(user);
 
         Address addr1 = new Address(user, "일반", "12345", "주소1", "상세1", false);
@@ -119,7 +133,10 @@ public class AddressRepositoryTest {
     @Test
     @DisplayName("기본 배송지 1개 조회 - 없을 때 Null 반환")
     void test5() {
-        User user = new User("배송지없음", "010-2222-2222", "noaddr@test.com", LocalDate.now());
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User user = new User("배송지없음", "010-2222-2222", "noaddr@test.com", LocalDate.now(), grade);
         userRepository.save(user);
 
         Address addr1 = new Address(user, "일반", "12345", "주소1", "상세1", false);
