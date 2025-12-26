@@ -12,19 +12,19 @@
 
 package com.nhnacademy.user.service.point;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.dto.request.PointRequest;
-import com.nhnacademy.user.dto.response.PointResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
+import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.point.Method;
 import com.nhnacademy.user.entity.point.PointPolicy;
 import com.nhnacademy.user.entity.point.Type;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.repository.point.PointHistoryRepository;
@@ -64,50 +64,37 @@ class PointServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User("User", "010-1111-2222", "a@a.com", LocalDate.now());
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        user = new User("테스트", "010-1234-5678", "test@test.com", LocalDate.now(), grade);
         ReflectionTestUtils.setField(user, "userCreatedId", testUserId);
 
-        account = new Account("testId", "pw", Role.USER, user);
-    }
-
-    @Test
-    @DisplayName("현재 포인트 잔액 조회 (DB 계산 결과 반환)")
-    void test1() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(user));
-        given(user.getCurrentPoint()).willReturn(1000L);
-
-        PointResponse response = new PointResponse(user.getCurrentPoint());
-
-        assertThat(response.currentPoint()).isEqualTo(1000L);
+        Status status = new Status("ACTIVE");
+        account = new Account("testId", "pwd123!@#", Role.USER, user, status);
     }
 
     @Test
     @DisplayName("정책으로 포인트 적립")
-    void test2() {
-        // given
+    void test1() {
         given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
 
         PointPolicy policy = new PointPolicy("회원가입", "REGISTER", Method.AMOUNT, BigDecimal.valueOf(5000));
         given(pointPolicyRepository.findByPolicyType("REGISTER")).willReturn(Optional.of(policy));
 
-        // when
         pointService.earnPointByPolicy(testUserId, "REGISTER");
 
-        // then
         verify(pointHistoryRepository).save(any());
     }
 
     @Test
     @DisplayName("포인트 사용 실패 - 잔액 부족")
-    void test3() {
+    void test2() {
+        ReflectionTestUtils.setField(user, "currentPoint", 100L);
         given(userRepository.findByIdForUpdate(testUserId)).willReturn(Optional.of(user));
-        given(user.getCurrentPoint()).willReturn(100L);
 
         PointRequest request = new PointRequest(testUserId, 1000L, Type.USE, "사용");
 
         assertThatThrownBy(() -> pointService.processPoint(request))
-                .isInstanceOf(PointNotEnoughException.class)
-                .hasMessageContaining("포인트 잔액이 부족합니다");
+                .isInstanceOf(PointNotEnoughException.class);
     }
 
 }

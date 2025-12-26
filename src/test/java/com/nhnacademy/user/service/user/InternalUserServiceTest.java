@@ -13,16 +13,21 @@
 package com.nhnacademy.user.service.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
+import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.user.impl.InternalUserServiceImpl;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,26 +43,32 @@ class InternalUserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AddressRepository addressRepository;
+
     @InjectMocks
     private InternalUserServiceImpl internalUserService;
 
     @Test
     @DisplayName("내부 통신용 회원 정보 조회 (getInternalUserInfo)")
     void test1() {
-        Status status = new Status("ACTIVE");
-        User user = new User("홍길동", "010-1234-5678", "test@test.com", LocalDate.of(1990, 1, 1));
-        Account account = new Account("testId", "rawPassword", Role.USER, user);
+        Grade goldGrade = new Grade("GOLD", BigDecimal.valueOf(2.5));
+        Status activeStatus = new Status("ACTIVE");
+        User user = new User("홍길동", "010-1234-5678", "test@test.com", LocalDate.of(1990, 1, 1), goldGrade);
+        Account account = new Account("testId", "rawPassword", Role.USER, user, activeStatus);
 
         ReflectionTestUtils.setField(user, "currentPoint", 5000L);
-        ReflectionTestUtils.setField(account, "status", status);
         ReflectionTestUtils.setField(user, "account", account);
 
         given(userRepository.findByIdWithAccount(anyLong())).willReturn(Optional.of(user));
+
+        given(addressRepository.findAllByUser(any(User.class))).willReturn(Collections.emptyList());
 
         var response = internalUserService.getInternalUserInfo(1L);
 
         assertThat(response.gradeName()).isEqualTo("GOLD");
         assertThat(response.point()).isEqualTo(5000L);
+        assertThat(response.pointRate()).isEqualTo(BigDecimal.valueOf(2.5));
         assertThat(response.addresses()).isEmpty();
     }
 

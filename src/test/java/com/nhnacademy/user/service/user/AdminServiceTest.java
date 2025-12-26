@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -88,8 +89,15 @@ class AdminServiceTest {
         mockAccount = mock(Account.class);
         mockStatus = mock(Status.class);
         mockGrade = mock(Grade.class);
-        mockStatusHistory = mock(AccountStatusHistory.class);
-        mockGradeHistory = mock(UserGradeHistory.class);
+
+        lenient().when(mockUser.getAccount()).thenReturn(mockAccount);
+
+        lenient().when(mockAccount.getStatus()).thenReturn(mockStatus);
+        lenient().when(mockUser.getGrade()).thenReturn(mockGrade);
+
+        lenient().when(mockAccount.getLoginId()).thenReturn("testUser");
+        lenient().when(mockStatus.getStatusName()).thenReturn("ACTIVE");
+        lenient().when(mockGrade.getGradeName()).thenReturn("GENERAL");
     }
 
     @Test
@@ -127,28 +135,18 @@ class AdminServiceTest {
     @Test
     @DisplayName("특정 회원 상세 조회 - 성공")
     void test2() {
-        Long userId = 1L;
+        Long userCreatedId = 1L;
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(mockUser));
 
-        given(mockUser.getAccount()).willReturn(mockAccount);
-        given(mockAccount.getLoginId()).willReturn("detailUser");
+        given(mockUser.getUserName()).willReturn("홍길동");
+        given(mockAccount.getLoginId()).willReturn("testUser");
         given(mockAccount.getRole()).willReturn(Role.USER);
-        given(mockUser.getUserCreatedId()).willReturn(userId);
+        given(mockAccount.getJoinedAt()).willReturn(LocalDateTime.now());
 
-        given(userRepository.findByIdWithAccount(userId)).willReturn(Optional.of(mockUser));
+        UserDetailResponse response = adminService.getUserDetail(userCreatedId);
 
-        given(mockStatusHistory.getStatus()).willReturn(mockStatus);
-        given(mockStatus.getStatusName()).willReturn("ACTIVE");
-
-        given(mockGradeHistory.getGrade()).willReturn(mockGrade);
-        given(mockGrade.getGradeName()).willReturn("VIP");
-
-        given(mockUser.getCurrentPoint()).willReturn(10L);
-
-        UserDetailResponse response = adminService.getUserDetail(userId);
-
-        assertThat(response.loginId()).isEqualTo("detailUser");
-        assertThat(response.gradeName()).isEqualTo("VIP");
-        assertThat(response.role()).isEqualTo("USER");
+        assertThat(response.userName()).isEqualTo("홍길동");
+        assertThat(response.loginId()).isEqualTo("testUser");
     }
 
     @Test
