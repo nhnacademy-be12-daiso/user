@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@Profile("dev123")
+@Profile("dev")
 @RequiredArgsConstructor
 public class UserSeedConfig {
 
@@ -24,7 +24,7 @@ public class UserSeedConfig {
 
     @Bean
     public CommandLineRunner seedBirthdayUsers() {
-        return args -> seedDecemberUsers(100_000);
+        return args -> seedDecemberUsers(50_000);
     }
 
     @Transactional
