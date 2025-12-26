@@ -289,23 +289,24 @@ public class UserServiceImpl implements UserService {
         // 고유한 더미 전화번호 생성 (UNIQUE 제약 회피)
         String dummyPhone = PAYCO_PHONE_NUMBER_PREFIX + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
 
-        User newUser = new User(userName, dummyPhone, dummyEmail, null);
+        Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
+                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
+
+        User newUser = new User(userName, dummyPhone, dummyEmail, null, grade);
         userRepository.save(newUser);
+
+        userGradeHistoryRepository.save(new UserGradeHistory(newUser, grade, "Payco 회원가입"));
 
         // Payco (OAuth) 사용자용 더미 비밀번호 생성 (로그인 불가능한 랜덤 값)
         String dummyPassword = passwordEncoder.encode("PAYCO_" + java.util.UUID.randomUUID());
-        Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser);
-        accountRepository.save(newAccount);
-
-        Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
-                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
-        userGradeHistoryRepository.save(new UserGradeHistory(newUser, grade, "Payco 회원가입"));
-        newUser.modifyGrade(grade);
 
         Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
                 .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
+
+        Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser, status);
+        accountRepository.save(newAccount);
+
         accountStatusHistoryRepository.save(new AccountStatusHistory(newAccount, status));
-        newAccount.modifyStatus(status);
 
         pointService.earnPointByPolicy(newUser.getUserCreatedId(), SIGNUP_POINT_POLICY_TYPE);
 
