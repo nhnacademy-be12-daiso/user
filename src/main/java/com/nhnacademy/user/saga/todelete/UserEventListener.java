@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.user.saga;
+package com.nhnacademy.user.saga.todelete;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.user.entity.saga.UserDeduplicationLog;
@@ -19,6 +19,8 @@ import com.nhnacademy.user.exception.saga.FailedSerializationException;
 import com.nhnacademy.user.exception.saga.InsufficientPointException;
 import com.nhnacademy.user.repository.saga.UserDeduplicationRepository;
 import com.nhnacademy.user.repository.saga.UserOutboxRepository;
+import com.nhnacademy.user.saga.event.OrderConfirmedEvent;
+import com.nhnacademy.user.saga.UserOutboxCommittedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;

@@ -4,4 +4,5 @@ import com.nhnacademy.user.entity.saga.UserDeduplicationLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserDeduplicationRepository extends JpaRepository<UserDeduplicationLog, Long> {
+    boolean existsByMessageId(String messageId);
 }

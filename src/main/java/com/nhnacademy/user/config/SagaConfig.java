@@ -1,28 +1,50 @@
-/*
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * + Copyright 2025. NHN Academy Corp. All rights reserved.
- * + * While every precaution has been taken in the preparation of this resource,  assumes no
- * + responsibility for errors or omissions, or for damages resulting from the use of the information
- * + contained herein
- * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
- * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
- * + prior written permission.
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- */
-
 package com.nhnacademy.user.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
+import com.nhnacademy.user.saga.SagaTopic;
+import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SagaConfig {
+
+
+    // ------ orchestration ------
+
+
+    @Bean
+    public TopicExchange sagaExchange() {
+        return new TopicExchange(SagaTopic.ORDER_EXCHANGE);
+    }
+
+
+    @Bean
+    public Queue userQueue() {
+        return new Queue(SagaTopic.USER_QUEUE);
+    }
+
+    @Bean
+    public Queue userRollbackQueue() {
+        return new Queue(SagaTopic.USER_COMPENSATION_QUEUE);
+    }
+
+    @Bean
+    public Binding userBinding(Queue userQueue, TopicExchange sagaExchange) {
+        return BindingBuilder.bind(userQueue)
+                .to(sagaExchange)
+                .with(SagaTopic.USER_RK);
+    }
+
+    @Bean
+    public Binding userRollbackBinding(Queue userRollbackQueue, TopicExchange sagaExchange) {
+        return BindingBuilder.bind(userRollbackQueue)
+                .to(sagaExchange)
+                .with(SagaTopic.USER_COMPENSATION_RK);
+    }
+
+
+    // =============================
 
     // ----- saga를 위한 설정 ------
 
