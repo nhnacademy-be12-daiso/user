@@ -60,7 +60,6 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
                 .join(user.account, account)
                 .join(user.grade)
                 .join(account.status)
-                .fetchJoin()
                 .where(containsKeyword(criteria.keyword()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
