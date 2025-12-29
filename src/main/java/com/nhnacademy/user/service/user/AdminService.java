@@ -29,7 +29,7 @@ public interface AdminService {
     UserDetailResponse getUserDetail(Long userCreatedId);
 
     // 회원 상태 변경
-    void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request);
+    void modifyAccountStatus(Long adminId, Long userId, AccountStatusRequest request);
 
     // 회원 등급 변경
     void modifyUserGrade(Long adminId, Long userId, UserGradeRequest request);

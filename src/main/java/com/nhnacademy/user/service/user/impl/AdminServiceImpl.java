@@ -31,7 +31,6 @@ import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
 import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,24 +47,32 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final GradeRepository gradeRepository;
     private final UserGradeHistoryRepository userGradeHistoryRepository;
-
     private final StatusRepository statusRepository;
     private final AccountStatusHistoryRepository accountStatusHistoryRepository;
 
-    private final PointService pointService;
-
+    /**
+     * (관리자용) 전체 회원 목록을 조회하는 메소드
+     *
+     * @param pageable 페이징 처리
+     * @param criteria 검색에 사용되는 키워드
+     * @return 페이징된 전체 회원 목록
+     */
     @Override
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAllUsers(Pageable pageable, UserSearchCriteria criteria) {  // 전체 회원 목록 조회(페이징)
+    public Page<UserResponse> getAllUsers(Pageable pageable, UserSearchCriteria criteria) {
         return userRepository.findAllUser(pageable, criteria);
     }
 
+    /**
+     * (관리자용) 특정 회원을 상세 조회하는 메소드
+     *
+     * @param userCreatedId Users 테이블 PK
+     * @return Users 테이블 PK, 회원 정보 (이름, 연락처, 이메일, 생일, 등급, 보유 포인트), 계정 정보 (로그인 아이디, 상태, 권한, 가입일, 마지막 로그인 일시)
+     */
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUserDetail(Long userCreatedId) {   // 특정 회원 상세 조회
+    public UserDetailResponse getUserDetail(Long userCreatedId) {
         User user = getUser(userCreatedId);
-
-        Account account = user.getAccount();
 
         return new UserDetailResponse(userCreatedId,
                 user.getAccount().getLoginId(),
@@ -73,40 +80,56 @@ public class AdminServiceImpl implements AdminService {
                 user.getPhoneNumber(),
                 user.getEmail(),
                 user.getBirth(),
-                getStatus(account).getStatusName(),
-                getGrade(user).getGradeName(),
+                user.getAccount().getStatus().getStatusName(),
+                user.getGrade().getGradeName(),
                 user.getAccount().getRole().name(),
-                pointService.getCurrentPoint(user.getUserCreatedId()).currentPoint(),
-                account.getJoinedAt(),
-                account.getLastLoginAt());
+                user.getCurrentPoint(),
+                user.getAccount().getJoinedAt(),
+                user.getAccount().getLastLoginAt());
     }
 
+    /**
+     * (관리자용) 특정 계정의 상태를 변경하는 메소드
+     *
+     * @param adminId Users 테이블 PK
+     * @param userId  Users 테이블 PK
+     * @param request 변경할 상태 이름
+     */
     @Override
     @Transactional
-    public void modifyUserStatus(Long adminId, Long userId, AccountStatusRequest request) {    // 회원 상태 변경
+    public void modifyAccountStatus(Long adminId, Long userId, AccountStatusRequest request) {
         User user = getUser(userId);
 
         Account account = user.getAccount();
 
         Status newStatus = statusRepository.findByStatusName(request.statusName())
                 .orElseThrow(() -> {
-                    log.error("[관리자] 계정 상태 변경 실패: 존재하지 않는 상태 ({})", request.statusName());
+                    log.error("[AdminService] 계정 상태 변경 실패: 존재하지 않는 상태 ({})", request.statusName());
                     return new StateNotFoundException("존재하지 않는 상태입니다.");
                 });
 
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, newStatus));
 
-        log.debug("[관리자 - {}] - 계정 ({})의 상태를 {}(으)로 변경", adminId, account.getLoginId(), newStatus);
+        account.modifyStatus(newStatus);
+
+        log.debug("[AdminService] 관리자 - {}: 계정 ({})의 상태를 {}(으)로 변경 성공", adminId, account.getLoginId(), newStatus);
     }
 
+    /**
+     * (관리자용) 특정 회원의 등급을 변경하는 메소드
+     *
+     * @param adminId Users 테이블 PK
+     * @param userId  Users 테이블 PK
+     * @param request 변경할 등급 이름
+     */
     @Override
     @Transactional
-    public void modifyUserGrade(Long adminId, Long userId, UserGradeRequest request) {  // 회원 등급 변경
+    public void modifyUserGrade(Long adminId, Long userId, UserGradeRequest request) {
         User user = getUser(userId);
 
         Grade newGrade = gradeRepository.findByGradeName(request.gradeName())
                 .orElseThrow(() -> {
-                    log.error("[관리자] 회원 등급 변경 실패: 존재하지 않는 등급 ({})", request.gradeName());
+                    log.error("[AdminService] 회원 등급 변경 실패: 존재하지 않는 등급 ({})", request.gradeName());
                     return new GradeNotFoundException("존재하지 않는 등급입니다.");
                 });
 
@@ -114,24 +137,17 @@ public class AdminServiceImpl implements AdminService {
 
         userGradeHistoryRepository.save(new UserGradeHistory(user, newGrade, reason));
 
-        log.debug("[관리자 - {}] - 회원 ({})의 등급을 {}(으)로 변경", adminId, userId, newGrade);
+        user.modifyGrade(newGrade);
+
+        log.debug("[AdminService] 관리자 - {}: 회원 ({})의 등급을 {}(으)로 변경 성공", adminId, userId, newGrade);
     }
 
     private User getUser(Long userCreatedId) {
         return userRepository.findByIdWithAccount(userCreatedId)
-                .orElseThrow(() -> new UserNotFoundException("찾을 수 없는 회원입니다."));
-    }
-
-    private Grade getGrade(User user) {
-        return userGradeHistoryRepository.findTopByUserOrderByChangedAtDesc(user)
-                .map(UserGradeHistory::getGrade)
-                .orElseThrow(() -> new GradeNotFoundException("등급 정보가 누락되었습니다."));
-    }
-
-    private Status getStatus(Account account) {
-        return accountStatusHistoryRepository.findFirstByAccountOrderByChangedAtDesc(account)
-                .map(AccountStatusHistory::getStatus)
-                .orElseThrow(() -> new StateNotFoundException("상태 정보가 누락되었습니다."));
+                .orElseThrow(() -> {
+                    log.warn("[AdminService] 찾을 수 없는 회원: {}", userCreatedId);
+                    return new UserNotFoundException("찾을 수 없는 회원입니다.");
+                });
     }
 
 }

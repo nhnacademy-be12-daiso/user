@@ -95,7 +95,7 @@ public class AdminControllerTest {
         Long targetId = 1L;
         AccountStatusRequest request = new AccountStatusRequest("BANNED");
 
-        doNothing().when(adminService).modifyUserStatus(eq(adminId), eq(targetId), any());
+        doNothing().when(adminService).modifyAccountStatus(eq(adminId), eq(targetId), any());
 
         mockMvc.perform(put("/api/admin/users/{userCreatedId}/status", targetId)
                         .header("X-User-Id", adminId) // 헤더 필수

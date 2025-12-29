@@ -78,9 +78,7 @@ public class AccountController {
     @Operation(summary = "아이디 찾기")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<String> findLoginId(@RequestBody FindLoginIdRequest request) {
-        String maskedId = findAccountService.findLoginId(request);
-
-        return ResponseEntity.ok().body(maskedId);
+        return ResponseEntity.ok().body(findAccountService.findLoginId(request));
     }
 
     // POST /api/users/find-password
@@ -97,9 +95,7 @@ public class AccountController {
     @GetMapping("/check-id")
     @Operation(summary = "아이디 중복 확인")
     public ResponseEntity<Boolean> checkLoginId(@RequestParam("id") String loginId) {
-        boolean isExist = accountService.existsLoginId(loginId);
-
-        return ResponseEntity.ok().body(isExist);
+        return ResponseEntity.ok().body(accountService.existsLoginId(loginId));
     }
 
 }

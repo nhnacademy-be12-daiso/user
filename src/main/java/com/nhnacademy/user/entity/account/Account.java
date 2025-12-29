@@ -13,21 +13,21 @@
 package com.nhnacademy.user.entity.account;
 
 import com.nhnacademy.user.entity.user.User;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
 import jakarta.persistence.Column;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Accounts")
@@ -50,6 +50,10 @@ public class Account {      // 회원 인증 (로그인) 정보
     @JoinColumn(name = "user_created_id", nullable = false, unique = true)
     private User user;              // Users 테이블 외래키 (FK), 일대일 관계
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_status_id", nullable = false)
+    private Status status;
+
     @CreationTimestamp
     @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;         // 가입일시
@@ -64,8 +68,20 @@ public class Account {      // 회원 인증 (로그인) 정보
         this.user = user;
     }
 
+    public Account(String loginId, String password, Role role, User user, Status status) {
+        this.loginId = loginId;
+        this.password = password;
+        this.role = role;
+        this.user = user;
+        this.status = status;
+    }
+
     public void modifyPassword(String password) {   // 비밀번호를 변경하는 메소드
         this.password = password;
+    }
+
+    public void modifyStatus(Status status) {   // 상태 변경하는 메소드
+        this.status = status;
     }
 
 }

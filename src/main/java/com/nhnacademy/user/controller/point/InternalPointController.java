@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,8 +39,16 @@ public class InternalPointController {
     @PostMapping
     @Operation(summary = "[내부] 포인트 적립/사용 처리")
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
-        // 서비스 로직 호출 (User 업데이트 + History 저장)
         pointService.processPoint(request);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/policy")
+    @Operation(summary = "[내부] 정책 기반 포인트 적립")
+    public ResponseEntity<Void> earnPointByPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
+                                                  String policyType) {
+        pointService.earnPointByPolicy(userCreatedId, policyType);
 
         return ResponseEntity.ok().build();
     }

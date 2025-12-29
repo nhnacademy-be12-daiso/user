@@ -1,3 +1,15 @@
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
 package com.nhnacademy.user.saga;
 
 import com.nhnacademy.user.entity.saga.UserOutbox;
@@ -29,10 +41,11 @@ public class UserOutboxRelayProcessor {
                     outbox.getRoutingKey(),
                     outbox.getPayload()
             );
+            log.info("[User API] Order ID : {}", outbox.getAggregateId());
             outbox.markAsPublished();
             userOutboxRepository.save(outbox);
 
-        } catch(ExternalServiceException e) { // 실패시 재시도 및 롤백
+        } catch (ExternalServiceException e) { // 실패시 재시도 및 롤백
             if (outbox.getRetryCount() < 3) {
                 outbox.incrementRetryCount();
                 userOutboxRepository.save(outbox); // DB에 업데이트
@@ -41,7 +54,9 @@ public class UserOutboxRelayProcessor {
                 userOutboxRepository.save(outbox); // DB에 업데이트
                 log.error("[User API] Outbox 메세지 최종 발행 실패 OutboxID : {}", outboxId);
             }
+
             throw e; // 예외 던져서 롤백 유도
         }
     }
+
 }

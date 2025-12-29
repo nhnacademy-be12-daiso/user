@@ -21,6 +21,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -53,17 +55,28 @@ public class User {     // 회원 기본 정보
 
     private LocalDate birth;                 // 생년월일, YYYY-MM-DD 패턴
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Account account;                // 연관 계정, 일대일 관계, User 삭제 시 Account 함께 삭제
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_grade_id", nullable = false)
+    private Grade grade;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Address> addresses = new ArrayList<>();    // 배송지 리스트, 일대다 관계, User 삭제 시 Addresses 함께 삭제
+    @Column(name = "current_point", nullable = false)
+    private Long currentPoint;
 
     public User(String userName, String phoneNumber, String email, LocalDate birth) {
         this.userName = userName;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.birth = birth;
+        this.currentPoint = 0L;
+    }
+
+    public User(String userName, String phoneNumber, String email, LocalDate birth, Grade grade) {
+        this.userName = userName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.birth = birth;
+        this.grade = grade;
+        this.currentPoint = 0L;
     }
 
     public void modifyInfo(String userName, String phoneNumber, String email, LocalDate birth) {    // 회원 정보를 수정하는 메소드
@@ -72,5 +85,24 @@ public class User {     // 회원 기본 정보
         this.email = email;
         this.birth = birth;
     }
+
+    public void modifyGrade(Grade grade) {  // 등급 변경하는 메소드
+        this.grade = grade;
+    }
+
+    public void modifyPoint(Long amount) {  // 포인트 변경하는 메소드
+        this.currentPoint += amount;
+    }
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Account account;                // 연관 계정, 일대일 관계, User 삭제 시 Account 함께 삭제
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Address> addresses = new ArrayList<>();    // 배송지 리스트, 일대다 관계, User 삭제 시 Addresses 함께 삭제
+
+    public void linkAccount(Account account) {
+        this.account = account;
+    }
+
 
 }
