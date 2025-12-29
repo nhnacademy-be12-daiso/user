@@ -19,11 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "내부용 포인트 API")
 @RestController
@@ -47,7 +43,7 @@ public class InternalPointController {
     @PostMapping("/policy")
     @Operation(summary = "[내부] 정책 기반 포인트 적립")
     public ResponseEntity<Void> earnPointByPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
-                                                  String policyType) {
+                                                  @RequestParam("policy-type") String policyType) {
         pointService.earnPointByPolicy(userCreatedId, policyType);
 
         return ResponseEntity.ok().build();
