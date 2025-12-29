@@ -51,7 +51,7 @@ public class SagaHandler {
 
         try {
 //            testService.process(); // 일부러 포인트 부족 터트리기
-            // TODO 01 포인트 차감 로직 (양진영 님)
+            // 포인트 차감 로직
             /**
              *  본인들 서비스 주입받아서 로직 구현하시면 됩니다.
              *  매개변수로 넘어온 event DTO를 까보시면 필요한 정보들이 담겨 있습니다.
@@ -64,7 +64,8 @@ public class SagaHandler {
              */
             // 포인트 차감
             if (event instanceof OrderConfirmedEvent confirmedEvent) {
-                if (confirmedEvent.getUsedPoint() != null && event.getOrderId() > 0) {
+                if (confirmedEvent.getUsedPoint() != null && confirmedEvent.getUsedPoint() > 0 &&
+                        event.getOrderId() > 0) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
                             confirmedEvent.getUsedPoint(),
@@ -85,13 +86,14 @@ public class SagaHandler {
 
 
             if (event instanceof OrderRefundEvent refundEvent) {
-                // TODO 반품 금액을 포인트로 적립
+                // 반품 금액을 포인트로 적립
                 // 요구사항 보면 결제 금액은 포인트로 적립된다네요
-                if (refundEvent.getRefundAmount() != null && event.getOrderId() > 0) {
+                if (refundEvent.getRefundAmount() != null && refundEvent.getRefundAmount() > 0 &&
+                        event.getOrderId() > 0) {
                     pointService.processPoint(new PointRequest(
                             refundEvent.getUserId(),
                             refundEvent.getRefundAmount(),
-                            Type.EARN,
+                            Type.CANCEL,
                             "반품 처리에 따른 결제 금액 포인트 적립"));
                 }
                 log.debug("[User API] 반품시 결제 금액 포인트 적립 성공 - Order : {}", event.getOrderId());
@@ -131,14 +133,14 @@ public class SagaHandler {
         String reason = null; // 실패시 사유
 
         try {
-            // TODO 02 포인트 '보상' 로직 (양진영 님)
+            // 포인트 '보상' 로직 (양진영 님)
             /**
              * 동일하게 서비스 주입받아서 하시면 되는데,
              * 여기서는 '뭔가 잘못돼서 다시 원복시키는 롤백'의 과정입니다.
              * 그니까 아까 차감했던 포인트를 다시 원복시키는 로직을 구현하시면 됩니다.
              */
             // 사용했던 포인트 복구
-            if (event.getUsedPoint() > 0) {
+            if (event.getUsedPoint() != null && event.getUsedPoint() > 0) {
                 pointService.processPoint(new PointRequest(
                         event.getUserId(),
                         event.getUsedPoint(),
@@ -147,7 +149,7 @@ public class SagaHandler {
             }
 
             // 적립됐던 포인트 회수
-            if (event.getSavedPoint() > 0) {
+            if (event.getSavedPoint() != null && event.getSavedPoint() > 0) {
                 pointService.processPoint(new PointRequest(
                         event.getUserId(),
                         event.getSavedPoint(),
