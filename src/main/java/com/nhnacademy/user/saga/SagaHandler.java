@@ -18,7 +18,11 @@ import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.entity.point.Type;
 import com.nhnacademy.user.exception.point.PointNotEnoughException;
 import com.nhnacademy.user.repository.saga.UserOutboxRepository;
-import com.nhnacademy.user.saga.event.*;
+import com.nhnacademy.user.saga.event.OrderCompensateEvent;
+import com.nhnacademy.user.saga.event.OrderConfirmedEvent;
+import com.nhnacademy.user.saga.event.OrderRefundEvent;
+import com.nhnacademy.user.saga.event.SagaEvent;
+import com.nhnacademy.user.saga.event.SagaReply;
 import com.nhnacademy.user.service.point.PointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +63,7 @@ public class SagaHandler {
              *  더 좋은 로직 있다면 추천 가능
              */
             // 포인트 차감
-            if(event instanceof OrderConfirmedEvent confirmedEvent) {
+            if (event instanceof OrderConfirmedEvent confirmedEvent) {
                 if (confirmedEvent.getUsedPoint() != null && event.getOrderId() > 0) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
@@ -69,7 +73,7 @@ public class SagaHandler {
                 }
 
                 // 포인트 적립
-                if (confirmedEvent.getSavedPoint() != null && confirmedEvent.getSavedPoint() > 0){
+                if (confirmedEvent.getSavedPoint() != null && confirmedEvent.getSavedPoint() > 0) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
                             confirmedEvent.getSavedPoint(),
@@ -80,9 +84,17 @@ public class SagaHandler {
             }
 
 
-            if(event instanceof OrderRefundEvent refundEvent) {
+            if (event instanceof OrderRefundEvent refundEvent) {
                 // TODO 반품 금액을 포인트로 적립
                 // 요구사항 보면 결제 금액은 포인트로 적립된다네요
+                if (refundEvent.getRefundAmount() != null && event.getOrderId() > 0) {
+                    pointService.processPoint(new PointRequest(
+                            refundEvent.getUserId(),
+                            refundEvent.getRefundAmount(),
+                            Type.EARN,
+                            "반품 처리에 따른 결제 금액 포인트 적립"));
+                }
+                log.debug("[User API] 반품시 결제 금액 포인트 적립 성공 - Order : {}", event.getOrderId());
             }
 
         } catch (PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
