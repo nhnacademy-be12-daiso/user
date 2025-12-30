@@ -15,9 +15,10 @@ package com.nhnacademy.user.controller.user;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.service.user.InternalUserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,15 +36,21 @@ public class InternalUserController {
     // GET /api/internal/users/{userCreatedId}/exists
     @Operation(summary = "[내부] 회원 유효성 검증")
     @GetMapping("/{userCreatedId}/exists")
+    @ApiResponse(responseCode = "200", description = "[내부] 회원 유효성 검증 완료")
     public ResponseEntity<Boolean> existsUser(@PathVariable Long userCreatedId) {
-        return ResponseEntity.status(HttpStatus.OK).body(internalUserService.existsUser(userCreatedId));
+        return ResponseEntity.ok().body(internalUserService.existsUser(userCreatedId));
     }
 
     // GET /api/internal/users/{userCreatedId}/info
     @Operation(summary = "[내부] 주문/결제용 회원 정보 조회")
     @GetMapping("/{userCreatedId}/info")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "[내부] 주문/결제용 회원 정보 조회 완료"),
+            @ApiResponse(responseCode = "403", description = "이미 탈퇴한 계정"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    })
     public ResponseEntity<InternalUserResponse> getUserInfoForOrder(@PathVariable Long userCreatedId) {
-        return ResponseEntity.status(HttpStatus.OK).body(internalUserService.getInternalUserInfo(userCreatedId));
+        return ResponseEntity.ok().body(internalUserService.getInternalUserInfo(userCreatedId));
     }
 
 }

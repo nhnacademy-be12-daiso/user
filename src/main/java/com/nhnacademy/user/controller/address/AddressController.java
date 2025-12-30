@@ -47,6 +47,7 @@ public class AddressController {
     @PostMapping
     @Operation(summary = "새 배송지 추가")
     @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "새 배송지 추가 완료"),
             @ApiResponse(responseCode = "400", description = "등록된 주소 10개 초과"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
@@ -65,7 +66,10 @@ public class AddressController {
     // GET /api/users/me/addresses
     @GetMapping
     @Operation(summary = "내 배송지 목록 조회")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "내 배송지 목록 조회 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    })
     public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader("X-User-Id") Long userCreatedId) {
         return ResponseEntity.ok().body(addressService.getMyAddresses(userCreatedId));
     }
@@ -74,6 +78,7 @@ public class AddressController {
     @PutMapping("/{addressId}")
     @Operation(summary = "배송지 수정")
     @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배송지 수정 완료"),
             @ApiResponse(responseCode = "400", description = "기본 배송지 설정 해제"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")
@@ -90,6 +95,7 @@ public class AddressController {
     @DeleteMapping("/{addressId}")
     @Operation(summary = "배송지 삭제")
     @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "배송지 삭제 완료"),
             @ApiResponse(responseCode = "400", description = "기본 배송지 삭제"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")

@@ -78,13 +78,18 @@ public class UserController {
         return ResponseEntity.ok(slice.getContent());
     }
 
-
     // POST /api/users/signup
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
+            @ApiResponse(responseCode = "201", description = "회원가입 완료"),
+            @ApiResponse(responseCode = "400", description = "잘못된 포인트 입력 값"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 등급"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 상태"),
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 로그인 아이디"),
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 연락처"),
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     })
     public ResponseEntity<Void> signUp(@Valid @RequestBody SignupRequest request) {
         userService.signUp(request);
@@ -101,8 +106,9 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "403", description = "탈퇴한 계정"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
+            @ApiResponse(responseCode = "200", description = "내 정보 조회 완료"),
+            @ApiResponse(responseCode = "403", description = "이미 탈퇴한 계정"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
     public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         return ResponseEntity.ok().body(userService.getUserInfo(userCreatedId));
@@ -112,8 +118,10 @@ public class UserController {
     @PutMapping("/me")
     @Operation(summary = "내 정보 수정")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "내 정보 수정 완료"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
-            @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 연락처"),
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     })
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody UserModifyRequest request) {
@@ -126,6 +134,7 @@ public class UserController {
     @Operation(summary = "비밀번호 변경")
     @PutMapping("/me/password")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "비밀번호 변경 완료"),
             @ApiResponse(responseCode = "400", description = "비밀번호 불일치"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     })
@@ -139,7 +148,11 @@ public class UserController {
     // DELETE /api/users/me
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회원 탈퇴 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 상태")
+    })
     public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         userService.withdrawUser(userCreatedId);
 

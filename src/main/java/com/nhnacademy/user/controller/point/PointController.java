@@ -16,6 +16,7 @@ import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.service.point.PointService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,10 @@ public class PointController {
     // GET /api/users/me/points
     @GetMapping
     @Operation(summary = "내 포인트 내역 조회")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "내 포인트 내역 조회 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    })
     public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader("X-User-Id") Long userCreatedId,
                                                                   @PageableDefault Pageable pageable) {
         return ResponseEntity.ok().body(pointService.getMyPointHistory(userCreatedId, pageable));

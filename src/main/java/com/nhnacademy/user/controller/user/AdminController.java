@@ -20,6 +20,7 @@ import com.nhnacademy.user.dto.search.UserSearchCriteria;
 import com.nhnacademy.user.service.user.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,6 +48,7 @@ public class AdminController {
     // GET /api/admin/users?keyword={keyword}
     @GetMapping
     @Operation(summary = "전체 회원 목록 조회")
+    @ApiResponse(responseCode = "200", description = "전체 회원 목록 조회 완료")
     public ResponseEntity<Page<UserResponse>> getAllUsers(@PageableDefault Pageable pageable,
                                                           @RequestParam(name = "keyword", required = false)
                                                           String keyword) {
@@ -56,7 +58,10 @@ public class AdminController {
     // GET /api/admin/users/{userCreatedId}
     @GetMapping("/{userCreatedId}")
     @Operation(summary = "특정 회원 상세 조회")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "특정 회원 상세 조회 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    })
     public ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable Long userCreatedId) {
         return ResponseEntity.ok().body(adminService.getUserDetail(userCreatedId));
     }
@@ -64,7 +69,11 @@ public class AdminController {
     // PUT /api/admin/users/{userCreatedId}/status
     @PutMapping("/{userCreatedId}/status")
     @Operation(summary = "회원 상태 변경")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "회원 상태 변경 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 상태")
+    })
     public ResponseEntity<Void> modifyUserStatus(@RequestHeader("X-User-Id") Long adminId,
                                                  @PathVariable Long userCreatedId,
                                                  @RequestBody AccountStatusRequest request) {
@@ -76,7 +85,11 @@ public class AdminController {
     // PUT /api/admin/users/{userCreatedId}/grade
     @PutMapping("/{userCreatedId}/grade")
     @Operation(summary = "회원 등급 변경")
-    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "회원 등급 변경 완료"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 등급")
+    })
     public ResponseEntity<Void> modifyUserGrade(@RequestHeader("X-User-Id") Long adminId,
                                                 @PathVariable Long userCreatedId,
                                                 @RequestBody UserGradeRequest request) {
