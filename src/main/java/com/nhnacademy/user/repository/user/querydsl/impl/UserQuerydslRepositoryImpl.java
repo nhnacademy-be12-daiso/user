@@ -91,9 +91,11 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
         return builder;
     }
 
-    private OrderSpecifier[] getOrderSpecifier(Sort sort) {
+    private OrderSpecifier<?>[] getOrderSpecifier(Sort sort) {
         if (sort.isEmpty()) {
-            return new OrderSpecifier[] {user.userCreatedId.desc()};
+            return new OrderSpecifier<?>[] {
+                    user.userCreatedId.desc()
+            };
         }
 
         return sort.stream().map(order -> {
@@ -109,13 +111,13 @@ public class UserQuerydslRepositoryImpl implements UserQuerydslRepository {
             PathBuilder<User> pathBuilder = new PathBuilder<>(user.getType(), user.getMetadata());
 
             try {
-                return new OrderSpecifier(direction, pathBuilder.get(prop));
+                return new OrderSpecifier<>(direction, pathBuilder.get(prop, String.class));
 
             } catch (IllegalArgumentException e) {
                 // 이상한 필드명(해킹 시도 등)이 들어오면 기본 정렬로 무시하거나 예외 처리
                 return new OrderSpecifier<>(Order.DESC, user.userCreatedId);
             }
-        }).toArray(OrderSpecifier[]::new);
+        }).toArray(OrderSpecifier<?>[]::new);
     }
 
 }

@@ -45,7 +45,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class FindAccountServiceTest {
+class FindAccountServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -102,7 +102,7 @@ public class FindAccountServiceTest {
 
     @Test
     @DisplayName("비밀번호 찾기 - 성공")
-    void test3() throws Exception {
+    void test3() {
         FindPasswordRequest request = new FindPasswordRequest("testUser123", "홍길동", "test@daiso.com");
 
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
@@ -154,7 +154,7 @@ public class FindAccountServiceTest {
 
     @Test
     @DisplayName("비밀번호 찾기 - 실패 (메일 전송 오류)")
-    void test7() throws Exception {
+    void test7() {
         FindPasswordRequest request = new FindPasswordRequest("testUser123", "홍길동", "test@daiso.com");
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
         given(passwordEncoder.encode(anyString())).willReturn("newEncodedPw");

@@ -17,7 +17,6 @@ import com.nhnacademy.user.dto.response.PointPolicyResponse;
 import com.nhnacademy.user.service.point.PointPolicyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -43,13 +42,10 @@ public class PointPolicyController {
 
     private final PointPolicyService pointPolicyService;
 
-    // POST /api/admin/points/policies
     @PostMapping
     @Operation(summary = "포인트 정책 등록")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "포인트 정책 등록 완료"),
-            @ApiResponse(responseCode = "409", description = "이미 존재하는 포인트 정책")
-    })
+    @ApiResponse(responseCode = "201", description = "포인트 정책 등록 완료")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 포인트 정책")
     public ResponseEntity<Void> createPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody PointPolicyRequest request) {
         pointPolicyService.createPolicy(request);
@@ -62,7 +58,6 @@ public class PointPolicyController {
         return ResponseEntity.created(location).build();
     }
 
-    // GET /api/admin/points/policies
     @GetMapping
     @Operation(summary = "포인트 정책 전체 조회")
     @ApiResponse(responseCode = "200", description = "포인트 정책 전체 조회 완료")
@@ -70,13 +65,10 @@ public class PointPolicyController {
         return ResponseEntity.ok().body(pointPolicyService.getPolicies());
     }
 
-    // PUT /api/admin/points/policies/{pointPolicyId}
     @PutMapping("/{pointPolicyId}")
     @Operation(summary = "포인트 정책 수정")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "포인트 정책 수정 완료"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
-    })
+    @ApiResponse(responseCode = "200", description = "포인트 정책 수정 완료")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> modifyPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId,
                                              @Valid @RequestBody PointPolicyRequest request) {
@@ -85,13 +77,10 @@ public class PointPolicyController {
         return ResponseEntity.ok().build();
     }
 
-    // DELETE /api/admin/points/policies/{pointPolicyId}
     @DeleteMapping("/{pointPolicyId}")
     @Operation(summary = "포인트 정책 삭제")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "포인트 정책 삭제 완료"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
-    })
+    @ApiResponse(responseCode = "204", description = "포인트 정책 삭제 완료")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> deletePolicy(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @PathVariable Long pointPolicyId) {
         pointPolicyService.deletePolicy(pointPolicyId);

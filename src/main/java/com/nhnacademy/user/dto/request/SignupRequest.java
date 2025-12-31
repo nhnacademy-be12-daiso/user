@@ -25,7 +25,7 @@ import java.time.LocalDate;
 // 이메일: xxx@yyy.zzz 형식
 public record SignupRequest(
         @NotBlank(message = "아이디는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.LOGIN_ID_PATTERN, message = "올바르지 않은 형식의 아이디입니다.") String loginId,
-        @NotBlank(message = "비밀번호는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PASSWORD_PATTERN, message = "올바르지 않은 형식의 비밀번호입니다.") String password,
+        @NotBlank(message = "비밀번호는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PASSWORD_VALIDATION_PATTERN, message = "올바르지 않은 형식의 비밀번호입니다.") String password,
         @NotBlank(message = "이름은 필수 입력 값입니다.") String userName,
         @NotBlank(message = "연락처는 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.PHONE_PATTERN, message = "올바르지 않은 형식의 연락처입니다.") String phoneNumber,
         @NotBlank(message = "이메일은 필수 입력 값입니다.") @Pattern(regexp = ValidationUtils.EMAIL_PATTERN, message = "올바르지 않은 이메일 형식입니다.") String email,

@@ -46,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class AddressServiceTest {
+class AddressServiceTest {
 
     @Mock
     private UserRepository userRepository;

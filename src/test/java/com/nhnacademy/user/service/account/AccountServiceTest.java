@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class AccountServiceTest {
+class AccountServiceTest {
 
     @Mock
     private UserRepository userRepository;

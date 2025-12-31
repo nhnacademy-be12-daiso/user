@@ -80,6 +80,9 @@ public class UserServiceImpl implements UserService {
     private static final String PAYCO_PHONE_NUMBER_PREFIX = "010-PAYCO-";
     private static final String PAYCO_EMAIL_SUFFIX = "@payco.user";
 
+    private static final String INITIAL_STATUS_NOT_FOUND_MESSAGE = "시스템 오류: 초기 상태 데이터가 없습니다.";
+    private static final String INITIAL_GRADE_NOT_FOUND_MESSAGE = "시스템 오류: 초기 등급 데이터가 없습니다.";
+
     /**
      * 회원가입하는 메소드
      *
@@ -107,7 +110,7 @@ public class UserServiceImpl implements UserService {
         Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
                 .orElseThrow(() -> {
                     log.error("[UserService] 회원가입 실패: 존재하지 않는 등급 ({})", GENERAL_GRADE);
-                    return new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다.");
+                    return new GradeNotFoundException(INITIAL_GRADE_NOT_FOUND_MESSAGE);
                 });
 
         // Users 테이블 저장
@@ -121,7 +124,7 @@ public class UserServiceImpl implements UserService {
         Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
                 .orElseThrow(() -> {
                     log.error("[UserService] 회원가입 실패: 존재하지 않는 상태 ({})", ACTIVE_STATUS);
-                    return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
+                    return new StateNotFoundException(INITIAL_STATUS_NOT_FOUND_MESSAGE);
                 });
 
         String encodedPassword = passwordEncoder.encode(request.password());
@@ -233,7 +236,7 @@ public class UserServiceImpl implements UserService {
         Status status = statusRepository.findByStatusName(WITHDRAWN_STATUS)
                 .orElseThrow(() -> {
                     log.error("[UserService] 마이페이지 탈퇴 실패: 존재하지 않는 상태 ({})", WITHDRAWN_STATUS);
-                    return new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다.");
+                    return new StateNotFoundException(INITIAL_STATUS_NOT_FOUND_MESSAGE);
                 });
         accountStatusHistoryRepository.save(new AccountStatusHistory(account, status));
         account.modifyStatus(status);
@@ -285,7 +288,7 @@ public class UserServiceImpl implements UserService {
         String dummyPhone = PAYCO_PHONE_NUMBER_PREFIX + uniqueId.substring(0, Math.min(uniqueId.length(), 4));
 
         Grade grade = gradeRepository.findByGradeName(GENERAL_GRADE)
-                .orElseThrow(() -> new GradeNotFoundException("시스템 오류: 초기 등급 데이터가 없습니다."));
+                .orElseThrow(() -> new GradeNotFoundException(INITIAL_GRADE_NOT_FOUND_MESSAGE));
 
         User newUser = new User(userName, dummyPhone, dummyEmail, null, grade);
         userRepository.save(newUser);
@@ -296,7 +299,7 @@ public class UserServiceImpl implements UserService {
         String dummyPassword = passwordEncoder.encode("PAYCO_" + java.util.UUID.randomUUID());
 
         Status status = statusRepository.findByStatusName(ACTIVE_STATUS)
-                .orElseThrow(() -> new StateNotFoundException("시스템 오류: 초기 상태 데이터가 없습니다."));
+                .orElseThrow(() -> new StateNotFoundException(INITIAL_STATUS_NOT_FOUND_MESSAGE));
 
         Account newAccount = new Account(loginId, dummyPassword, Role.USER, newUser, status);
         accountRepository.save(newAccount);

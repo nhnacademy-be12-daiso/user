@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
@@ -77,7 +78,7 @@ class UserRepositoryTest {
         assertThat(found.getEmail()).isEqualTo("test@test.com");
         assertThat(found.getBirth()).isEqualTo(LocalDate.of(2003, 11, 7));
         assertThat(found.getGrade().getGradeName()).isEqualTo("GENERAL");
-        assertThat(found.getCurrentPoint()).isEqualTo(0L);
+        assertThat(found.getCurrentPoint()).isZero();
     }
 
     @Test
@@ -90,7 +91,8 @@ class UserRepositoryTest {
         User user2 = new User("테스트2", "010-0000-0000",
                 "test2@test.com", LocalDate.now(), defaultGrade);
 
-        assertThatThrownBy(() -> userRepository.save(user2));
+        assertThatThrownBy(() -> userRepository.save(user2))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
@@ -103,7 +105,8 @@ class UserRepositoryTest {
         User user2 = new User("테스트2", "010-2222-2222",
                 "test@test.com", LocalDate.now(), defaultGrade);
 
-        assertThatThrownBy(() -> userRepository.save(user2));
+        assertThatThrownBy(() -> userRepository.save(user2))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test

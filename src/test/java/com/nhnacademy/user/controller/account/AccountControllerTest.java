@@ -38,7 +38,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AccountController.class)
-public class AccountControllerTest {
+class AccountControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

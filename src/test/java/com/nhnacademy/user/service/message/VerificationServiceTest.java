@@ -28,8 +28,6 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
 import com.nhnacademy.user.repository.account.AccountRepository;
-import jakarta.mail.MessagingException;
-import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,7 +76,7 @@ class VerificationServiceTest {
 
     @Test
     @DisplayName("인증 번호 발송 - 성공")
-    void test1() throws MessagingException, UnsupportedEncodingException {
+    void test1() {
         Long userCreatedId = 1L;
         String email = "test@test.com";
         String code = "123456";
@@ -92,7 +90,7 @@ class VerificationServiceTest {
         verificationService.sendCode(userCreatedId);
 
         verify(valueOperations).set(eq("DORMANT_RELEASE_CODE:" + userCreatedId), anyString(), anyLong(), any());
-        verify(mailService).sendCode(eq(email));
+        verify(mailService).sendCode(email);
     }
 
     @Test

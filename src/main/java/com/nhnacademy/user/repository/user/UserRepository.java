@@ -13,7 +13,6 @@
 package com.nhnacademy.user.repository.user;
 
 import com.nhnacademy.user.dto.response.BirthdayUserResponse;
-import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import feign.Param;
@@ -44,37 +43,31 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdForUpdate(Long userCreatedId);
 
-    // 생일이 특정 월인 사용자 조회
-//    @Query("SELECT u FROM User u WHERE FUNCTION('MONTH', u.birth) = :month")
-//    List<User> findByBirthMonth(@Param("month") int month);
-
     @Query("""
             select u
             from User u
             where month(u.birth) = :month
                 and u.grade.gradeId = :gradeId
             """)
-    Slice<User> findByBirthMonth(@Param("month") int month,@Param("gradeId") Long gradeId, Pageable pageable);
+    Slice<User> findByBirthMonth(@Param("month") int month, @Param("gradeId") Long gradeId, Pageable pageable);
 
 
     @Query("""
-        select new com.nhnacademy.user.dto.response.BirthdayUserResponse(
-            u.userCreatedId, u.userName, u.birth
-        )
-        from User u
-        join u.account a
-        where u.birth is not null
-          and month(u.birth) = :month
-          and a.status.statusId = :statusId
-        order by u.userCreatedId
-    """)
+                select new com.nhnacademy.user.dto.response.BirthdayUserResponse(
+                    u.userCreatedId, u.userName, u.birth
+                )
+                from User u
+                join u.account a
+                where u.birth is not null
+                  and month(u.birth) = :month
+                  and a.status.statusId = :statusId
+                order by u.userCreatedId
+            """)
     Slice<BirthdayUserResponse> findBirthdayUsersActive(
             @Param("month") int month,
             @Param("statusId") Long statusId,
             Pageable pageable
     );
-
-
 
 
     // 이름과 이메일로 회원 조회

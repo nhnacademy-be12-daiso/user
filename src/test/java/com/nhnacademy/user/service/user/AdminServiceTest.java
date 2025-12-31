@@ -80,8 +80,6 @@ class AdminServiceTest {
     private Account mockAccount;
     private Status mockStatus;
     private Grade mockGrade;
-    private AccountStatusHistory mockStatusHistory;
-    private UserGradeHistory mockGradeHistory;
 
     @BeforeEach
     void setUp() {
@@ -155,7 +153,6 @@ class AdminServiceTest {
         Long adminId = 999L;
         Long targetUserId = 1L;
         AccountStatusRequest request = new AccountStatusRequest("BANNED");
-        Account mockAccount = mock(Account.class);
 
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(mockUser.getAccount()).willReturn(mockAccount);
@@ -173,7 +170,6 @@ class AdminServiceTest {
         Long adminId = 999L;
         Long targetUserId = 1L;
         UserGradeRequest request = new UserGradeRequest("GOLD");
-        User mockUser = mock(User.class);
 
         given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
         given(gradeRepository.findByGradeName("GOLD")).willReturn(Optional.of(mockGrade));

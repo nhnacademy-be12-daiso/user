@@ -25,7 +25,6 @@ import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.address.AddressService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -92,7 +91,7 @@ public class AddressServiceImpl implements AddressService {
                                 address.getRoadAddress(),
                                 address.getAddressDetail(),
                                 address.isDefault()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

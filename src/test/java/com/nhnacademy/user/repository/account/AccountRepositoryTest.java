@@ -30,10 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
-public class AccountRepositoryTest {
+class AccountRepositoryTest {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -87,7 +88,8 @@ public class AccountRepositoryTest {
 
         Account account2 = new Account("test2", "pwd222@@@", Role.USER, user, status);
 
-        assertThatThrownBy(() -> accountRepository.saveAndFlush(account2));
+        assertThatThrownBy(() -> accountRepository.saveAndFlush(account2))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
 }

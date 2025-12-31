@@ -48,21 +48,20 @@ public class SwaggerConfig {    // Swagger(OpenAPI) 설정을 위한 클래스
 
     @Bean
     public GlobalOpenApiCustomizer globalOpenApiCustomizer() {
-        return openApi -> {
-            openApi.getPaths().values()
-                    .forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
-                        ApiResponses response = operation.getResponses();
+        return openApi ->
+                openApi.getPaths().values()
+                        .forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
+                            ApiResponses response = operation.getResponses();
 
-                        // 401 Unauthorized
-                        response.addApiResponse("401", new ApiResponse().description("인증 실패(토큰 없음/만료)"));
+                            // 401 Unauthorized
+                            response.addApiResponse("401", new ApiResponse().description("인증 실패(토큰 없음/만료)"));
 
-                        // 403 Forbidden
-                        response.addApiResponse("403", new ApiResponse().description("접근 권한 없음"));
+                            // 403 Forbidden
+                            response.addApiResponse("403", new ApiResponse().description("접근 권한 없음"));
 
-                        // 500 Server Error
-                        response.addApiResponse("500", new ApiResponse().description("서버 내부 오류"));
-                    }));
-        };
+                            // 500 Server Error
+                            response.addApiResponse("500", new ApiResponse().description("서버 내부 오류"));
+                        }));
     }
 
 }

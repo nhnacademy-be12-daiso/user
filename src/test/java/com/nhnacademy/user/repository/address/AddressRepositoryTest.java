@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Import;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
-public class AddressRepositoryTest {
+class AddressRepositoryTest {
 
     @Autowired
     private AddressRepository addressRepository;

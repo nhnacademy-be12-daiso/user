@@ -47,13 +47,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String BAD_REQUEST = "BAD_REQUEST";
+    private static final String UNAUTHORIZED = "UNAUTHORIZED";
+    private static final String FORBIDDEN = "FORBIDDEN";
+    private static final String NOT_FOUND = "NOT_FOUND";
+    private static final String CONFLICT = "CONFLICT";
+    private static final String LOCKED = "LOCKED";
+
+    private static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
+
     // ==================== 400 Bad Request ====================
     @ExceptionHandler(AddressLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handlerAddressLimitExceededException(AddressLimitExceededException ex) {
         // 등록된 주소 10개 초과
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(PointNotEnoughException.class)
@@ -61,7 +70,7 @@ public class GlobalExceptionHandler {
         // 포인트 잔액 부족
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(PasswordNotMatchException.class)
@@ -69,7 +78,7 @@ public class GlobalExceptionHandler {
         // 비밀번호 불일치
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(NotDormantAccountException.class)
@@ -77,7 +86,7 @@ public class GlobalExceptionHandler {
         // 휴면 상태가 아닌 계정
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -104,7 +113,7 @@ public class GlobalExceptionHandler {
         // 기본 배송지 삭제
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(DefaultAddressRequiredException.class)
@@ -125,7 +134,7 @@ public class GlobalExceptionHandler {
         // 잘못된 포인트 입력값
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -134,7 +143,7 @@ public class GlobalExceptionHandler {
         // 헤더 타입 불일치
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getMessage()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getMessage()));
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
@@ -142,7 +151,7 @@ public class GlobalExceptionHandler {
         // 필수 헤더 누락
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("BAD_REQUEST", 400, ex.getHeaderName()));
+                .body(new ErrorResponse(BAD_REQUEST, 400, ex.getHeaderName()));
     }
 
     // ==================== 401 Unauthorized ====================
@@ -151,7 +160,7 @@ public class GlobalExceptionHandler {
         // 올바르지 않은 코드 입력
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse("UNAUTHORIZED", 401, ex.getMessage()));
+                .body(new ErrorResponse(UNAUTHORIZED, 401, ex.getMessage()));
     }
 
     // ==================== 403 Forbidden ====================
@@ -160,7 +169,7 @@ public class GlobalExceptionHandler {
         // 탈퇴한 계정
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse("FORBIDDEN", 403, ex.getMessage()));
+                .body(new ErrorResponse(FORBIDDEN, 403, ex.getMessage()));
     }
 
     // ==================== 404 Not Found ====================
@@ -169,7 +178,7 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 유저
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+                .body(new ErrorResponse(NOT_FOUND, 404, ex.getMessage()));
     }
 
     @ExceptionHandler(AddressNotFoundException.class)
@@ -177,7 +186,7 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 주소
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+                .body(new ErrorResponse(NOT_FOUND, 404, ex.getMessage()));
     }
 
     @ExceptionHandler(PointPolicyNotFoundException.class)
@@ -185,7 +194,7 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 포인트 정책
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+                .body(new ErrorResponse(NOT_FOUND, 404, ex.getMessage()));
     }
 
     @ExceptionHandler(StateNotFoundException.class)
@@ -193,7 +202,7 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 상태 정보
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+                .body(new ErrorResponse(NOT_FOUND, 404, ex.getMessage()));
     }
 
     @ExceptionHandler(GradeNotFoundException.class)
@@ -201,7 +210,7 @@ public class GlobalExceptionHandler {
         // 찾을 수 없는 등급 정보
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", 404, ex.getMessage()));
+                .body(new ErrorResponse(NOT_FOUND, 404, ex.getMessage()));
     }
 
     // ==================== 409 Conflict ====================
@@ -210,7 +219,7 @@ public class GlobalExceptionHandler {
         // 이미 존재하는 유저
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));
+                .body(new ErrorResponse(CONFLICT, 409, ex.getMessage()));
     }
 
     @ExceptionHandler(PointPolicyAlreadyExistsException.class)
@@ -219,7 +228,7 @@ public class GlobalExceptionHandler {
         // 이미 존재하는 정책
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("CONFLICT", 409, ex.getMessage()));
+                .body(new ErrorResponse(CONFLICT, 409, ex.getMessage()));
     }
 
     // ==================== 423 Locked ====================
@@ -228,7 +237,7 @@ public class GlobalExceptionHandler {
         // 휴면 상태인 계정
         return ResponseEntity
                 .status(HttpStatus.LOCKED)
-                .body(new ErrorResponse("LOCKED", 423, ex.getMessage()));
+                .body(new ErrorResponse(LOCKED, 423, ex.getMessage()));
     }
 
     // ==================== 500 Internal Server Error ====================
@@ -237,17 +246,17 @@ public class GlobalExceptionHandler {
         // 메일 발송 중 오류
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
+                .body(new ErrorResponse(INTERNAL_SERVER_ERROR, 500, ex.getMessage()));
     }
+
     @ExceptionHandler(FailedSerializationException.class)
     public ResponseEntity<ErrorResponse> handlerFailedSerializationException(FailedSerializationException ex) {
         // saga 통신 중 직렬화 오류
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, ex.getMessage()));
+                .body(new ErrorResponse(INTERNAL_SERVER_ERROR, 500, ex.getMessage()));
     }
 
-    /*
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
         // 정의되지 않은 모든 예외 처리
@@ -255,8 +264,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", 500, "서버 내부 오류가 발생했습니다."));
+                .body(new ErrorResponse(INTERNAL_SERVER_ERROR, 500, "서버 내부 오류가 발생했습니다."));
     }
-     */
 
 }
