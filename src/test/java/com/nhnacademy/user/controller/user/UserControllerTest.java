@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,6 +30,8 @@ import com.nhnacademy.user.dto.request.PasswordModifyRequest;
 import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.exception.user.PasswordNotMatchException;
+import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.service.user.UserService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,8 +72,24 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("내 정보 조회")
+    @DisplayName("회원가입 실패 - 이미 존재하는 회원 (409)")
     void test2() throws Exception {
+        SignupRequest request = new SignupRequest(
+                "duplicate", "pwd123!@#", "중복", "010-1111-2222", "dup@test.com", LocalDate.now().minusDays(1));
+
+        doThrow(new UserAlreadyExistsException("Already exists"))
+                .when(userService).signUp(any(SignupRequest.class));
+
+        mockMvc.perform(post("/api/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("내 정보 조회")
+    void test3() throws Exception {
         Long userId = 1L;
         UserResponse response = new UserResponse(
                 1L, "testId", "홍길동", "010-1234-5678", "test@email.com", LocalDate.now(),
@@ -88,7 +107,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("내 정보 수정")
-    void test3() throws Exception {
+    void test4() throws Exception {
         Long userId = 1L;
         UserModifyRequest request = new UserModifyRequest(
                 "개명", "010-9999-9999", "new@test.com", LocalDate.now().minusDays(1));
@@ -104,8 +123,22 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("내 정보 수정 실패 - 유효성 검증(@Valid) 실패 (400)")
+    void test5() throws Exception {
+        Long userId = 1L;
+        UserModifyRequest invalidRequest = new UserModifyRequest(
+                "", "010-1234-5678", "test@test.com", LocalDate.now());
+
+        mockMvc.perform(put("/api/users/me")
+                        .header("X-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("비밀번호 변경")
-    void test4() throws Exception {
+    void test6() throws Exception {
         Long userId = 1L;
         PasswordModifyRequest request = new PasswordModifyRequest(
                 "oldPass123!@#", "newPass123!@#");
@@ -121,8 +154,25 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("비밀번호 변경 실패 - 기존 비밀번호 불일치 (400)")
+    void test7() throws Exception {
+        Long userId = 1L;
+        PasswordModifyRequest request = new PasswordModifyRequest("wrongOld", "newPw");
+
+        doThrow(new PasswordNotMatchException("Password mismatch"))
+                .when(userService).modifyAccountPassword(eq(userId), any());
+
+        mockMvc.perform(put("/api/users/me/password")
+                        .header("X-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("회원 탈퇴")
-    void test5() throws Exception {
+    void test8() throws Exception {
         Long userId = 1L;
         doNothing().when(userService).withdrawUser(userId);
 

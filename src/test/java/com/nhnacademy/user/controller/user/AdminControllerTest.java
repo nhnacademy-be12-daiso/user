@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -27,6 +28,8 @@ import com.nhnacademy.user.dto.request.AccountStatusRequest;
 import com.nhnacademy.user.dto.request.UserGradeRequest;
 import com.nhnacademy.user.dto.response.UserDetailResponse;
 import com.nhnacademy.user.dto.response.UserResponse;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.service.user.AdminService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -106,8 +109,25 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("회원 등급 변경 (PLATINUM)")
+    @DisplayName("회원 상태 변경 실패 - 존재하지 않는 유저 (404)")
     void test4() throws Exception {
+        Long adminId = 999L;
+        Long targetId = 999L;
+        AccountStatusRequest request = new AccountStatusRequest("BANNED");
+
+        doThrow(new UserNotFoundException("User not found"))
+                .when(adminService).modifyAccountStatus(eq(adminId), eq(targetId), any());
+
+        mockMvc.perform(put("/api/admin/users/{userCreatedId}/status", targetId)
+                        .header("X-User-Id", adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("회원 등급 변경 (PLATINUM)")
+    void test5() throws Exception {
         Long adminId = 999L;
         Long targetId = 1L;
         UserGradeRequest request = new UserGradeRequest("PLATINUM");
@@ -120,6 +140,23 @@ class AdminControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원 등급 변경 실패 - 존재하지 않는 등급 (404)")
+    void test6() throws Exception {
+        Long adminId = 999L;
+        Long targetId = 1L;
+        UserGradeRequest request = new UserGradeRequest("UNKNOWN_GRADE");
+
+        doThrow(new GradeNotFoundException("Grade not found"))
+                .when(adminService).modifyUserGrade(eq(adminId), eq(targetId), any());
+
+        mockMvc.perform(put("/api/admin/users/{userCreatedId}/grade", targetId)
+                        .header("X-User-Id", adminId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 
 }

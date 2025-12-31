@@ -18,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.nhnacademy.user.dto.response.InternalUserResponse;
+import com.nhnacademy.user.exception.account.AccountWithdrawnException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.service.user.InternalUserService;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +59,30 @@ class InternalUserControllerTest {
 
         mockMvc.perform(get("/api/internal/users/{userCreatedId}/info", userId))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("[내부] 정보 조회 실패 - 탈퇴한 회원 (403)")
+    void test3() throws Exception {
+        Long userId = 1L;
+
+        given(internalUserService.getInternalUserInfo(userId))
+                .willThrow(new AccountWithdrawnException("Withdrawn user"));
+
+        mockMvc.perform(get("/api/internal/users/{userCreatedId}/info", userId))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("[내부] 정보 조회 실패 - 존재하지 않는 회원 (404)")
+    void test4() throws Exception {
+        Long userId = 999L;
+
+        given(internalUserService.getInternalUserInfo(userId))
+                .willThrow(new UserNotFoundException("User not found"));
+
+        mockMvc.perform(get("/api/internal/users/{userCreatedId}/info", userId))
+                .andExpect(status().isNotFound());
     }
 
 }

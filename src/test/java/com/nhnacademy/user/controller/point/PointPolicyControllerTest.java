@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.user.dto.request.PointPolicyRequest;
 import com.nhnacademy.user.dto.response.PointPolicyResponse;
 import com.nhnacademy.user.entity.point.Method;
+import com.nhnacademy.user.exception.point.PointPolicyAlreadyExistsException;
+import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.service.point.PointPolicyService;
 import java.math.BigDecimal;
 import java.util.List;
@@ -65,8 +68,24 @@ class PointPolicyControllerTest {
     }
 
     @Test
-    @DisplayName("포인트 정책 전체 조회")
+    @DisplayName("포인트 정책 등록 실패 - 이미 존재하는 정책 (409)")
     void test2() throws Exception {
+        PointPolicyRequest request = new PointPolicyRequest(
+                "중복정책", "DUP", Method.AMOUNT, BigDecimal.TEN);
+
+        doThrow(new PointPolicyAlreadyExistsException("Already exists"))
+                .when(pointPolicyService).createPolicy(any());
+
+        mockMvc.perform(post("/api/admin/points/policies")
+                        .header("X-User-Id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("포인트 정책 전체 조회")
+    void test3() throws Exception {
         List<PointPolicyResponse> list = List.of(
                 new PointPolicyResponse(
                         1L, "정책", "TYPE", Method.AMOUNT, BigDecimal.valueOf(100)));
@@ -79,7 +98,7 @@ class PointPolicyControllerTest {
 
     @Test
     @DisplayName("포인트 정책 수정")
-    void test3() throws Exception {
+    void test4() throws Exception {
         Long policyId = 1L;
         PointPolicyRequest request = new PointPolicyRequest(
                 "수정", "TYPE", Method.AMOUNT, BigDecimal.valueOf(200));
@@ -95,13 +114,26 @@ class PointPolicyControllerTest {
 
     @Test
     @DisplayName("포인트 정책 삭제")
-    void test4() throws Exception {
+    void test5() throws Exception {
         Long policyId = 1L;
         doNothing().when(pointPolicyService).deletePolicy(policyId);
 
         mockMvc.perform(delete("/api/admin/points/policies/{pointPolicyId}", policyId)
                         .header("X-User-Id", 1L))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("포인트 정책 삭제 실패 - 존재하지 않는 정책 (404)")
+    void test6() throws Exception {
+        Long policyId = 999L;
+
+        doThrow(new PointPolicyNotFoundException("Not found"))
+                .when(pointPolicyService).deletePolicy(policyId);
+
+        mockMvc.perform(delete("/api/admin/points/policies/{pointPolicyId}", policyId)
+                        .header("X-User-Id", 1L))
+                .andExpect(status().isNotFound()); // 404 Not Found
     }
 
 }
