@@ -147,4 +147,48 @@ class AddressRepositoryTest {
         assertThat(result).isNull();
     }
 
+    @Test
+    @DisplayName("특정 사용자의 모든 주소 목록 조회")
+    void test6() {
+        Grade grade = new Grade("GENERAL", BigDecimal.ONE);
+        entityManager.persist(grade);
+
+        User user = new User("목록조회", "010-3333-3333", "list@test.com", LocalDate.now(), grade);
+        userRepository.save(user);
+
+        Address addr1 = new Address(user, "학교", "11111", "주소1", "상세1", false);
+        Address addr2 = new Address(user, "본가", "22222", "주소2", "상세2", true);
+        addressRepository.save(addr1);
+        addressRepository.save(addr2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var addresses = addressRepository.findAllByUser(user);
+
+        assertThat(addresses).hasSize(2);
+        assertThat(addresses.getFirst().getUser().getUserName()).isEqualTo("목록조회");
+    }
+
+    @Test
+    @DisplayName("주소 ID와 사용자로 주소 조회 (성공)")
+    void test7() {
+        Grade grade = new Grade("GENERAL", BigDecimal.ONE);
+        entityManager.persist(grade);
+
+        User user = new User("단건조회", "010-4444-4444", "one@test.com", LocalDate.now(), grade);
+        userRepository.save(user);
+
+        Address addr = new Address(user, "배송지", "12345", "도로명", "상세", true);
+        addressRepository.save(addr);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var found = addressRepository.findByAddressIdAndUser(addr.getAddressId(), user);
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getAddressName()).isEqualTo("배송지");
+    }
+
 }

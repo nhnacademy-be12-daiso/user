@@ -15,6 +15,7 @@ package com.nhnacademy.user.service.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -33,6 +34,8 @@ import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.entity.user.UserGradeHistory;
 import com.nhnacademy.user.exception.account.StateNotFoundException;
+import com.nhnacademy.user.exception.user.GradeNotFoundException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.GradeRepository;
@@ -123,9 +126,9 @@ class AdminServiceTest {
         Page<UserResponse> result = adminService.getAllUsers(pageable, new UserSearchCriteria("test"));
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).loginId()).isEqualTo("testUser");
-        assertThat(result.getContent().get(0).statusName()).isEqualTo("ACTIVE");
-        assertThat(result.getContent().get(0).point()).isEqualTo(1000L);
+        assertThat(result.getContent().getFirst().loginId()).isEqualTo("testUser");
+        assertThat(result.getContent().getFirst().statusName()).isEqualTo("ACTIVE");
+        assertThat(result.getContent().getFirst().point()).isEqualTo(1000L);
 
         verify(userRepository).findAllUser(pageable, new UserSearchCriteria("test"));
     }
@@ -148,8 +151,18 @@ class AdminServiceTest {
     }
 
     @Test
-    @DisplayName("회원 상태 변경 - 성공 (ACTIVE -> BANNED)")
+    @DisplayName("특정 회원 상세 조회 실패 - 존재하지 않는 회원")
     void test3() {
+        given(userRepository.findByIdWithAccount(anyLong())).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.getUserDetail(99L))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("찾을 수 없는 회원입니다.");
+    }
+
+    @Test
+    @DisplayName("회원 상태 변경 - 성공 (ACTIVE -> BANNED)")
+    void test4() {
         Long adminId = 999L;
         Long targetUserId = 1L;
         AccountStatusRequest request = new AccountStatusRequest("BANNED");
@@ -165,8 +178,23 @@ class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("회원 상태 변경 실패 - 존재하지 않는 상태값")
+    void test5() {
+        Long adminId = 999L;
+        Long targetUserId = 1L;
+        AccountStatusRequest request = new AccountStatusRequest("WEIRD_STATUS");
+
+        given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
+        given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.modifyAccountStatus(adminId, targetUserId, request))
+                .isInstanceOf(StateNotFoundException.class)
+                .hasMessageContaining("존재하지 않는 상태");
+    }
+
+    @Test
     @DisplayName("회원 등급 변경 - 성공 (GENERAL -> GOLD)")
-    void test4() {
+    void test6() {
         Long adminId = 999L;
         Long targetUserId = 1L;
         UserGradeRequest request = new UserGradeRequest("GOLD");
@@ -181,18 +209,26 @@ class AdminServiceTest {
     }
 
     @Test
-    @DisplayName("회원 상태 변경 실패 - 존재하지 않는 상태값")
-    void test5() {
-        Long adminId = 999L;
-        Long targetUserId = 1L;
-        AccountStatusRequest request = new AccountStatusRequest("WEIRD_STATUS");
+    @DisplayName("회원 등급 변경 실패 - 존재하지 않는 회원")
+    void test7() {
+        UserGradeRequest request = new UserGradeRequest("GOLD");
+        given(userRepository.findByIdWithAccount(anyLong())).willReturn(Optional.empty());
 
-        given(userRepository.findByIdWithAccount(targetUserId)).willReturn(Optional.of(mockUser));
-        given(statusRepository.findByStatusName("WEIRD_STATUS")).willReturn(Optional.empty());
+        assertThatThrownBy(() -> adminService.modifyUserGrade(999L, 99L, request))
+                .isInstanceOf(UserNotFoundException.class);
+    }
 
-        assertThatThrownBy(() -> adminService.modifyAccountStatus(adminId, targetUserId, request))
-                .isInstanceOf(StateNotFoundException.class)
-                .hasMessageContaining("존재하지 않는 상태");
+    @Test
+    @DisplayName("회원 등급 변경 실패 - 존재하지 않는 등급")
+    void test8() {
+        UserGradeRequest request = new UserGradeRequest("DIAMOND");
+
+        given(userRepository.findByIdWithAccount(anyLong())).willReturn(Optional.of(mockUser));
+        given(gradeRepository.findByGradeName("DIAMOND")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.modifyUserGrade(999L, 1L, request))
+                .isInstanceOf(GradeNotFoundException.class)
+                .hasMessage("존재하지 않는 등급입니다.");
     }
 
 }

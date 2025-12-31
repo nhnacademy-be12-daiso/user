@@ -12,72 +12,109 @@
 
 package com.nhnacademy.user.service.account;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.account.AccountStatusHistory;
-import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.account.StateNotFoundException;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
+import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
-import com.nhnacademy.user.service.user.impl.UserServiceImpl;
-import java.time.LocalDate;
+import com.nhnacademy.user.service.account.impl.AccountServiceImpl;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
-    private StatusRepository statusRepository;
+    private AccountRepository accountRepository;
 
     @Mock
     private AccountStatusHistoryRepository accountStatusHistoryRepository;
 
+    @Mock
+    private StatusRepository statusRepository;
+
     @InjectMocks
-    private UserServiceImpl userService;
+    private AccountServiceImpl accountService;
 
-    private User testUser;
-    private Account testAccount;
-    private Long testUserId = 1L;
-    private String testLoginId = "testUser";
-    private LocalDate testBirthDate = LocalDate.of(2003, 11, 7);
-
-    @BeforeEach
-    void setUp() {
-        testUser = new User("테스트", "010-1234-5678", "test@test.com", testBirthDate);
-        ReflectionTestUtils.setField(testUser, "userCreatedId", testUserId);
-
-        testAccount = new Account(testLoginId, "encodedPassword", Role.USER, testUser);
-
-        ReflectionTestUtils.setField(testUser, "account", testAccount);
+    @Test
+    @DisplayName("로그인 아이디 존재 여부 확인 - 존재함")
+    void test1() {
+        given(accountRepository.existsById("existId")).willReturn(true);
+        boolean result = accountService.existsLoginId("existId");
+        assertThat(result).isTrue();
     }
 
     @Test
-    @DisplayName("계정 탈퇴 - 상태 변경 이력 저장 확인")
-    void test1() {
-        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+    @DisplayName("로그인 아이디 존재 여부 확인 - 존재하지 않음")
+    void test2() {
+        given(accountRepository.existsById("noneId")).willReturn(false);
+        boolean result = accountService.existsLoginId("noneId");
+        assertThat(result).isFalse();
+    }
 
-        Status withdrawnStatus = new Status("WITHDRAWN");
-        given(statusRepository.findByStatusName("WITHDRAWN")).willReturn(Optional.of(withdrawnStatus));
+    @Test
+    @DisplayName("휴면 계정 활성화 성공")
+    void test3() {
+        Long userCreatedId = 1L;
+        User mockUser = mock(User.class);
+        Account mockAccount = mock(Account.class);
+        Status activeStatus = new Status("ACTIVE");
 
-        userService.withdrawUser(testUserId);
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(mockUser));
+        given(mockUser.getAccount()).willReturn(mockAccount);
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.of(activeStatus));
 
-        verify(accountStatusHistoryRepository, times(1)).save(any(AccountStatusHistory.class));
+        accountService.activeUser(userCreatedId);
+
+        verify(accountStatusHistoryRepository).save(any(AccountStatusHistory.class));
+        verify(mockAccount).modifyStatus(activeStatus);
+    }
+
+    @Test
+    @DisplayName("휴면 계정 활성화 실패 - 존재하지 않는 회원")
+    void test4() {
+        Long userCreatedId = 999L;
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountService.activeUser(userCreatedId))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("찾을 수 없는 회원");
+    }
+
+    @Test
+    @DisplayName("휴면 계정 활성화 실패 - ACTIVE 상태 데이터 없음(시스템 오류)")
+    void test5() {
+        Long userCreatedId = 1L;
+        User mockUser = mock(User.class);
+        Account mockAccount = mock(Account.class);
+
+        given(userRepository.findByIdWithAccount(userCreatedId)).willReturn(Optional.of(mockUser));
+        given(mockUser.getAccount()).willReturn(mockAccount);
+        given(statusRepository.findByStatusName("ACTIVE")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountService.activeUser(userCreatedId))
+                .isInstanceOf(StateNotFoundException.class)
+                .hasMessageContaining("존재하지 않는 상태");
     }
 
 }

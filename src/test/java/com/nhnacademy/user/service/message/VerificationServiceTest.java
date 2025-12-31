@@ -27,6 +27,7 @@ import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.account.NotDormantAccountException;
 import com.nhnacademy.user.exception.message.InvalidCodeException;
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,8 +95,22 @@ class VerificationServiceTest {
     }
 
     @Test
-    @DisplayName("인증 번호 검증 실패 - 코드 불일치")
+    @DisplayName("인증 번호 검증 - 성공")
     void test2() {
+        Long userCreatedId = 1L;
+        String correctCode = "123456";
+
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get("DORMANT_RELEASE_CODE:" + userCreatedId)).willReturn(correctCode);
+
+        verificationService.verifyCode(userCreatedId, correctCode);
+
+        verify(redisTemplate).delete("DORMANT_RELEASE_CODE:" + userCreatedId);
+    }
+
+    @Test
+    @DisplayName("인증 번호 검증 실패 - 코드 불일치")
+    void test3() {
         Long userCreatedId = 1L;
         String wrongCode = "000000";
         String correctCode = "123456";
@@ -109,8 +124,33 @@ class VerificationServiceTest {
     }
 
     @Test
+    @DisplayName("인증 번호 검증 실패 - 인증번호 만료")
+    void test4() {
+        Long userCreatedId = 1L;
+        String code = "123456";
+
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.get("DORMANT_RELEASE_CODE:" + userCreatedId)).willReturn(null);
+
+        assertThatThrownBy(() -> verificationService.verifyCode(userCreatedId, code))
+                .isInstanceOf(InvalidCodeException.class)
+                .hasMessage("올바르지 않은 코드입니다.");
+    }
+
+    @Test
+    @DisplayName("인증 번호 발송 실패 - 존재하지 않는 계정")
+    void test5() {
+        Long userCreatedId = 999L;
+        given(accountRepository.findByUser_UserCreatedId(userCreatedId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> verificationService.sendCode(userCreatedId))
+                .isInstanceOf(MailSendException.class)
+                .hasMessage("휴면 계정 활성화를 위한 인증번호 메일 전송 중 예상치 못한 오류가 발생했습니다.");
+    }
+
+    @Test
     @DisplayName("계정 상태 검증 실패 - 휴면 계정이 아님")
-    void test3() {
+    void test6() {
         given(mockAccount.getStatus()).willReturn(activeStatus);
 
         assertThatThrownBy(() -> verificationService.validateDormantAccount(mockAccount))

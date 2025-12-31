@@ -123,8 +123,32 @@ class PointPolicyServiceTest {
     }
 
     @Test
-    @DisplayName("정책 삭제 - 실패 (존재하지 않음)")
+    @DisplayName("정책 수정 - 실패 (존재하지 않는 정책)")
     void test6() {
+        Long policyId = 999L;
+        PointPolicyRequest request = new PointPolicyRequest("수정", "MOD", Method.AMOUNT, BigDecimal.TEN);
+
+        given(pointPolicyRepository.findById(policyId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> pointPolicyService.modifyPolicy(policyId, request))
+                .isInstanceOf(PointPolicyNotFoundException.class)
+                .hasMessage("찾을 수 없는 정책입니다.");
+    }
+
+    @Test
+    @DisplayName("정책 삭제 - 성공")
+    void test7() {
+        Long policyId = 1L;
+        given(pointPolicyRepository.existsById(policyId)).willReturn(true);
+
+        pointPolicyService.deletePolicy(policyId);
+
+        verify(pointPolicyRepository, times(1)).deleteById(policyId);
+    }
+
+    @Test
+    @DisplayName("정책 삭제 - 실패 (존재하지 않음)")
+    void test8() {
         Long policyId = 999L;
 
         given(pointPolicyRepository.existsById(policyId)).willReturn(false);

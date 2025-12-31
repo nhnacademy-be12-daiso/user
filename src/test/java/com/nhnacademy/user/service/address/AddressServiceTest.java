@@ -29,6 +29,7 @@ import com.nhnacademy.user.entity.user.User;
 import com.nhnacademy.user.exception.address.AddressLimitExceededException;
 import com.nhnacademy.user.exception.address.AddressNotFoundException;
 import com.nhnacademy.user.exception.address.DefaultAddressDeletionException;
+import com.nhnacademy.user.exception.address.DefaultAddressRequiredException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -84,10 +85,24 @@ class AddressServiceTest {
         verify(addressRepository).save(any(Address.class));
     }
 
+    @Test
+    @DisplayName("주소가 0개일 때 추가하면 자동으로 기본 배송지 설정")
+    void test2() {
+        given(addressRepository.countByUser(testUser)).willReturn(0L);
+        given(addressRepository.save(any(Address.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        AddressRequest request = new AddressRequest("집", "123", "주소", "상세", false);
+
+        addressService.addAddress(testUserId, request);
+
+        verify(addressRepository).save(argThat(Address::isDefault));
+    }
+
 
     @Test
     @DisplayName("주소 등록 실패 - 주소 10개 초과")
-    void test2() {
+    void test3() {
         given(addressRepository.countByUser(testUser)).willReturn(10L);
 
         assertThatThrownBy(() -> addressService.addAddress(testUserId, testRequest))
@@ -99,7 +114,7 @@ class AddressServiceTest {
 
     @Test
     @DisplayName("주소 등록 실패 - 존재하지 않는 유저")
-    void test3() {
+    void test4() {
         given(userRepository.findByIdWithAccount(999L)).willReturn(Optional.empty());
 
         AddressRequest request = new AddressRequest("테스트", "12345", "주소", "상세", false);
@@ -110,7 +125,7 @@ class AddressServiceTest {
 
     @Test
     @DisplayName("주소 목록 조회 성공")
-    void test4() {
+    void test5() {
         Address addr1 = new Address(testUser, "집", "12345", "광주", "1층", true);
         Address addr2 = new Address(testUser, "회사", "09876", "판교", "1층", false);
 
@@ -130,7 +145,7 @@ class AddressServiceTest {
 
     @Test
     @DisplayName("주소 수정 성공")
-    void test5() {
+    void test6() {
         Address originalAddress = new Address(testUser, "옛날 별칭", "12345", "옛날 주소", "1층", false);
         AddressRequest modifyRequest = new AddressRequest("새 별칭", "09876", "새로운 주소", "1층", true);
 
@@ -147,8 +162,23 @@ class AddressServiceTest {
     }
 
     @Test
+    @DisplayName("주소 수정 성공 - 새로운 주소를 기본 배송지로 설정")
+    void test7() {
+        Address originalAddress = new Address(testUser, "회사", "12345", "판교", "1층", false);
+        AddressRequest modifyRequest = new AddressRequest("회사", "12345", "판교", "1층", true);
+
+        given(addressRepository.findByAddressIdAndUser(1L, testUser))
+                .willReturn(Optional.of(originalAddress));
+
+        addressService.modifyAddress(testUserId, 1L, modifyRequest);
+
+        verify(addressRepository).clearAllDefaultsByUser(testUser);
+        assertThat(originalAddress.isDefault()).isTrue();
+    }
+
+    @Test
     @DisplayName("주소 수정 실패 - 존재하지 않는 주소")
-    void test6() {
+    void test8() {
         given(addressRepository.findByAddressIdAndUser(anyLong(), any(User.class)))
                 .willReturn(Optional.empty());
 
@@ -158,8 +188,23 @@ class AddressServiceTest {
     }
 
     @Test
+    @DisplayName("주소 수정 실패 - 기본 배송지 설정은 직접 해제 불가")
+    void test9() {
+        Address originalAddress = new Address(testUser, "집", "12345", "광주", "1층", true);
+
+        AddressRequest modifyRequest = new AddressRequest("집", "12345", "광주", "1층", false);
+
+        given(addressRepository.findByAddressIdAndUser(1L, testUser))
+                .willReturn(Optional.of(originalAddress));
+
+        assertThatThrownBy(() -> addressService.modifyAddress(testUserId, 1L, modifyRequest))
+                .isInstanceOf(DefaultAddressRequiredException.class)
+                .hasMessageContaining("기본 배송지 설정은 해제할 수 없습니다");
+    }
+
+    @Test
     @DisplayName("주소 삭제 성공")
-    void test7() {
+    void test10() {
         Address address = new Address(testUser, "집", "12345", "광주", "1층", false);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
@@ -172,7 +217,7 @@ class AddressServiceTest {
 
     @Test
     @DisplayName("주소 삭제 실패 - 존재하지 않는 주소")
-    void test8() {
+    void test11() {
         given(addressRepository.findByAddressIdAndUser(99L, testUser))
                 .willReturn(Optional.empty());
 
@@ -184,7 +229,7 @@ class AddressServiceTest {
 
     @Test
     @DisplayName("주소 삭제 실패 - 기본 배송지는 삭제 불가")
-    void test9() {
+    void test12() {
         Address address = new Address(testUser, "집", "12345", "광주", "1층", true);
 
         given(addressRepository.findByAddressIdAndUser(1L, testUser))
@@ -195,20 +240,6 @@ class AddressServiceTest {
                 .hasMessage("기본 배송지는 삭제할 수 없습니다.");
 
         verify(addressRepository, never()).delete(any());
-    }
-
-    @Test
-    @DisplayName("주소가 0개일 때 추가하면 자동으로 기본 배송지 설정")
-    void test10() {
-        given(addressRepository.countByUser(testUser)).willReturn(0L);
-        given(addressRepository.save(any(Address.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
-
-        AddressRequest request = new AddressRequest("집", "123", "주소", "상세", false);
-
-        addressService.addAddress(testUserId, request);
-
-        verify(addressRepository).save(argThat(addr -> addr.isDefault() == true));
     }
 
 }

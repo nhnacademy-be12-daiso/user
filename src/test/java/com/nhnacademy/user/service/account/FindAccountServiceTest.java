@@ -15,6 +15,7 @@ package com.nhnacademy.user.service.account;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -107,13 +108,14 @@ class FindAccountServiceTest {
 
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
         given(passwordEncoder.encode(anyString())).willReturn("newEncodedPw");
-
         doNothing().when(mailService).sendTemporaryPassword(anyString(), anyString());
 
         findAccountService.createTemporaryPassword(request);
 
         verify(passwordEncoder, times(1)).encode(anyString());
-        verify(mailService, times(1)).sendTemporaryPassword(anyString(), anyString());
+        verify(mailService, times(1)).sendTemporaryPassword(eq("test@daiso.com"), anyString());
+
+        assertThat(testAccount.getPassword()).isEqualTo("newEncodedPw");
     }
 
     @Test

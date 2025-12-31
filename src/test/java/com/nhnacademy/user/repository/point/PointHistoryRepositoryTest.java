@@ -64,7 +64,24 @@ class PointHistoryRepositoryTest {
         assertThat(page.getTotalElements()).isEqualTo(15);
         assertThat(page.getTotalPages()).isEqualTo(2);
 
-        assertThat(page.getContent().get(0).getDescription()).isEqualTo("적립 15");
+        assertThat(page.getContent().getFirst().getDescription()).isEqualTo("적립 15");
+    }
+
+    @Test
+    @DisplayName("포인트 내역이 없는 경우 - 빈 페이지 반환")
+    void test2() {
+        Grade grade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
+        entityManager.persist(grade);
+
+        User newUser = new User("신규유저", "010-9999-9999", "new@test.com", LocalDate.now(), grade);
+        userRepository.save(newUser);
+
+        Page<PointHistory> page = pointHistoryRepository.findAllByUserOrderByCreatedAtDesc(
+                newUser, PageRequest.of(0, 10));
+
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
     }
 
 }

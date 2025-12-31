@@ -66,6 +66,7 @@ public class FindAccountServiceImpl implements FindAccountService {
      * @param request 계정 아이디와 회원 이름, 회원 이메일
      */
     @Override
+    @Transactional
     public void createTemporaryPassword(FindPasswordRequest request) {
         Account account = accountRepository.findById(request.loginId())
                 .orElseThrow(() -> {

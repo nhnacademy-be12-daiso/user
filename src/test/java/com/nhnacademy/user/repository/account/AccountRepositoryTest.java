@@ -92,4 +92,25 @@ class AccountRepositoryTest {
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
+    @Test
+    @DisplayName("User ID로 Account 조회")
+    void test3() {
+        Grade grade = new Grade("GENERAL", BigDecimal.ONE);
+        entityManager.persist(grade);
+
+        User user = new User("계정찾기", "010-5555-5555", "find@test.com", LocalDate.now(), grade);
+        userRepository.save(user);
+
+        Status status = new Status("ACTIVE");
+        entityManager.persist(status);
+
+        Account account = new Account("findId", "pw", Role.USER, user, status);
+        accountRepository.save(account);
+
+        var found = accountRepository.findByUser_UserCreatedId(user.getUserCreatedId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getLoginId()).isEqualTo("findId");
+    }
+
 }

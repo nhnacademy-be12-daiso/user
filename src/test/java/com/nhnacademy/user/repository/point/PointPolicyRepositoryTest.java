@@ -61,4 +61,14 @@ class PointPolicyRepositoryTest {
         assertThat(found).isPresent();
     }
 
+    @Test
+    @DisplayName("정책 조회 실패 - 존재하지 않는 데이터")
+    void test3() {
+        Optional<PointPolicy> notFoundType = pointPolicyRepository.findByPolicyType("UNKNOWN_TYPE");
+        assertThat(notFoundType).isEmpty();
+
+        Optional<PointPolicy> notFoundName = pointPolicyRepository.findByPolicyName("없는정책");
+        assertThat(notFoundName).isEmpty();
+    }
+
 }
