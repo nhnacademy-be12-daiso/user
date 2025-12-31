@@ -63,6 +63,7 @@ public class UserSeedConfig {
             User user = new User(userName, phone, email, birth, defaultGrade);
 
             String loginId = "dec_login_" + i;
+            @SuppressWarnings("java:S6437")
             String password = passwordEncoder.encode("dev-user-password");
             Role role = Role.USER;
 

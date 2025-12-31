@@ -24,6 +24,7 @@ public final class ValidationUtils {  // 정규식 패턴 상수 클래스
     public static final String LOGIN_ID_PATTERN = "^(?=.*[a-z])[a-z0-9_]{3,16}$";
 
     // 영문 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 8~20자
+    @SuppressWarnings("java:S2068")
     public static final String PASSWORD_VALIDATION_PATTERN =
             "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?]).{8,20}$";
 
