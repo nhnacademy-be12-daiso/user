@@ -57,7 +57,8 @@ public class SagaHandler {
         try {
             // 포인트 차감
             if (event instanceof OrderConfirmedEvent confirmedEvent) {
-                if (confirmedEvent.getUsedPoint() != null && event.getOrderId() > 0) {
+                if (confirmedEvent.getUsedPoint() != null && confirmedEvent.getUsedPoint() > 0 &&
+                        event.getOrderId() > 0) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
                             confirmedEvent.getUsedPoint(),
@@ -114,7 +115,8 @@ public class SagaHandler {
         String reason = null; // 실패시 사유
         // 요구사항 보면 결제 금액은 포인트로 적립된다네요
         try {
-            if (event.getRefundAmount() != null && event.getOrderId() > 0) {
+            if (event.getRefundAmount() != null && event.getOrderId() > 0 &&
+            event.getRefundAmount() > 0) {
                 pointService.processPoint(new PointRequest(
                         event.getUserId(),
                         event.getRefundAmount(),
@@ -158,7 +160,7 @@ public class SagaHandler {
         try {
             // 사용했던 포인트 복구
             if(originalEvent instanceof OrderConfirmedEvent confirmedEvent) {
-                if (confirmedEvent.getUsedPoint() > 0) {
+                if (confirmedEvent.getUsedPoint() > 0 && confirmedEvent.getUsedPoint() != null) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
                             confirmedEvent.getUsedPoint(),
@@ -167,7 +169,7 @@ public class SagaHandler {
                 }
 
                 // 적립됐던 포인트 회수
-                if (confirmedEvent.getSavedPoint() > 0) {
+                if (confirmedEvent.getSavedPoint() > 0 && confirmedEvent.getSavedPoint() != null) {
                     pointService.processPoint(new PointRequest(
                             confirmedEvent.getUserId(),
                             confirmedEvent.getSavedPoint(),

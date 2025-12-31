@@ -39,7 +39,6 @@ public class CouponMessageProducer {
 
         // 메시지 발송
         rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
-//        rabbitTemplate.convertAndSend(exchangeName, routingKey, new CouponIssueMessage(999L));
 
         log.info("[RabbitMq] 웰컴 쿠폰 발급 메시지 전송 완료: userCreatedId={}", userCreatedId);
     }

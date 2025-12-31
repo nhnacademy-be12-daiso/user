@@ -16,6 +16,7 @@ import com.nhnacademy.user.dto.response.InternalAddressResponse;
 import com.nhnacademy.user.dto.response.InternalUserResponse;
 import com.nhnacademy.user.entity.account.Account;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.account.AccountWithdrawnException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.repository.address.AddressRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
@@ -70,7 +71,7 @@ public class InternalUserServiceImpl implements InternalUserService {
 
         if (WITHDRAWN_STATUS.equals(account.getStatus().getStatusName())) {
             log.warn("[InternalUserService] 회원 정보 조회 실패: 탈퇴한 계정");
-            throw new UserNotFoundException("이미 탈퇴한 계정입니다.");
+            throw new AccountWithdrawnException("이미 탈퇴한 계정입니다.");
         }
 
         List<InternalAddressResponse> addresses = addressRepository.findAllByUser(user).stream()

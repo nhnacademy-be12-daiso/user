@@ -21,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
@@ -29,6 +30,9 @@ class StatusRepositoryTest {
 
     @Autowired
     private StatusRepository statusRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
     @DisplayName("상태 이름으로 조회 성공")
@@ -48,6 +52,21 @@ class StatusRepositoryTest {
         Optional<Status> result = statusRepository.findByStatusName("WEIRD_STATUS");
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Status 저장 및 ID로 조회 (기본 CRUD)")
+    void test3() {
+        Status status = new Status("DORMANT");
+        statusRepository.save(status);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Status found = statusRepository.findById(status.getStatusId()).orElse(null);
+
+        assertThat(found).isNotNull();
+        assertThat(found.getStatusName()).isEqualTo("DORMANT");
     }
 
 }

@@ -12,12 +12,14 @@
 
 package com.nhnacademy.user.service.message;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.nhnacademy.user.exception.message.MailSendException;
 import com.nhnacademy.user.properties.MailProperties;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 
 @ExtendWith(MockitoExtension.class)
-public class MailServiceTest {
+class MailServiceTest {
 
     @Mock
     private JavaMailSender javaMailSender;
@@ -72,6 +74,34 @@ public class MailServiceTest {
         mailService.sendTemporaryPassword(email, tempPassword);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @DisplayName("메일 전송 실패 - JavaMailSender 오류")
+    void test3() {
+        String email = "fail@test.com";
+        given(javaMailSender.createMimeMessage()).willReturn(mimeMessage);
+
+        org.mockito.Mockito.doThrow(new org.springframework.mail.MailSendException("SMTP Error"))
+                .when(javaMailSender).send(any(MimeMessage.class));
+
+        assertThatThrownBy(() -> mailService.sendCode(email))
+                .isInstanceOf(MailSendException.class)
+                .hasMessageContaining("예상치 못한 오류");
+    }
+
+    @Test
+    @DisplayName("메일 생성 실패 - MessagingException 발생")
+    void test4() throws Exception {
+        String email = "error@test.com";
+        given(javaMailSender.createMimeMessage()).willReturn(mimeMessage);
+
+        org.mockito.Mockito.doThrow(new jakarta.mail.MessagingException("Message Error"))
+                .when(mimeMessage).setFrom(any(jakarta.mail.internet.InternetAddress.class));
+
+        assertThatThrownBy(() -> mailService.sendCode(email))
+                .isInstanceOf(MailSendException.class)
+                .hasMessageContaining("예상치 못한 오류");
     }
 
 }

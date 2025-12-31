@@ -38,6 +38,7 @@ public class PointController {
     // GET /api/users/me/points
     @GetMapping
     @Operation(summary = "내 포인트 내역 조회")
+    @ApiResponse(responseCode = "200", description = "내 포인트 내역 조회 완료")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Page<PointHistoryResponse>> getMyPoints(@RequestHeader("X-User-Id") Long userCreatedId,
                                                                   @PageableDefault Pageable pageable) {

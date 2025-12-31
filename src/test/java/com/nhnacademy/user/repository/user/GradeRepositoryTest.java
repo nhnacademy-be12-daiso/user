@@ -44,4 +44,11 @@ class GradeRepositoryTest {
         assertThat(result.get().getPointRate()).isEqualByComparingTo(BigDecimal.valueOf(0.05));
     }
 
+    @Test
+    @DisplayName("등급 이름으로 조회 실패 - 존재하지 않는 등급")
+    void test2() {
+        Optional<Grade> result = gradeRepository.findByGradeName("NON_EXISTENT");
+        assertThat(result).isEmpty();
+    }
+
 }

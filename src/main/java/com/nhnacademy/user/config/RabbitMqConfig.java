@@ -12,7 +12,7 @@
 
 package com.nhnacademy.user.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -60,13 +60,10 @@ public class RabbitMqConfig {
 
     @Bean(name = "outboxRabbitTemplate")
     public RabbitTemplate outboxRabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-
         // 중요: 여기엔 Jackson이 아니라 SimpleMessageConverter를 끼워넣어!
-        // (기본값이 SimpleMessageConverter라 아예 설정을 안 해도 됨)
-        // template.setMessageConverter(new SimpleMessageConverter());
+        // (기본값이 SimpleMessageConverter라 설정을 안 해도 됨)
 
-        return template;
+        return new RabbitTemplate(connectionFactory);
     }
 
 }

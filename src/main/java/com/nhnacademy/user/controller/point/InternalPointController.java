@@ -15,6 +15,7 @@ package com.nhnacademy.user.controller.point;
 import com.nhnacademy.user.dto.request.PointRequest;
 import com.nhnacademy.user.service.point.PointService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "내부용 포인트 API")
@@ -35,9 +37,10 @@ public class InternalPointController {
 
     private final PointService pointService;
 
-    // POST /api/internal/points
     @PostMapping
     @Operation(summary = "[내부] 포인트 적립/사용 처리")
+    @ApiResponse(responseCode = "200", description = "[내부] 포인트 적립/사용 처리 완료")
+    @ApiResponse(responseCode = "400", description = "포인트 잔액 부족")
     public ResponseEntity<Void> processPoint(@Valid @RequestBody PointRequest request) {
         pointService.processPoint(request);
 
@@ -46,8 +49,11 @@ public class InternalPointController {
 
     @PostMapping("/policy")
     @Operation(summary = "[내부] 정책 기반 포인트 적립")
+    @ApiResponse(responseCode = "200", description = "[내부] 정책 기반 포인트 적립 완료")
+    @ApiResponse(responseCode = "400", description = "잘못된 포인트 입력 값")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
     public ResponseEntity<Void> earnPointByPolicy(@RequestHeader("X-User-Id") Long userCreatedId,
-                                                  String policyType) {
+                                                  @RequestParam("policy-type") String policyType) {
         pointService.earnPointByPolicy(userCreatedId, policyType);
 
         return ResponseEntity.ok().build();

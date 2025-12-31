@@ -38,6 +38,9 @@ public class MailConfig {
     // 비밀번호
     private final String password;
 
+    public static final String FALSE = "false";
+    public static final String TIMEOUT_MS = "10000";
+
     public MailConfig(MailProperties mailProperties) {
         this.host = mailProperties.getHost();
         this.port = mailProperties.getPort();
@@ -74,11 +77,11 @@ public class MailConfig {
         // SocketFactory 설정
         properties.setProperty("mail.smtp.socketFactory.port", String.valueOf(port));
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+        properties.setProperty("mail.smtp.socketFactory.fallback", FALSE);
 
         // STARTTLS 비활성화
-        properties.setProperty("mail.smtp.starttls.enable", "false");
-        properties.setProperty("mail.smtp.starttls.required", "false");
+        properties.setProperty("mail.smtp.starttls.enable", FALSE);
+        properties.setProperty("mail.smtp.starttls.required", FALSE);
 
         // 인증 메커니즘 설정 (네이버는 PLAIN 또는 LOGIN 지원)
         properties.setProperty("mail.smtp.auth.mechanisms", "PLAIN LOGIN");
@@ -88,9 +91,9 @@ public class MailConfig {
         properties.setProperty("mail.smtp.ehlo", "true");
 
         // 타임아웃 설정
-        properties.setProperty("mail.smtp.timeout", "10000");
-        properties.setProperty("mail.smtp.connectiontimeout", "10000");
-        properties.setProperty("mail.smtp.writetimeout", "10000");
+        properties.setProperty("mail.smtp.timeout", TIMEOUT_MS);
+        properties.setProperty("mail.smtp.connectiontimeout", TIMEOUT_MS);
+        properties.setProperty("mail.smtp.writetimeout", TIMEOUT_MS);
 
         // 디버그 모드
         properties.setProperty("mail.debug", "true");

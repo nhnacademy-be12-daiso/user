@@ -19,7 +19,6 @@ import com.nhnacademy.user.service.account.FindAccountService;
 import com.nhnacademy.user.service.message.VerificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,27 +42,23 @@ public class AccountController {
 
     private final FindAccountService findAccountService;
 
-    // POST /api/users/activate/send-code
     @PostMapping("/activate/send-code")
     @Operation(summary = "휴면 해제 인증코드 발송")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "휴면 상태가 아닌 계정"),
-            @ApiResponse(responseCode = "401", description = "올바르지 않은 코드 입력"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
-    })
+    @ApiResponse(responseCode = "200", description = "휴면 해제 인증코드 발송 완료")
+    @ApiResponse(responseCode = "400", description = "휴면 상태가 아닌 계정")
+    @ApiResponse(responseCode = "401", description = "올바르지 않은 코드 입력")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> sendVerifyCode(@RequestHeader("X-User-Id") Long userCreatedId) {
         verificationService.sendCode(userCreatedId);
 
         return ResponseEntity.ok().build();
     }
 
-    // POST /api/users/activate?code={code}
     @PostMapping("/activate")
     @Operation(summary = "휴면 계정 활성화 (인증코드 필수)")
-    @ApiResponses({
-            @ApiResponse(responseCode = "401", description = "올바르지 않은 코드 입력"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
-    })
+    @ApiResponse(responseCode = "200", description = "휴면 계정 활성화 완료")
+    @ApiResponse(responseCode = "401", description = "올바르지 않은 코드 입력")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> activateAccount(@RequestHeader("X-User-Id") Long userCreatedId,
                                                 @RequestParam("code") String code) {
         verificationService.verifyCode(userCreatedId, code);
@@ -73,17 +68,17 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    // POST /api/users/find-id
     @PostMapping("/find-id")
     @Operation(summary = "아이디 찾기")
+    @ApiResponse(responseCode = "200", description = "아이디 찾기 완료")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<String> findLoginId(@RequestBody FindLoginIdRequest request) {
         return ResponseEntity.ok().body(findAccountService.findLoginId(request));
     }
 
-    // POST /api/users/find-password
     @PostMapping("/find-password")
     @Operation(summary = "비밀번호 찾기 (임시 비밀번호 발급)")
+    @ApiResponse(responseCode = "200", description = "비밀번호 찾기 (임시 비밀번호 발급) 완료")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequest request) {
         findAccountService.createTemporaryPassword(request);
@@ -91,9 +86,9 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    // GET /api/users/check-id?id={loginId}
     @GetMapping("/check-id")
     @Operation(summary = "아이디 중복 확인")
+    @ApiResponse(responseCode = "200", description = "아이디 중복 확인 완료")
     public ResponseEntity<Boolean> checkLoginId(@RequestParam("id") String loginId) {
         return ResponseEntity.ok().body(accountService.existsLoginId(loginId));
     }

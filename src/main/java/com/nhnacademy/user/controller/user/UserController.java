@@ -22,7 +22,6 @@ import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -55,7 +54,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // POST /api/users/payco/login
     @PostMapping("/payco/login")
     @Operation(summary = "Payco 로그인/회원가입")
     public ResponseEntity<PaycoLoginResponse> paycoLogin(@Valid @RequestBody PaycoSignUpRequest request) {
@@ -65,7 +63,6 @@ public class UserController {
         return ResponseEntity.status(status).body(response);
     }
 
-    // GET /api/users/birthday
     @Operation(summary = "생일 월로 사용자 조회", description = "특정 월이 생일인 사용자 목록 조회")
     @GetMapping("/birthday")
     public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(
@@ -78,14 +75,16 @@ public class UserController {
         return ResponseEntity.ok(slice.getContent());
     }
 
-
-    // POST /api/users/signup
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
-    })
+    @ApiResponse(responseCode = "201", description = "회원가입 완료")
+    @ApiResponse(responseCode = "400", description = "잘못된 포인트 입력 값")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 포인트 정책")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 등급")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 상태")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 로그인 아이디")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 연락처")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     public ResponseEntity<Void> signUp(@Valid @RequestBody SignupRequest request) {
         userService.signUp(request);
 
@@ -97,24 +96,21 @@ public class UserController {
         return ResponseEntity.created(location).build();
     }
 
-    // GET /api/users/me
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "403", description = "탈퇴한 계정"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
-    })
+    @ApiResponse(responseCode = "200", description = "내 정보 조회 완료")
+    @ApiResponse(responseCode = "403", description = "이미 탈퇴한 계정")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<UserResponse> getMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         return ResponseEntity.ok().body(userService.getUserInfo(userCreatedId));
     }
 
-    // PUT /api/users/me
     @PutMapping("/me")
     @Operation(summary = "내 정보 수정")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
-            @ApiResponse(responseCode = "409", description = "이미 존재하는 유저")
-    })
+    @ApiResponse(responseCode = "200", description = "내 정보 수정 완료")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 연락처")
+    @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     public ResponseEntity<Void> modifyMyInfo(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody UserModifyRequest request) {
         userService.modifyUserInfo(userCreatedId, request);
@@ -122,13 +118,11 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // PUT /api/users/me/password
     @Operation(summary = "비밀번호 변경")
     @PutMapping("/me/password")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "비밀번호 불일치"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
-    })
+    @ApiResponse(responseCode = "200", description = "비밀번호 변경 완료")
+    @ApiResponse(responseCode = "400", description = "비밀번호 불일치")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> modifyMyPassword(@RequestHeader(name = "X-User-Id") Long userCreatedId,
                                                  @Valid @RequestBody PasswordModifyRequest request) {
         userService.modifyAccountPassword(userCreatedId, request);
@@ -136,10 +130,11 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // DELETE /api/users/me
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
+    @ApiResponse(responseCode = "200", description = "회원 탈퇴 완료")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 상태")
     public ResponseEntity<Void> withdrawMyAccount(@RequestHeader(name = "X-User-Id") Long userCreatedId) {
         userService.withdrawUser(userCreatedId);
 

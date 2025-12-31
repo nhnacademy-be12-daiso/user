@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.nhnacademy.user.dto.response.PointHistoryResponse;
 import com.nhnacademy.user.entity.point.Type;
+import com.nhnacademy.user.exception.user.UserNotFoundException;
 import com.nhnacademy.user.service.point.PointService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,6 +57,21 @@ class PointControllerTest {
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("내 포인트 내역 조회 실패 - 존재하지 않는 유저 (404)")
+    void test2() throws Exception {
+        Long userId = 999L;
+
+        given(pointService.getMyPointHistory(eq(userId), any()))
+                .willThrow(new UserNotFoundException("User not found"));
+
+        mockMvc.perform(get("/api/users/me/points")
+                        .header("X-User-Id", userId)
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isNotFound());
     }
 
 }

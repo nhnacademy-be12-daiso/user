@@ -20,6 +20,7 @@ class UserApplicationTests {
 
     @Test
     void contextLoads() {
+        // Spring Boot 애플리케이션 컨텍스트가 정상적으로 로딩되는지 검증하기 위한 테스트
     }
 
 }

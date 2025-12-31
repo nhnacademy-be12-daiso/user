@@ -19,8 +19,8 @@ import com.nhnacademy.user.exception.saga.FailedSerializationException;
 import com.nhnacademy.user.exception.saga.InsufficientPointException;
 import com.nhnacademy.user.repository.saga.UserDeduplicationRepository;
 import com.nhnacademy.user.repository.saga.UserOutboxRepository;
-import com.nhnacademy.user.saga.event.OrderConfirmedEvent;
 import com.nhnacademy.user.saga.UserOutboxCommittedEvent;
+import com.nhnacademy.user.saga.event.OrderConfirmedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -55,28 +55,20 @@ public class UserEventListener {
         }
 
         try {
-            // TODO 포인트 차감 로직
-
             UserDeduplicationLog logEntry = new UserDeduplicationLog(msgId.toString());
             userDeduplicationRepository.save(logEntry);
 
-            try {
-                UserOutbox outbox = new UserOutbox(
-                        event.getOrderId(),
-                        "USER",
-                        "team3.saga.user.exchange",
-                        routingKey,
-                        objectMapper.writeValueAsString(event)
-                );
+            UserOutbox outbox = new UserOutbox(
+                    event.getOrderId(),
+                    "USER",
+                    "team3.saga.user.exchange",
+                    routingKey,
+                    objectMapper.writeValueAsString(event)
+            );
 
-                userOutboxRepository.save(outbox);
-                publisher.publishEvent(new UserOutboxCommittedEvent(this, outbox.getId()));
-                // 커밋 이벤트 발행
-
-            } catch (FailedSerializationException e) {
-                log.warn("객체 직렬화 실패");
-                throw new FailedSerializationException("Failed to serialize event payload");
-            }
+            userOutboxRepository.save(outbox);
+            publisher.publishEvent(new UserOutboxCommittedEvent(this, outbox.getId()));
+            // 커밋 이벤트 발행
 
             log.info("[User API] 포인트 내역 업데이트 성공");
 
@@ -85,6 +77,10 @@ public class UserEventListener {
             log.error("[User API] Order ID : {}", event.getOrderId());
 
             throw e; // 트랜잭션이 걸려있으므로 예외를 던지면 DB 트랜잭션 롤백
+
+        } catch (FailedSerializationException e) {
+            log.warn("객체 직렬화 실패");
+            throw new FailedSerializationException("Failed to serialize event payload");
 
         } catch (Exception e) {
             log.error("[User API] 이벤트 처리 중 예상치 못한 오류 발생 : {}", e.getMessage());

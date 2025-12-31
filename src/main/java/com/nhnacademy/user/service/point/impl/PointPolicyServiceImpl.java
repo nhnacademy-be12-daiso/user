@@ -20,7 +20,6 @@ import com.nhnacademy.user.exception.point.PointPolicyNotFoundException;
 import com.nhnacademy.user.repository.point.PointPolicyRepository;
 import com.nhnacademy.user.service.point.PointPolicyService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -71,7 +70,7 @@ public class PointPolicyServiceImpl implements PointPolicyService {
                                 pointPolicy.getPolicyType(),
                                 pointPolicy.getMethod(),
                                 pointPolicy.getEarnPoint()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

@@ -15,6 +15,7 @@ package com.nhnacademy.user.service.account;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -45,7 +46,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class FindAccountServiceTest {
+class FindAccountServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -102,18 +103,19 @@ public class FindAccountServiceTest {
 
     @Test
     @DisplayName("비밀번호 찾기 - 성공")
-    void test3() throws Exception {
+    void test3() {
         FindPasswordRequest request = new FindPasswordRequest("testUser123", "홍길동", "test@daiso.com");
 
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
         given(passwordEncoder.encode(anyString())).willReturn("newEncodedPw");
-
         doNothing().when(mailService).sendTemporaryPassword(anyString(), anyString());
 
         findAccountService.createTemporaryPassword(request);
 
         verify(passwordEncoder, times(1)).encode(anyString());
-        verify(mailService, times(1)).sendTemporaryPassword(anyString(), anyString());
+        verify(mailService, times(1)).sendTemporaryPassword(eq("test@daiso.com"), anyString());
+
+        assertThat(testAccount.getPassword()).isEqualTo("newEncodedPw");
     }
 
     @Test
@@ -154,7 +156,7 @@ public class FindAccountServiceTest {
 
     @Test
     @DisplayName("비밀번호 찾기 - 실패 (메일 전송 오류)")
-    void test7() throws Exception {
+    void test7() {
         FindPasswordRequest request = new FindPasswordRequest("testUser123", "홍길동", "test@daiso.com");
         given(accountRepository.findById(request.loginId())).willReturn(Optional.of(testAccount));
         given(passwordEncoder.encode(anyString())).willReturn("newEncodedPw");

@@ -17,7 +17,6 @@ import com.nhnacademy.user.dto.response.AddressResponse;
 import com.nhnacademy.user.service.address.AddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -43,13 +42,11 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    // POST /api/users/me/addresses
     @PostMapping
     @Operation(summary = "새 배송지 추가")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "등록된 주소 10개 초과"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
-    })
+    @ApiResponse(responseCode = "201", description = "새 배송지 추가 완료")
+    @ApiResponse(responseCode = "400", description = "등록된 주소 10개 초과")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<Void> addMyAddress(@RequestHeader("X-User-Id") Long userCreatedId,
                                              @Valid @RequestBody AddressRequest request) {
         Long addressId = addressService.addAddress(userCreatedId, request);
@@ -62,22 +59,20 @@ public class AddressController {
         return ResponseEntity.created(location).build();
     }
 
-    // GET /api/users/me/addresses
     @GetMapping
     @Operation(summary = "내 배송지 목록 조회")
+    @ApiResponse(responseCode = "200", description = "내 배송지 목록 조회 완료")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
     public ResponseEntity<List<AddressResponse>> getMyAddresses(@RequestHeader("X-User-Id") Long userCreatedId) {
         return ResponseEntity.ok().body(addressService.getMyAddresses(userCreatedId));
     }
 
-    // PUT /api/users/me/addresses/{addressId}
     @PutMapping("/{addressId}")
     @Operation(summary = "배송지 수정")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "기본 배송지 설정 해제"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")
-    })
+    @ApiResponse(responseCode = "200", description = "배송지 수정 완료")
+    @ApiResponse(responseCode = "400", description = "기본 배송지 설정 해제")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")
     public ResponseEntity<Void> modifyAddress(@RequestHeader("X-User-Id") Long userCreatedId,
                                               @PathVariable Long addressId,
                                               @Valid @RequestBody AddressRequest request) {
@@ -86,14 +81,12 @@ public class AddressController {
         return ResponseEntity.ok().build();
     }
 
-    // DELETE /api/users/me/addresses/{addressId}
     @DeleteMapping("/{addressId}")
     @Operation(summary = "배송지 삭제")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "기본 배송지 삭제"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 유저"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")
-    })
+    @ApiResponse(responseCode = "204", description = "배송지 삭제 완료")
+    @ApiResponse(responseCode = "400", description = "기본 배송지 삭제")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 유저")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 주소")
     public ResponseEntity<Void> deleteAddress(@RequestHeader("X-User-Id") Long userCreatedId,
                                               @PathVariable Long addressId) {
         addressService.deleteAddress(userCreatedId, addressId);

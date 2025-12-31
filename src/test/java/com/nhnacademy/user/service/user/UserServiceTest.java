@@ -15,6 +15,7 @@ package com.nhnacademy.user.service.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -28,13 +29,15 @@ import com.nhnacademy.user.dto.request.SignupRequest;
 import com.nhnacademy.user.dto.request.UserModifyRequest;
 import com.nhnacademy.user.dto.response.UserResponse;
 import com.nhnacademy.user.entity.account.Account;
+import com.nhnacademy.user.entity.account.AccountStatusHistory;
 import com.nhnacademy.user.entity.account.Role;
 import com.nhnacademy.user.entity.account.Status;
 import com.nhnacademy.user.entity.user.Grade;
 import com.nhnacademy.user.entity.user.User;
+import com.nhnacademy.user.exception.account.AccountWithdrawnException;
+import com.nhnacademy.user.exception.user.PasswordNotMatchException;
 import com.nhnacademy.user.exception.user.UserAlreadyExistsException;
 import com.nhnacademy.user.exception.user.UserNotFoundException;
-import com.nhnacademy.user.producer.CouponMessageProducer;
 import com.nhnacademy.user.repository.account.AccountRepository;
 import com.nhnacademy.user.repository.account.AccountStatusHistoryRepository;
 import com.nhnacademy.user.repository.account.StatusRepository;
@@ -55,6 +58,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -84,9 +88,6 @@ class UserServiceTest {
 
     @Mock
     private PointService pointService;
-
-    @Mock
-    CouponMessageProducer couponMessageProducer;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -216,8 +217,23 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 정보 수정 성공")
+    @DisplayName("회원 정보 조회 실패 - 탈퇴한 계정")
     void test7() {
+        Status withdrawnStatus = new Status("WITHDRAWN");
+        User withdrawnUser = new User("탈퇴자", "010-0000-0000", "w@w.com", LocalDate.now(), null);
+        Account withdrawnAccount = new Account("wid", "pw", Role.USER, withdrawnUser, withdrawnStatus);
+        ReflectionTestUtils.setField(withdrawnUser, "account", withdrawnAccount);
+
+        given(userRepository.findByIdWithAccount(anyLong())).willReturn(Optional.of(withdrawnUser));
+
+        assertThatThrownBy(() -> userService.getUserInfo(1L))
+                .isInstanceOf(AccountWithdrawnException.class)
+                .hasMessage("이미 탈퇴한 계정입니다.");
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 성공")
+    void test8() {
         UserModifyRequest request = new UserModifyRequest("수정된 이름",
                 "010-1234-5678", "new@test.com", testBirthDate);
 
@@ -230,8 +246,34 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("회원 정보 수정 실패 - 다른 사람이 쓰고 있는 연락처")
+    void test9() {
+        UserModifyRequest request = new UserModifyRequest("이름", "010-9999-9999", "my@test.com", LocalDate.now());
+
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.existsByPhoneNumber(request.phoneNumber())).willReturn(true);
+
+        assertThatThrownBy(() -> userService.modifyUserInfo(testUserId, request))
+                .isInstanceOf(UserAlreadyExistsException.class)
+                .hasMessage("이미 존재하는 연락처입니다.");
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 실패 - 다른 사람이 쓰고 있는 이메일")
+    void test10() {
+        UserModifyRequest request = new UserModifyRequest("이름", "010-1234-5678", "duplicate@test.com", LocalDate.now());
+
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+        given(userRepository.existsByEmail(request.email())).willReturn(true);
+
+        assertThatThrownBy(() -> userService.modifyUserInfo(testUserId, request))
+                .isInstanceOf(UserAlreadyExistsException.class)
+                .hasMessage("이미 존재하는 이메일입니다.");
+    }
+
+    @Test
     @DisplayName("비밀번호 수정 성공")
-    void test8() {
+    void test11() {
         PasswordModifyRequest request = new PasswordModifyRequest("oldPwd", "newPwd");
 
         given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
@@ -249,8 +291,42 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("비밀번호 수정 실패 - 현재 비밀번호 불일치")
+    void test12() {
+        PasswordModifyRequest request = new PasswordModifyRequest("wrongOldPw", "newPw");
+
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+
+        Account mockAccount = mock(Account.class);
+        ReflectionTestUtils.setField(testUser, "account", mockAccount);
+        given(mockAccount.getPassword()).willReturn("encodedRealPw");
+
+        given(passwordEncoder.matches("wrongOldPw", "encodedRealPw")).willReturn(false);
+
+        assertThatThrownBy(() -> userService.modifyAccountPassword(testUserId, request))
+                .isInstanceOf(PasswordNotMatchException.class)
+                .hasMessage("현재 비밀번호가 일치하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 성공")
+    void test13() {
+        Status withdrawnStatus = new Status("WITHDRAWN");
+        given(userRepository.findByIdWithAccount(testUserId)).willReturn(Optional.of(testUser));
+        given(statusRepository.findByStatusName("WITHDRAWN")).willReturn(Optional.of(withdrawnStatus));
+
+        Account accountSpy = mock(Account.class);
+        ReflectionTestUtils.setField(testUser, "account", accountSpy);
+
+        userService.withdrawUser(testUserId);
+
+        verify(accountStatusHistoryRepository).save(any(AccountStatusHistory.class));
+        verify(accountSpy).modifyStatus(withdrawnStatus);
+    }
+
+    @Test
     @DisplayName("Payco 신규 회원가입")
-    void test9() {
+    void test14() {
         PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
         Grade generalGrade = new Grade("GENERAL", BigDecimal.valueOf(1.0));
         Status activeStatus = new Status("ACTIVE");
@@ -272,7 +348,7 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Payco 기존 회원 로그인")
-    void test10() {
+    void test15() {
         PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
         String expectedLoginId = "PAYCO_PAYCO_12345";
 
@@ -287,6 +363,34 @@ class UserServiceTest {
 
         assertThat(response.isNewUser()).isFalse();
         assertThat(response.loginId()).isEqualTo(expectedLoginId);
+    }
+
+    @Test
+    @DisplayName("Payco 기존 회원 로그인 실패 - 탈퇴한 계정")
+    void test16() {
+        PaycoSignUpRequest request = new PaycoSignUpRequest("PAYCO_12345");
+        String loginId = "PAYCO_PAYCO_12345";
+
+        Account existingAccount = mock(Account.class);
+        Status withdrawnStatus = new Status("WITHDRAWN");
+
+        given(accountRepository.findById(loginId)).willReturn(Optional.of(existingAccount));
+        given(existingAccount.getStatus()).willReturn(withdrawnStatus);
+
+        assertThatThrownBy(() -> userService.findOrCreatePaycoUser(request))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("탈퇴한 계정입니다.");
+    }
+
+    @Test
+    @DisplayName("생일자 조회 테스트")
+    void test17() {
+        // Slice 리턴값 Mocking이 복잡하므로 호출 여부만 검증
+        Pageable pageable = Pageable.ofSize(10);
+
+        userService.findByBirthdayMonth(11, pageable);
+
+        verify(userRepository).findBirthdayUsersActive(11, 1L, pageable);
     }
 
 }

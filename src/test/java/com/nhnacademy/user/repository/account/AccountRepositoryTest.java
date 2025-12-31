@@ -30,10 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
 @Import(QueryDslConfig.class)
-public class AccountRepositoryTest {
+class AccountRepositoryTest {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -87,7 +88,29 @@ public class AccountRepositoryTest {
 
         Account account2 = new Account("test2", "pwd222@@@", Role.USER, user, status);
 
-        assertThatThrownBy(() -> accountRepository.saveAndFlush(account2));
+        assertThatThrownBy(() -> accountRepository.saveAndFlush(account2))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    @DisplayName("User ID로 Account 조회")
+    void test3() {
+        Grade grade = new Grade("GENERAL", BigDecimal.ONE);
+        entityManager.persist(grade);
+
+        User user = new User("계정찾기", "010-5555-5555", "find@test.com", LocalDate.now(), grade);
+        userRepository.save(user);
+
+        Status status = new Status("ACTIVE");
+        entityManager.persist(status);
+
+        Account account = new Account("findId", "pw", Role.USER, user, status);
+        accountRepository.save(account);
+
+        var found = accountRepository.findByUser_UserCreatedId(user.getUserCreatedId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getLoginId()).isEqualTo("findId");
     }
 
 }

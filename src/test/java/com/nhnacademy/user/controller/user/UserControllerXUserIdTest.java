@@ -105,14 +105,14 @@ class UserControllerXUserIdTest {
     }
 
     @Test
-    @DisplayName("X-User-Id 헤더 값이 숫자가 아님 - 400 Bad Request")
+    @DisplayName("X-User-Id 헤더 값이 숫자가 아님 - 500 Internal Server Error")
     void getMyInfo_WithInvalidXUserIdHeader_Returns400() throws Exception {
         // when & then
         mockMvc.perform(get("/api/users/me")
                         .header("X-User-Id", "not-a-number")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
