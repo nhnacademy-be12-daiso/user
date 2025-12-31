@@ -44,24 +44,17 @@ public class SagaHandler {
     private final PointService pointService;
 
     @Transactional
-    public void handleEvent(SagaEvent event) {
+    public void onMessage(SagaEvent event) {
+        event.accept(this);
+    }
+
+
+    public void handleEvent(OrderConfirmedEvent event) {
 
         boolean isSuccess = true; // 성공 여부
         String reason = null; // 실패시 사유
 
         try {
-//            testService.process(); // 일부러 포인트 부족 터트리기
-            // TODO 01 포인트 차감 로직 (양진영 님)
-            /**
-             *  본인들 서비스 주입받아서 로직 구현하시면 됩니다.
-             *  매개변수로 넘어온 event DTO를 까보시면 필요한 정보들이 담겨 있습니다.
-             *  그거 토대로 각자 로직에 구현해주면 됨 (재고 차감, 포인트 차감, 쿠폰 사용 처리)
-             *
-             *  만약 포인트 차감 중 오류가 발생한다?
-             *  그럼 하단에 PointNotEnoughException 던지면 됩니다!
-             *
-             *  더 좋은 로직 있다면 추천 가능
-             */
             // 포인트 차감
             if (event instanceof OrderConfirmedEvent confirmedEvent) {
                 if (confirmedEvent.getUsedPoint() != null && event.getOrderId() > 0) {
@@ -84,18 +77,7 @@ public class SagaHandler {
             }
 
 
-            if (event instanceof OrderRefundEvent refundEvent) {
-                // TODO 반품 금액을 포인트로 적립
-                // 요구사항 보면 결제 금액은 포인트로 적립된다네요
-                if (refundEvent.getRefundAmount() != null && event.getOrderId() > 0) {
-                    pointService.processPoint(new PointRequest(
-                            refundEvent.getUserId(),
-                            refundEvent.getRefundAmount(),
-                            Type.EARN,
-                            "반품 처리에 따른 결제 금액 포인트 적립"));
-                }
-                log.debug("[User API] 반품시 결제 금액 포인트 적립 성공 - Order : {}", event.getOrderId());
-            }
+
 
         } catch (PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
             log.error("[User API] 포인트 부족으로 인한 차감 실패 - Order : {}", event.getOrderId());
@@ -113,6 +95,7 @@ public class SagaHandler {
         } finally {
             // 성공했든 실패했든 답장은 해야함
             SagaReply reply = new SagaReply(
+                    event.getEventId(),
                     event.getOrderId(),
                     "USER",
                     isSuccess,
@@ -124,39 +107,80 @@ public class SagaHandler {
         }
     }
 
-    @Transactional
-    public void handleRollbackEvent(OrderCompensateEvent event) {
+    // refund 전용
+    public void handleEvent(OrderRefundEvent event) {
+        // TODO 반품 금액을 포인트로 적립
+        boolean isSuccess = true; // 성공 여부
+        String reason = null; // 실패시 사유
+        // 요구사항 보면 결제 금액은 포인트로 적립된다네요
+        try {
+            if (event.getRefundAmount() != null && event.getOrderId() > 0) {
+                pointService.processPoint(new PointRequest(
+                        event.getUserId(),
+                        event.getRefundAmount(),
+                        Type.EARN,
+                        "반품 처리에 따른 결제 금액 포인트 적립"));
+            }
+            log.debug("[User API] 반품시 결제 금액 포인트 적립 성공 - Order : {}", event.getOrderId());
+        } catch (PointNotEnoughException e) { // 포인트 부족 비즈니스 예외
+            log.error("[User API] 비즈니스 오류로 인한 적립 실패 - Order : {}", event.getOrderId());
+            isSuccess = false;
+            reason = "POINT_ERROR";
+            throw e;
+        } catch (Exception e) {
+            log.error("[User API] 예상치 못한 시스템 에러 발생 - Order : {}", event.getOrderId(), e);
+            isSuccess = false;
+            reason = "SYSTEM_ERROR";
+            // 이렇게 예외 범위를 넓게 해놔야 무슨 에러가 터져도 finally 문이 실행됨
+            throw e;
+
+        } finally {
+            // 성공했든 실패했든 답장은 해야함
+            SagaReply reply = new SagaReply(
+                    event.getEventId(),
+                    event.getOrderId(),
+                    "USER",
+                    isSuccess,
+                    reason
+            );
+            // 응답 메시지 전송
+            replyService.send(event, reply, SagaTopic.REPLY_RK);
+        }
+    }
+    // 보상 전용
+    public void handleEvent(OrderCompensateEvent event) {
 
         boolean isSuccess = true; // 성공 여부
         String reason = null; // 실패시 사유
 
+        SagaEvent originalEvent = event.getOriginalEvent();
+
         try {
-            // TODO 02 포인트 '보상' 로직 (양진영 님)
-            /**
-             * 동일하게 서비스 주입받아서 하시면 되는데,
-             * 여기서는 '뭔가 잘못돼서 다시 원복시키는 롤백'의 과정입니다.
-             * 그니까 아까 차감했던 포인트를 다시 원복시키는 로직을 구현하시면 됩니다.
-             */
             // 사용했던 포인트 복구
-            if (event.getUsedPoint() > 0) {
-                pointService.processPoint(new PointRequest(
-                        event.getUserId(),
-                        event.getUsedPoint(),
-                        Type.EARN,
-                        "주문/결제 실패 포인트 복구"));
-            }
+            if(originalEvent instanceof OrderConfirmedEvent confirmedEvent) {
+                if (confirmedEvent.getUsedPoint() > 0) {
+                    pointService.processPoint(new PointRequest(
+                            confirmedEvent.getUserId(),
+                            confirmedEvent.getUsedPoint(),
+                            Type.EARN,
+                            "주문/결제 실패 포인트 복구"));
+                }
 
-            // 적립됐던 포인트 회수
-            if (event.getSavedPoint() > 0) {
-                pointService.processPoint(new PointRequest(
-                        event.getUserId(),
-                        event.getSavedPoint(),
-                        Type.USE,
-                        "주문/결제 실패 포인트 회수"
-                ));
-            }
+                // 적립됐던 포인트 회수
+                if (confirmedEvent.getSavedPoint() > 0) {
+                    pointService.processPoint(new PointRequest(
+                            confirmedEvent.getUserId(),
+                            confirmedEvent.getSavedPoint(),
+                            Type.USE,
+                            "주문/결제 실패 포인트 회수"
+                    ));
+                }
 
-            log.debug("[User API] 포인트 보상 성공 - Order : {}", event.getOrderId());
+                log.debug("[User API] 포인트 보상 성공 - Order : {}", event.getOrderId());
+            }
+            if(originalEvent instanceof OrderConfirmedEvent confirmedEvent) {
+                // TODO Refund의 보상 로직 작성
+            }
 
         } catch (Exception e) {
             log.error("[User API] 예상치 못한 시스템 에러 발생 - Order : {}", event.getOrderId(), e);
@@ -165,6 +189,7 @@ public class SagaHandler {
         } finally {
             // 성공했든 실패했든 답장은 해야함
             SagaReply reply = new SagaReply(
+                    event.getEventId(),
                     event.getOrderId(),
                     "USER",
                     isSuccess,
