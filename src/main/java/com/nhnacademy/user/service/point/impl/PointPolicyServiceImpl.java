@@ -1,6 +1,6 @@
 /*
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * + Copyright 2025. NHN Academy Corp. All rights reserved.
+ * + Copyright 2026. NHN Academy Corp. All rights reserved.
  * + * While every precaution has been taken in the preparation of this resource,  assumes no
  * + responsibility for errors or omissions, or for damages resulting from the use of the information
  * + contained herein
@@ -22,8 +22,6 @@ import com.nhnacademy.user.service.point.PointPolicyService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +32,6 @@ public class PointPolicyServiceImpl implements PointPolicyService {
 
     private final PointPolicyRepository pointPolicyRepository;
 
-    private static final String CACHE_NAME = "pointPolicies";
-
     /**
      * (관리자 전용) 포인트 정책을 등록하는 메소드
      *
@@ -43,7 +39,6 @@ public class PointPolicyServiceImpl implements PointPolicyService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, allEntries = true)  // 정책 추가 시 기존 캐시 삭제
     public void createPolicy(PointPolicyRequest request) {
         if (pointPolicyRepository.existsByPolicyType(request.policyType())) {
             log.warn("[PointPolicyService] 포인트 정책 추가 실패: 이미 존재하는 정책 ({})", request.policyType());
@@ -61,7 +56,6 @@ public class PointPolicyServiceImpl implements PointPolicyService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CACHE_NAME) // 정책 조회 시 캐시 적용
     public List<PointPolicyResponse> getPolicies() {
         return pointPolicyRepository.findAll().stream()
                 .map(pointPolicy ->
@@ -81,7 +75,6 @@ public class PointPolicyServiceImpl implements PointPolicyService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, allEntries = true) // 정책 수정 시 기존 캐시 삭제
     public void modifyPolicy(Long pointPolicyId, PointPolicyRequest request) {
         PointPolicy pointPolicy = pointPolicyRepository.findById(pointPolicyId)
                 .orElseThrow(() -> {
@@ -99,7 +92,6 @@ public class PointPolicyServiceImpl implements PointPolicyService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = CACHE_NAME, allEntries = true) // 정책 삭제 시 기존 캐시 삭제
     public void deletePolicy(Long pointPolicyId) {
         if (!pointPolicyRepository.existsById(pointPolicyId)) {
             log.warn("[PointPolicyService] 포인트 정책 삭제 실패: 찾을 수 없는 정책 ({})", pointPolicyId);
