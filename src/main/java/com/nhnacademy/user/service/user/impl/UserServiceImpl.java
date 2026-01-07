@@ -42,6 +42,8 @@ import com.nhnacademy.user.repository.user.UserGradeHistoryRepository;
 import com.nhnacademy.user.repository.user.UserRepository;
 import com.nhnacademy.user.service.point.PointService;
 import com.nhnacademy.user.service.user.UserService;
+
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -244,11 +246,14 @@ public class UserServiceImpl implements UserService {
         // 프론트에서 탈퇴 성공하면 브라우저가 가지고 있던 토큰을 스스로 삭제
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public Slice<BirthdayUserResponse> findByBirthdayMonth(int month, Pageable pageable) {
-        return userRepository.findBirthdayUsersActive(month, 1L, pageable); // ACTIVE=1 하드코딩
+    public List<BirthdayUserResponse> findByBirthdayMonthAfter(
+            int month, Long statusId, long lastSeenId, Pageable pageable) {
+        return userRepository.findBirthdayUsersActiveAfter(
+                month, statusId, lastSeenId, pageable
+        );
     }
+
 
 
     @Override

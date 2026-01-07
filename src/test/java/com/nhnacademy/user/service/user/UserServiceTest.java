@@ -382,15 +382,4 @@ class UserServiceTest {
                 .hasMessage("탈퇴한 계정입니다.");
     }
 
-    @Test
-    @DisplayName("생일자 조회 테스트")
-    void test17() {
-        // Slice 리턴값 Mocking이 복잡하므로 호출 여부만 검증
-        Pageable pageable = Pageable.ofSize(10);
-
-        userService.findByBirthdayMonth(11, pageable);
-
-        verify(userRepository).findBirthdayUsersActive(11, 1L, pageable);
-    }
-
 }
