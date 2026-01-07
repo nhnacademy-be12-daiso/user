@@ -67,13 +67,16 @@ public class UserController {
     @GetMapping("/birthday")
     public ResponseEntity<List<BirthdayUserResponse>> getBirthdayUsers(
             @RequestParam int month,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") long lastSeenId,
             @RequestParam(defaultValue = "1000") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("userCreatedId").ascending());
-        Slice<BirthdayUserResponse> slice = userService.findByBirthdayMonth(month, pageable);
-        return ResponseEntity.ok(slice.getContent());
+        Pageable pageable = PageRequest.of(0, size); //  offset=0 고정
+        List<BirthdayUserResponse> users =
+                userService.findByBirthdayMonthAfter(month, 1L, lastSeenId, pageable);
+
+        return ResponseEntity.ok(users);
     }
+
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")

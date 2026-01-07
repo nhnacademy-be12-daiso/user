@@ -18,6 +18,8 @@ import com.nhnacademy.user.repository.user.querydsl.UserQuerydslRepository;
 import feign.Param;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -43,32 +45,25 @@ public interface UserRepository extends JpaRepository<User, Long>, UserQuerydslR
     @Query("SELECT u FROM User u WHERE u.userCreatedId = :userCreatedId")
     Optional<User> findByIdForUpdate(Long userCreatedId);
 
-    @Query("""
-            select u
-            from User u
-            where month(u.birth) = :month
-                and u.grade.gradeId = :gradeId
-            """)
-    Slice<User> findByBirthMonth(@Param("month") int month, @Param("gradeId") Long gradeId, Pageable pageable);
-
 
     @Query("""
-                select new com.nhnacademy.user.dto.response.BirthdayUserResponse(
-                    u.userCreatedId, u.userName, u.birth
-                )
-                from User u
-                join u.account a
-                where u.birth is not null
-                  and month(u.birth) = :month
-                  and a.status.statusId = :statusId
-                order by u.userCreatedId
-            """)
-    Slice<BirthdayUserResponse> findBirthdayUsersActive(
+        select new com.nhnacademy.user.dto.response.BirthdayUserResponse(
+            u.userCreatedId, u.userName, u.birth
+        )
+        from User u
+        join u.account a
+        where u.birth is not null
+          and month(u.birth) = :month
+          and a.status.statusId = :statusId
+          and u.userCreatedId > :lastSeenId
+        order by u.userCreatedId asc
+    """)
+    List<BirthdayUserResponse> findBirthdayUsersActiveAfter(
             @Param("month") int month,
             @Param("statusId") Long statusId,
-            Pageable pageable
+            @Param("lastSeenId") long lastSeenId,
+            Pageable pageable   //  반드시 PageRequest.of(0, size)만 사용
     );
-
 
     // 이름과 이메일로 회원 조회
     Optional<User> findByUserNameAndEmail(String userName, String email);

@@ -162,50 +162,6 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("생일자 조회 (findByBirthMonth) - 특정 월, 등급 필터링")
-    void test7() {
-        User user1 = new User("11월생", "010-1111-1111", "nov@test.com", LocalDate.of(2000, 11, 15), defaultGrade);
-        User user2 = new User("12월생", "010-2222-2222", "dec@test.com", LocalDate.of(2000, 12, 25), defaultGrade);
-
-        userRepository.save(user1);
-        userRepository.save(user2);
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Slice<User> result = userRepository.findByBirthMonth(11, defaultGrade.getGradeId(), pageable);
-
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getUserName()).isEqualTo("11월생");
-    }
-
-    @Test
-    @DisplayName("활성 생일자 조회 DTO Projection (findBirthdayUsersActive)")
-    void test8() {
-        User user = new User("활성유저", "010-3333-3333", "active@test.com", LocalDate.of(2000, 5, 5), defaultGrade);
-        userRepository.save(user);
-
-        Account account = new Account("active_id", "pw", Role.USER, user, defaultStatus);
-        accountRepository.save(account);
-
-        Status withdrawnStatus = new Status("WITHDRAWN");
-        entityManager.persist(withdrawnStatus);
-
-        User withdrawnUser = new User("탈퇴유저", "010-4444-4444", "out@test.com", LocalDate.of(2000, 5, 10), defaultGrade);
-        userRepository.save(withdrawnUser);
-        Account withdrawnAccount = new Account("out_id", "pw", Role.USER, withdrawnUser, withdrawnStatus);
-        accountRepository.save(withdrawnAccount);
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Slice<BirthdayUserResponse> result =
-                userRepository.findBirthdayUsersActive(5, defaultStatus.getStatusId(), pageable);
-
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().username()).isEqualTo("활성유저");
-        assertThat(result.getContent().getFirst().birth()).isEqualTo(LocalDate.of(2000, 5, 5));
-    }
-
-    @Test
     @DisplayName("이름과 이메일로 회원 조회")
     void test9() {
         User user = new User("홍길동", "010-1234-1234", "hong@test.com", LocalDate.now(), defaultGrade);
